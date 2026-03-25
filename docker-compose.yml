@@ -1,0 +1,76 @@
+version: '3.8'
+
+services:
+
+  # ── PostgreSQL ────────────────────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    container_name: elewa-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB:       ${DB_NAME}
+      POSTGRES_USER:     ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - elewa-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── FastAPI AI Service (Alvin) ────────────────────────────────────
+  accessible-docs:
+    build: ./accessible-docs
+    container_name: elewa-ai
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    volumes:
+      - ./accessible-docs/chroma_db:/app/chroma_db
+      - ./accessible-docs/temp_uploads:/app/temp_uploads
+    networks:
+      - elewa-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/docs || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ── Spring Boot Backend (Harrison) ───────────────────────────────
+  backend:
+    build: ./backend
+    container_name: elewa-backend
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env
+    environment:
+      SPRING_DATASOURCE_URL:      jdbc:postgresql://postgres:5432/accessibledocs
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+      FASTAPI_BASE_URL:           http://accessible-docs:8000
+      SPRING_PROFILES_ACTIVE:     docker
+    depends_on:
+      postgres:
+        condition: service_healthy
+      accessible-docs:
+        condition: service_started
+    networks:
+      - elewa-network
+
+# ── Volumes ───────────────────────────────────────────────────────
+volumes:
+  postgres_data:
+
+# ── Network ───────────────────────────────────────────────────────
+networks:
+  elewa-network:
+    driver: bridge

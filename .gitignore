@@ -1,0 +1,30 @@
+# ── Secrets (NEVER commit these) ─────────────────────────────────
+.env
+*.env.local
+
+# ── Spring Boot ───────────────────────────────────────────────────
+backend/build/
+backend/.gradle/
+backend/out/
+backend/src/main/resources/application-local.yml
+
+# ── Python / FastAPI ──────────────────────────────────────────────
+accessible-docs/__pycache__/
+accessible-docs/**/__pycache__/
+accessible-docs/*.pyc
+accessible-docs/.venv/
+accessible-docs/venv/
+accessible-docs/chroma_db/
+accessible-docs/temp_uploads/
+
+# ── Docker volumes ────────────────────────────────────────────────
+postgres_data/
+
+# ── OS ────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+
+# ── IDE ───────────────────────────────────────────────────────────
+.idea/
+*.iml
+.vscode/
