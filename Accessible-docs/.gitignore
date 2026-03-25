@@ -1,0 +1,12 @@
+# Environments
+.env
+venv/
+__pycache__/
+*.pyc
+
+# Database and Uploads
+chroma_db/
+temp_uploads/
+
+# OS Files
+.DS_Store

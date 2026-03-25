@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JuaHaki - AI Engine Tester</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 p-8 font-sans">
+    <div class="max-w-5xl mx-auto space-y-8">
+        <h1 class="text-3xl font-bold text-blue-600">Accessible docs</h1>
+
+        <div class="bg-white p-6 rounded shadow">
+            <h2 class="text-xl font-bold mb-4">1. Upload Document</h2>
+            <input type="file" id="fileInput" class="mb-4 block w-full border border-gray-300 rounded p-2">
+            <button onclick="processDocument()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition">Upload & Process</button>
+            <p id="uploadStatus" class="text-sm text-gray-500 mt-2"></p>
+            <p class="text-xs text-green-600 font-bold mt-1" id="docIdDisplay"></p>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+            <div class="bg-white p-6 rounded shadow">
+                <h2 class="text-xl font-bold mb-4">2. Extracted Original Text</h2>
+                <textarea id="originalText" class="w-full h-64 border rounded p-2 text-sm focus:ring focus:ring-blue-200" placeholder="Text will appear here..."></textarea>
+                <div class="mt-4 flex space-x-2">
+                    <button onclick="simplifyText()" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition">Simplify Text</button>
+                    <button onclick="extractTerms()" class="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700 transition">Extract Terms</button>
+                </div>
+                <p id="actionStatus" class="text-sm text-gray-500 mt-2"></p>
+            </div>
+
+            <div class="bg-white p-6 rounded shadow">
+                <h2 class="text-xl font-bold mb-4">3. AI Output</h2>
+                <div class="flex space-x-2 mb-2 border-b pb-2">
+                    <button onclick="showTab('child')" class="text-sm font-bold text-blue-600 hover:text-blue-800">Child</button>
+                    <button onclick="showTab('teen')" class="text-sm font-bold text-blue-600 hover:text-blue-800">Teen</button>
+                    <button onclick="showTab('adult')" class="text-sm font-bold text-blue-600 hover:text-blue-800">Adult</button>
+                    <button onclick="showTab('terms')" class="text-sm font-bold text-purple-600 hover:text-purple-800">Terms</button>
+                </div>
+                <textarea id="outputText" class="w-full h-48 border rounded p-2 text-sm bg-gray-50" readonly placeholder="Output will appear here..."></textarea>
+                <p id="readingScore" class="text-xs text-gray-500 mt-2"></p>
+            </div>
+        </div>
+
+        <div class="bg-white p-6 rounded shadow">
+            <h2 class="text-xl font-bold mb-4">4. Chat with Document (RAG)</h2>
+            <div id="chatHistory" class="h-48 border rounded p-4 mb-4 overflow-y-auto bg-gray-50 text-sm space-y-2">
+                <p class="text-gray-400 italic">Upload a document first to start chatting...</p>
+            </div>
+            <div class="flex space-x-2">
+                <input type="text" id="questionInput" class="flex-1 border rounded p-2 focus:ring focus:ring-blue-200" placeholder="Ask a question about the document...">
+                <button onclick="askQuestion()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition">Ask</button>
+            </div>
+        </div>
+
+        <div class="bg-white p-6 rounded shadow mb-12">
+            <h2 class="text-xl font-bold mb-2">5. Cognitive Diagnostic Check</h2>
+            <p class="text-sm text-gray-600 mb-4">Generate an active learning check based on the currently viewed simplification level.</p>
+            <button onclick="generateDiagnostic()" class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 transition">Generate Diagnostic</button>
+            <p id="quizStatus" class="text-sm text-gray-500 mt-2"></p>
+            
+            <div id="quizContainer" class="mt-6 space-y-6">
+                </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = "http://127.0.0.1:8000";
+        let currentDocumentId = null;
+        let simplificationData = null;
+        let termsData = null;
+        let currentLevel = 'child'; // Track which tab is active
+
+        async function processDocument() {
+            const fileInput = document.getElementById('fileInput').files[0];
+            if (!fileInput) return alert("Please select a file first.");
+
+            document.getElementById('uploadStatus').innerText = "Extracting text and storing in Vector DB...";
+            
+            const formData = new FormData();
+            formData.append("file", fileInput);
+
+            try {
+                const textRes = await fetch(`${API_URL}/extract-text`, { method: "POST", body: formData });
+                const textData = await textRes.json();
+                document.getElementById('originalText').value = textData.text;
+
+                const processRes = await fetch(`${API_URL}/process-document`, { method: "POST", body: formData });
+                const processData = await processRes.json();
+                currentDocumentId = processData.document_id;
+                
+                document.getElementById('uploadStatus').innerText = "Success! Document ready.";
+                document.getElementById('docIdDisplay').innerText = `Document ID: ${currentDocumentId}`;
+                document.getElementById('chatHistory').innerHTML = ""; 
+            } catch (err) {
+                document.getElementById('uploadStatus').innerText = "Error processing document.";
+                console.error(err);
+            }
+        }
+
+        async function simplifyText() {
+            const text = document.getElementById('originalText').value;
+            if (!text) return alert("No text to simplify.");
+
+            document.getElementById('actionStatus').innerText = "Simplifying into 3 levels...";
+            
+            try {
+                const res = await fetch(`${API_URL}/simplify`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ text: text })
+                });
+                simplificationData = await res.json();
+                document.getElementById('actionStatus').innerText = "Simplification complete!";
+                showTab('child'); 
+            } catch (err) {
+                document.getElementById('actionStatus').innerText = "Error simplifying.";
+            }
+        }
+
+        async function extractTerms() {
+            const text = document.getElementById('originalText').value;
+            if (!text) return alert("No text to extract terms from.");
+
+            document.getElementById('actionStatus').innerText = "Extracting terms...";
+            
+            try {
+                const res = await fetch(`${API_URL}/extract-terms`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ text: text })
+                });
+                termsData = await res.json();
+                document.getElementById('actionStatus').innerText = "Terms extracted!";
+                showTab('terms');
+            } catch (err) {
+                document.getElementById('actionStatus').innerText = "Error extracting terms.";
+            }
+        }
+
+        function showTab(tab) {
+            const outputBox = document.getElementById('outputText');
+            const scoreBox = document.getElementById('readingScore');
+            
+            if (tab === 'terms') {
+                if (!termsData) return;
+                let text = termsData.terms.map(t => `• ${t.term}: ${t.definition}`).join('\n\n');
+                outputBox.value = text;
+                scoreBox.innerText = `Found ${termsData.count} key terms.`;
+            } else {
+                if (!simplificationData) return;
+                currentLevel = tab; // Update the active level state
+                outputBox.value = simplificationData[tab];
+                
+                if(simplificationData.reading_analysis && simplificationData.reading_analysis.simplified[tab]) {
+                    const stats = simplificationData.reading_analysis.simplified[tab].analysis;
+                    scoreBox.innerText = `Grade Level: ${stats.grade_level} | Reading Ease: ${stats.reading_ease} | Viewing: ${tab.toUpperCase()}`;
+                }
+            }
+        }
+
+        async function askQuestion() {
+            if (!currentDocumentId) return alert("Please upload a document first.");
+            const input = document.getElementById('questionInput');
+            const question = input.value.trim();
+            if (!question) return;
+
+            const chat = document.getElementById('chatHistory');
+            chat.innerHTML += `<p><strong>You:</strong> ${question}</p>`;
+            input.value = "";
+
+            try {
+                const res = await fetch(`${API_URL}/ask`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ document_id: currentDocumentId, question: question })
+                });
+                const data = await res.json();
+                chat.innerHTML += `<p class="text-blue-700"><strong>AI:</strong> ${data.answer}</p>`;
+                chat.scrollTop = chat.scrollHeight;
+            } catch (err) {
+                chat.innerHTML += `<p class="text-red-500"><strong>Error:</strong> Failed to get answer.</p>`;
+            }
+        }
+
+        // --- NEW DIAGNOSTIC LOGIC ---
+        async function generateDiagnostic() {
+            if (!simplificationData) return alert("Please simplify the text first so the AI has material to test.");
+            
+            const textToTest = simplificationData[currentLevel];
+            document.getElementById('quizStatus').innerText = `Generating ${currentLevel}-level diagnostic check...`;
+            const quizContainer = document.getElementById('quizContainer');
+            quizContainer.innerHTML = ''; 
+
+            try {
+                const res = await fetch(`${API_URL}/generate-diagnostic`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ text: textToTest, level: currentLevel })
+                });
+                const data = await res.json();
+                document.getElementById('quizStatus').innerText = "Diagnostic check ready!";
+                renderQuiz(data.questions);
+            } catch (err) {
+                document.getElementById('quizStatus').innerText = "Error generating diagnostic.";
+                console.error(err);
+            }
+        }
+
+        function renderQuiz(questions) {
+            const container = document.getElementById('quizContainer');
+            
+            questions.forEach((q, index) => {
+                const qDiv = document.createElement('div');
+                qDiv.className = "p-5 border rounded-lg bg-gray-50 border-gray-200 shadow-sm";
+                
+                // Safely inject options via data attributes to prevent quote escaping errors
+                let optionsHtml = q.options.map(opt => {
+                    const safeOpt = opt.replace(/"/g, '&quot;');
+                    const safeCorrect = q.correct_answer.replace(/"/g, '&quot;');
+                    const safeHint = q.helpful_hint.replace(/"/g, '&quot;');
+                    const safeExplanation = q.explanation.replace(/"/g, '&quot;');
+                    
+                    return `<button 
+                        data-selected="${safeOpt}" 
+                        data-correct="${safeCorrect}" 
+                        data-hint="${safeHint}" 
+                        data-explanation="${safeExplanation}" 
+                        onclick="checkAnswer(this)" 
+                        class="block w-full text-left p-3 border rounded mt-2 bg-white hover:bg-indigo-50 transition font-medium text-gray-700">
+                        ${opt}
+                    </button>`;
+                }).join('');
+
+                qDiv.innerHTML = `
+                    <p class="font-bold text-gray-800 mb-1"><span class="text-indigo-600">Q${index + 1}:</span> ${q.question}</p>
+                    <span class="inline-block bg-indigo-100 text-indigo-800 text-xs px-2 py-1 rounded mb-3 font-semibold tracking-wide">TESTING: ${q.concept_tested.toUpperCase()}</span>
+                    <div class="options-container space-y-2">
+                        ${optionsHtml}
+                    </div>
+                    <div class="feedback mt-4 hidden p-4 rounded text-sm leading-relaxed border"></div>
+                `;
+                container.appendChild(qDiv);
+            });
+        }
+
+        function checkAnswer(btn) {
+            const selected = btn.getAttribute('data-selected');
+            const correct = btn.getAttribute('data-correct');
+            const hint = btn.getAttribute('data-hint');
+            const explanation = btn.getAttribute('data-explanation');
+            
+            const feedbackDiv = btn.parentElement.nextElementSibling;
+            feedbackDiv.classList.remove('hidden');
+            
+            // Reset styles for all sibling buttons
+            const allBtns = btn.parentElement.querySelectorAll('button');
+            allBtns.forEach(b => {
+                b.classList.remove('bg-red-100', 'border-red-400', 'bg-green-100', 'border-green-500');
+            });
+
+            if (selected === correct) {
+                // Success State
+                feedbackDiv.className = "feedback mt-4 p-4 rounded text-sm leading-relaxed border bg-green-50 border-green-200 text-green-800";
+                feedbackDiv.innerHTML = `<strong class="text-green-700">✅ Correct!</strong> <br>${explanation}`;
+                btn.classList.add('bg-green-100', 'border-green-500');
+            } else {
+                // Hint State
+                feedbackDiv.className = "feedback mt-4 p-4 rounded text-sm leading-relaxed border bg-yellow-50 border-yellow-200 text-yellow-800";
+                feedbackDiv.innerHTML = `<strong class="text-yellow-700">🤔 Not quite.</strong> <br><em>Hint: ${hint}</em>`;
+                btn.classList.add('bg-red-100', 'border-red-400');
+            }
+        }
+    </script>
+</body>
+</html>
