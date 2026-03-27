@@ -11,10 +11,12 @@ spring:
   jpa:
     hibernate:
       ddl-auto: validate
+    # FIX: disables open-in-view to prevent unintended lazy-loading during view rendering
+    open-in-view: false
     show-sql: false
     properties:
       hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
+        # FIX: removed explicit dialect — Hibernate auto-detects PostgreSQL
         format_sql: true
 
   servlet:
