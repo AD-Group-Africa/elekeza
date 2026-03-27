@@ -48,9 +48,9 @@ class AuthService(
         if (learnerRepository.existsByEmail(request.email))
             throw IllegalArgumentException("Email already registered")
         val saved = learnerRepository.save(Learner().apply {
-            email        = request.email!!
-            passwordHash = passwordEncoder.encode(request.password!!)
-            fullName     = request.fullName!!
+            email        = request.email
+            passwordHash = passwordEncoder.encode(request.password)
+            fullName     = request.fullName ?: ""
         })
         issueTokenCookies(saved, response)
         log.info("Registered: ${saved.id}")
@@ -107,7 +107,7 @@ class AuthService(
     private fun cookie(name: String, value: String, maxAge: Int) =
         Cookie(name, value).apply {
             isHttpOnly  = true
-            secure      = isSecure   // false on local, true in Docker
+            secure      = isSecure
             path        = "/"
             this.maxAge = maxAge
         }
