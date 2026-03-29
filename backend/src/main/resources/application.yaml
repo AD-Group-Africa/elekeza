@@ -11,12 +11,10 @@ spring:
   jpa:
     hibernate:
       ddl-auto: validate
-    # FIX: disables open-in-view to prevent unintended lazy-loading during view rendering
     open-in-view: false
     show-sql: false
     properties:
       hibernate:
-        # FIX: removed explicit dialect — Hibernate auto-detects PostgreSQL
         format_sql: true
 
   servlet:
@@ -35,6 +33,8 @@ security:
 
 fastapi:
   base-url: ${FASTAPI_URL:http://localhost:8000}
+  # Must match INTERNAL_SECRET in Alvin's .env — never commit the real value
+  internal-secret: ${INTERNAL_SECRET:change-me-shared-secret}
   timeout-seconds: 30
 
 server:
