@@ -5,15 +5,14 @@ import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query
 import org.springframework.transaction.annotation.Transactional
-import java.util.Optional
 import java.util.UUID
 
 interface RefreshTokenRepository : JpaRepository<RefreshToken, UUID> {
 
-    fun findByTokenHash(tokenHash: String): Optional<RefreshToken>
+    fun findByTokenHash(tokenHash: String): RefreshToken?
 
     @Modifying
     @Transactional
-    @Query("UPDATE RefreshToken r SET r.revoked = true WHERE r.learner.id = :learnerId")
+    @Query("UPDATE RefreshToken rt SET rt.revoked = true WHERE rt.learner.id = :learnerId AND rt.revoked = false")
     fun revokeAllByLearnerId(learnerId: UUID)
 }

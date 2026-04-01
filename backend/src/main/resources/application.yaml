@@ -1,4 +1,4 @@
-spring:
+﻿spring:
   application:
     name: elewa-backend
 
@@ -33,9 +33,10 @@ security:
 
 fastapi:
   base-url: ${FASTAPI_URL:http://localhost:8000}
-  # Must match INTERNAL_SECRET in Alvin's .env — never commit the real value
+  # Must match INTERNAL_SECRET in Alvin's .env â€” never commit the real value
   internal-secret: ${INTERNAL_SECRET:change-me-shared-secret}
   timeout-seconds: 30
+
 
 server:
   port: 8080
@@ -48,5 +49,10 @@ management:
 
 logging:
   level:
-    com.elewa: DEBUG
+    com.elewa.backend: DEBUG
     org.springframework.security: INFO
+    org.springframework.web: DEBUG
+
+ai:
+  client:
+    type: mock
