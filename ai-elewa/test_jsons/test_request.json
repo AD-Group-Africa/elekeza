@@ -1,0 +1,10 @@
+{
+  "learner_context": {
+    "learner_id": "test-001",
+    "cognitive_profiles": ["dyslexia"],
+    "language_level": 2,
+    "content_difficulty": 2,
+    "pathway_stage": "Foundation"
+  },
+  "raw_text": "Photosynthesis is the process by which green plants and some other organisms use sunlight to synthesise nutrients from carbon dioxide and water. Photosynthesis in plants generally involves the green pigment chlorophyll and generates oxygen as a byproduct. The process occurs in the chloroplasts of plant cells and is essential for life on Earth as it forms the base of most food chains."
+}
