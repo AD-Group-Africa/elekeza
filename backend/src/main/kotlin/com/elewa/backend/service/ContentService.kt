@@ -1,4 +1,4 @@
-package com.elewa.backend.service
+﻿package com.elewa.backend.service
 
 import com.elewa.backend.dto.*
 import com.elewa.backend.dto.ai.*
@@ -9,6 +9,7 @@ import com.elewa.backend.model.LiteracyLevel
 import com.elewa.backend.model.SourceType
 import com.elewa.backend.repository.*
 import com.fasterxml.jackson.databind.ObjectMapper
+import jakarta.persistence.EntityManager
 import kotlinx.coroutines.runBlocking
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -21,7 +22,8 @@ class ContentService(
     private val keyTermRepository: KeyTermRepository,
     private val learnerRepository: LearnerRepository,
     private val aiClient: AiClient,
-    private val objectMapper: ObjectMapper
+    private val objectMapper: ObjectMapper,
+    private val entityManager: EntityManager
 ) {
 
     @Transactional
@@ -44,6 +46,7 @@ class ContentService(
             this.quizQuestions = objectMapper.writeValueAsString(quizJson.questions)
         }
         lessonRepository.save(lesson)
+        entityManager.flush()
         val sections = lessonJson.sections.mapIndexed { idx, aiSection ->
             LessonSection().apply {
                 this.lesson = lesson
@@ -90,6 +93,7 @@ class ContentService(
             this.quizQuestions = objectMapper.writeValueAsString(quizJson.questions)
         }
         lessonRepository.save(lesson)
+        entityManager.flush()
         val sections = lessonJson.sections.mapIndexed { idx, aiSection ->
             LessonSection().apply {
                 this.lesson = lesson
@@ -170,3 +174,6 @@ class ContentService(
         )
     }
 }
+
+
+
