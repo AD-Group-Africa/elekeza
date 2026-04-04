@@ -1,0 +1,101 @@
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+  --elekeza-deep-blue: #0A1F44;
+  --elekeza-indigo: #5A4FCF;
+  --elekeza-cyan: #00D1FF;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-elekeza-deep-blue: var(--elekeza-deep-blue);
+  --color-elekeza-indigo: var(--elekeza-indigo);
+  --color-elekeza-cyan: var(--elekeza-cyan);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+body.a11y-font-sm {
+  font-size: 14px;
+}
+
+body.a11y-font-md {
+  font-size: 16px;
+}
+
+body.a11y-font-lg {
+  font-size: 18px;
+}
+
+body.a11y-calm-ui {
+  background: #f8fafc;
+  color: #0f172a;
+}
+
+body.a11y-high-contrast {
+  background: #000000 !important;
+  color: #ffffff !important;
+}
+
+body.a11y-high-contrast,
+body.a11y-high-contrast main,
+body.a11y-high-contrast section,
+body.a11y-high-contrast article,
+body.a11y-high-contrast header,
+body.a11y-high-contrast footer,
+body.a11y-high-contrast aside,
+body.a11y-high-contrast nav,
+body.a11y-high-contrast div {
+  background-color: #000000 !important;
+  color: #ffffff !important;
+}
+
+body.a11y-high-contrast button,
+body.a11y-high-contrast a,
+body.a11y-high-contrast input,
+body.a11y-high-contrast select,
+body.a11y-high-contrast textarea {
+  background-color: #000000 !important;
+  color: #ffffff !important;
+  border: 2px solid #ffffff !important;
+}
+
+body.a11y-high-contrast * {
+  border-color: #ffffff !important;
+}
+
+body.a11y-high-contrast input::placeholder,
+body.a11y-high-contrast textarea::placeholder {
+  color: #d1d5db !important;
+}
+
+body.a11y-high-contrast a {
+  text-decoration: underline;
+}
+
+body.a11y-autism-friendly {
+  letter-spacing: 0.01em;
+  line-height: 1.7;
+}
+
+body.a11y-focus-mode main {
+  max-width: 72rem;
+  margin-left: auto;
+  margin-right: auto;
+}
