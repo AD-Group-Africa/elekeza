@@ -4,6 +4,9 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { onboardingAPI } from '@/lib/api'
 import { useAuth } from '@/hooks/useAuth'
+import PageShell from '@/components/ui/PageShell'
+import ProgressStepper from '@/components/ui/ProgressStepper'
+import StatusBanner from '@/components/ui/StatusBanner'
 
 export default function ProfileSetupPage() {
   const router = useRouter()
@@ -14,6 +17,7 @@ export default function ProfileSetupPage() {
   const [learningGoal, setLearningGoal] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const canContinue = Boolean(preferredLanguage && ageGroup && learningGoal && !loading)
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -28,7 +32,11 @@ export default function ProfileSetupPage() {
 
     try {
       await onboardingAPI.profile({ preferredLanguage, ageGroup, learningGoal })
-      router.push('/onboarding/placement')
+      if (ageGroup === 'CHILD' || ageGroup === 'TEEN') {
+        router.push('/onboarding/guardian-link')
+      } else {
+        router.push('/onboarding/placement')
+      }
     } catch {
       setError('Failed to save profile. Please try again.')
     } finally {
@@ -48,64 +56,68 @@ export default function ProfileSetupPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-elekeza-deep-blue via-white to-elekeza-indigo p-6">
-      <form
-        onSubmit={handleSubmit}
-        className="bg-white/90 backdrop-blur-lg p-10 rounded-2xl shadow-xl border border-white/50 w-full max-w-md"
-      >
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-elekeza-deep-blue mb-2">Elekeza</h1>
-          <p className="text-elekeza-indigo text-sm">Where learning finds direction</p>
-        </div>
+    <PageShell withSidebar={false}>
+      <div className="mx-auto w-full max-w-3xl">
+        <ProgressStepper
+          steps={['Profile Setup', 'Placement Quiz', 'Start Learning']}
+          currentStep={1}
+        />
 
-        <h2 className="text-2xl font-bold mb-2 text-center text-gray-800">
-          Tell us about yourself
-        </h2>
-        <p className="text-center text-gray-500 mb-8 text-sm">
-          This helps us personalize your learning experience
-        </p>
-
-        {error && (
-          <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
-            {error}
+        <form
+          onSubmit={handleSubmit}
+          className="mt-6 rounded-2xl border border-slate-200 bg-white p-8 shadow-xl"
+        >
+          <div className="mb-7 text-center">
+            <h1 className="text-3xl font-bold text-slate-900">Tell us about yourself</h1>
+            <p className="mt-2 text-sm text-slate-600">
+              We use this to personalize your learning path and pacing.
+            </p>
           </div>
-        )}
 
-        <div className="mb-4">
-          <label className="block text-gray-700 mb-2">Preferred Language</label>
-          <select
-            value={preferredLanguage}
-            onChange={(e) => setPreferredLanguage(e.target.value)}
-            className="w-full p-3 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-elekeza-indigo"
-            required
-          >
-            <option value="">Select language</option>
-            <option value="en">English</option>
-            <option value="sw">Swahili</option>
-          </select>
-        </div>
+          {error && (
+            <div className="mb-4">
+              <StatusBanner tone="error">{error}</StatusBanner>
+            </div>
+          )}
 
-        <div className="mb-4">
-          <label className="block text-gray-700 mb-2">Age Group</label>
-          <select
-            value={ageGroup}
-            onChange={(e) => setAgeGroup(e.target.value)}
-            className="w-full p-3 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-elekeza-indigo"
-            required
-          >
-            <option value="">Select age group</option>
-            <option value="CHILD">Child</option>
-            <option value="TEEN">Teen</option>
-            <option value="ADULT">Adult</option>
-          </select>
-        </div>
+          <div className="mb-4">
+            <label className="mb-2 block text-sm font-semibold text-slate-700">Preferred Language</label>
+            <p className="mb-2 text-xs text-slate-500">Pick the language used in your learning content.</p>
+            <select
+              value={preferredLanguage}
+              onChange={(e) => setPreferredLanguage(e.target.value)}
+              className="w-full rounded-lg border border-slate-300 p-3 text-slate-800 outline-none focus:border-slate-500 focus:ring-2 focus:ring-slate-200"
+              required
+            >
+              <option value="">Select language</option>
+              <option value="en">English</option>
+              <option value="sw">Swahili</option>
+            </select>
+          </div>
 
-        <div className="mb-6">
-          <label className="block text-gray-700 mb-2">Learning Goal</label>
+          <div className="mb-4">
+            <label className="mb-2 block text-sm font-semibold text-slate-700">Age Group</label>
+            <p className="mb-2 text-xs text-slate-500">This helps us tune complexity and examples.</p>
+            <select
+              value={ageGroup}
+              onChange={(e) => setAgeGroup(e.target.value)}
+              className="w-full rounded-lg border border-slate-300 p-3 text-slate-800 outline-none focus:border-slate-500 focus:ring-2 focus:ring-slate-200"
+              required
+            >
+              <option value="">Select age group</option>
+              <option value="CHILD">Child</option>
+              <option value="TEEN">Teen</option>
+              <option value="ADULT">Adult</option>
+            </select>
+          </div>
+
+          <div className="mb-7">
+            <label className="mb-2 block text-sm font-semibold text-slate-700">Learning Goal</label>
+            <p className="mb-2 text-xs text-slate-500">Choose your primary focus right now.</p>
           <select
             value={learningGoal}
             onChange={(e) => setLearningGoal(e.target.value)}
-            className="w-full p-3 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-elekeza-indigo"
+            className="w-full rounded-lg border border-slate-300 p-3 text-slate-800 outline-none focus:border-slate-500 focus:ring-2 focus:ring-slate-200"
             required
           >
             <option value="">Select your goal</option>
@@ -114,16 +126,17 @@ export default function ProfileSetupPage() {
             <option value="exam-preparation">Exam preparation</option>
             <option value="professional-development">Professional development</option>
           </select>
-        </div>
+          </div>
 
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full bg-elekeza-deep-blue hover:bg-elekeza-indigo text-white py-3 rounded-lg font-semibold transition duration-200 disabled:opacity-50"
-        >
-          {loading ? 'Saving...' : 'Continue'}
-        </button>
-      </form>
-    </div>
+          <button
+            type="submit"
+            disabled={!canContinue}
+            className="w-full rounded-lg bg-slate-900 py-3 font-semibold text-white transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {loading ? 'Saving...' : 'Continue to Placement Quiz'}
+          </button>
+        </form>
+      </div>
+    </PageShell>
   )
 }

@@ -3,6 +3,7 @@
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/hooks/useAuth'
+import { getHomePathForRole } from '@/lib/roleAuth'
 
 export default function Home() {
   const { user, loading } = useAuth()
@@ -11,7 +12,7 @@ export default function Home() {
   useEffect(() => {
     if (!loading) {
       if (user) {
-        router.push('/dashboard')
+        router.push(getHomePathForRole(user.role))
       } else {
         router.push('/login')
       }

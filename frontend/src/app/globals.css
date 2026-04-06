@@ -31,6 +31,25 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
+body.a11y-font-family-default {
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+body.a11y-font-family-readable-sans {
+  font-family: Verdana, Tahoma, Geneva, sans-serif;
+}
+
+body.a11y-font-family-dyslexia-friendly {
+  font-family: "Trebuchet MS", Verdana, Tahoma, sans-serif;
+  letter-spacing: 0.02em;
+  word-spacing: 0.12em;
+}
+
+body.a11y-font-family-high-clarity {
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  letter-spacing: 0.01em;
+}
+
 body.a11y-font-sm {
   font-size: 14px;
 }
@@ -46,6 +65,19 @@ body.a11y-font-lg {
 body.a11y-calm-ui {
   background: #f8fafc;
   color: #0f172a;
+}
+
+body.a11y-calm-ui [data-app-sidebar='true'] {
+  background: linear-gradient(to bottom, #f8fafc, #f1f5f9, #eef2ff);
+  border-right-color: #cbd5e1;
+}
+
+body.a11y-calm-ui [data-app-sidebar='true'] a {
+  color: #334155;
+}
+
+body.a11y-calm-ui [data-app-sidebar='true'] a:hover {
+  background-color: #e2e8f0;
 }
 
 body.a11y-high-contrast {
@@ -98,4 +130,82 @@ body.a11y-focus-mode main {
   max-width: 72rem;
   margin-left: auto;
   margin-right: auto;
+}
+
+body.a11y-focus-mode [data-app-sidebar='true'] nav a {
+  padding-top: 0.6rem;
+  padding-bottom: 0.6rem;
+}
+
+body.a11y-focus-mode [data-app-sidebar='true'] [data-distraction='true'] {
+  opacity: 0.7;
+}
+
+body.a11y-dyslexia-support {
+  letter-spacing: 0.02em;
+  word-spacing: 0.12em;
+  line-height: 1.8;
+}
+
+body.a11y-adhd-support {
+  line-height: 1.75;
+}
+
+body.a11y-cognitive-flex-support {
+  line-height: 1.75;
+}
+
+body.a11y-simplified-language p,
+body.a11y-simplified-language li {
+  max-width: 70ch;
+}
+
+body.a11y-reading-guide p,
+body.a11y-reading-guide li {
+  border-left: 3px solid rgba(15, 23, 42, 0.35);
+  padding-left: 0.65rem;
+}
+
+body.a11y-reduced-motion *,
+body.a11y-reduced-motion *::before,
+body.a11y-reduced-motion *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+
+body.a11y-large-text {
+  font-size: 18px;
+}
+
+body.a11y-reduce-visual-clutter * {
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+body.a11y-highlight-active :focus-visible {
+  outline: 3px solid #0f172a !important;
+  outline-offset: 2px;
+}
+
+body.a11y-limit-options [data-optional='true'] {
+  display: none !important;
+}
+
+body.a11y-distraction-free [data-distraction='true'] {
+  display: none !important;
+}
+
+body.a11y-remove-time-pressure [data-time-pressure='true'] {
+  display: none !important;
+}
+
+body.a11y-task-breakdown [data-step] {
+  border-left: 3px solid #0f172a;
+  padding-left: 0.6rem;
+}
+
+body.a11y-recommended-choice [data-recommended='true'] {
+  border: 2px solid #0f172a !important;
 }

@@ -3,16 +3,18 @@
 import { useState, useEffect, createContext, useContext, ReactNode, useCallback } from 'react'
 import { authAPI } from '@/lib/api'
 import { AuthResponse, User } from '@/types'
+import { getDemoRoleAccountByCredentials } from '@/lib/roleAuth'
 
 interface AuthContextType {
   user: User | null
   loading: boolean
-  login: (email: string, password: string) => Promise<void>
-  register: (email: string, password: string, fullName: string) => Promise<void>
+  login: (email: string, password: string) => Promise<User>
+  register: (email: string, password: string, fullName: string) => Promise<User>
   logout: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
+const DEMO_USER_STORAGE_KEY = 'docuease-demo-user'
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
@@ -27,6 +29,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   })
 
   const checkAuth = useCallback(async () => {
+    if (typeof window !== 'undefined') {
+      const demoUserRaw = localStorage.getItem(DEMO_USER_STORAGE_KEY)
+      if (demoUserRaw) {
+        try {
+          const parsed = JSON.parse(demoUserRaw) as User
+          setUser(parsed)
+          setLoading(false)
+          return
+        } catch {
+          localStorage.removeItem(DEMO_USER_STORAGE_KEY)
+        }
+      }
+    }
+
     try {
       // Try to refresh - if it succeeds, backend returns learner data.
       const data = await authAPI.refresh()
@@ -44,16 +60,44 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [checkAuth])
 
   const login = async (email: string, password: string) => {
+    const demoAccount = getDemoRoleAccountByCredentials(email, password)
+    if (demoAccount) {
+      const demoUser: User = {
+        id: `demo-${demoAccount.role.toLowerCase().replace(/\s+/g, '-')}`,
+        email: demoAccount.email,
+        fullName: demoAccount.role,
+        onboardingComplete: true,
+        role: demoAccount.role,
+      }
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(DEMO_USER_STORAGE_KEY, JSON.stringify(demoUser))
+      }
+      setUser(demoUser)
+      return demoUser
+    }
+
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem(DEMO_USER_STORAGE_KEY)
+    }
+
     const data = await authAPI.login(email, password)
-    setUser(mapAuthResponseToUser(data))
+    const mappedUser = mapAuthResponseToUser(data)
+    setUser(mappedUser)
+    return mappedUser
   }
 
   const register = async (email: string, password: string, fullName: string) => {
     const data = await authAPI.register(email, password, fullName)
-    setUser(mapAuthResponseToUser(data))
+    const mappedUser = mapAuthResponseToUser(data)
+    setUser(mappedUser)
+    return mappedUser
   }
 
   const logout = async () => {
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem(DEMO_USER_STORAGE_KEY)
+    }
+
     try {
       await authAPI.logout()
     } catch {
