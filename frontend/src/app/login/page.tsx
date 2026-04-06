@@ -3,6 +3,10 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/hooks/useAuth'
+import PageShell from '@/components/ui/PageShell'
+import StatusBanner from '@/components/ui/StatusBanner'
+import { getHomePathForRole } from '@/lib/roleAuth'
+import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -10,8 +14,10 @@ export default function LoginPage() {
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const canLogin = Boolean(email.trim() && password.trim() && !loading)
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -19,9 +25,9 @@ export default function LoginPage() {
     setError('')
 
     try {
-      await login(email, password)
-      router.push('/dashboard')
-    } catch (err) {
+      const loggedInUser = await login(email, password)
+      router.push(getHomePathForRole(loggedInUser.role))
+    } catch {
       setError('Login failed. Please check your credentials.')
     } finally {
       setLoading(false)
@@ -29,65 +35,70 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-elekeza-deep-blue via-white to-elekeza-indigo p-6">
+    <PageShell withSidebar={false}>
       <form
         onSubmit={handleLogin}
-        className="bg-white/90 backdrop-blur-lg p-10 rounded-2xl shadow-xl border border-white/50 w-full max-w-md"
+        className="mx-auto w-full max-w-md rounded-2xl border border-slate-200 bg-white p-10 shadow-xl"
       >
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-elekeza-deep-blue mb-2">Elekeza</h1>
-          <p className="text-elekeza-indigo text-sm">Where learning finds direction</p>
+        <div className="mb-8 text-center">
+          <h1 className="text-3xl font-bold text-slate-900">Welcome Back</h1>
+          <p className="mt-2 text-sm text-slate-600">Continue your focused learning.</p>
         </div>
 
-        <h2 className="text-2xl font-bold mb-2 text-center text-gray-800">
-          Welcome Back
-        </h2>
-        <p className="text-center text-gray-500 mb-8 text-sm">
-          Continue your focused learning
-        </p>
-
         {error && (
-          <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
-            {error}
+          <div className="mb-4">
+            <StatusBanner tone="error">{error}</StatusBanner>
           </div>
         )}
 
+        <label className="mb-2 block text-sm font-semibold text-slate-700">Email</label>
         <input
           type="email"
-          placeholder="Email"
+          placeholder="Enter your email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="text-gray-800 w-full mb-4 p-3 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-elekeza-indigo transition"
+          className="mb-4 w-full rounded-lg border border-slate-300 p-3 text-slate-800 outline-none transition focus:border-slate-500 focus:ring-2 focus:ring-slate-200"
           required
         />
 
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="text-gray-800 w-full mb-6 p-3 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-elekeza-indigo transition"
-          required
-        />
+        <label className="mb-2 block text-sm font-semibold text-slate-700">Password</label>
+        <div className="relative mb-6">
+          <input
+            type={showPassword ? 'text' : 'password'}
+            placeholder="Enter your password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="w-full rounded-lg border border-slate-300 p-3 pr-11 text-slate-800 outline-none transition focus:border-slate-500 focus:ring-2 focus:ring-slate-200"
+            required
+          />
+          <button
+            type="button"
+            onClick={() => setShowPassword((prev) => !prev)}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 transition hover:text-slate-700"
+            aria-label={showPassword ? 'Hide password' : 'Show password'}
+          >
+            {showPassword ? <EyeSlashIcon className="h-5 w-5" /> : <EyeIcon className="h-5 w-5" />}
+          </button>
+        </div>
 
         <button
           type="submit"
-          disabled={loading}
-          className="w-full bg-elekeza-deep-blue hover:bg-elekeza-indigo text-white py-3 rounded-lg font-semibold transition duration-200 disabled:opacity-50"
+          disabled={!canLogin}
+          className="w-full rounded-lg bg-slate-900 py-3 font-semibold text-white transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {loading ? 'Signing in...' : 'Login'}
         </button>
 
-        <p className="mt-6 text-center text-sm text-gray-600">
-          Don't have an account?{' '}
+        <p className="mt-6 text-center text-sm text-slate-600">
+          Don&apos;t have an account?{' '}
           <a
             href="/register"
-            className="text-elekeza-indigo font-semibold hover:underline"
+            className="font-semibold text-slate-900 hover:underline"
           >
             Register
           </a>
         </p>
       </form>
-    </div>
+    </PageShell>
   )
 }
