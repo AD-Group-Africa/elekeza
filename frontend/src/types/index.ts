@@ -129,3 +129,13 @@ export interface QuizHistory {
   score: number;
   completedAt: string;
 }
+
+export interface Document {
+  id: string;
+  title: string;
+  uploadedAt: string;
+  actions?: string[];
+  summary?: string;
+  fileType?: string;
+  status?: 'Processed' | 'In Review';
+}

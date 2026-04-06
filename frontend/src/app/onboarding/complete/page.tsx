@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { onboardingAPI } from '@/lib/api'
 import { useAuth } from '@/hooks/useAuth'
+import PageShell from '@/components/ui/PageShell'
+import ProgressStepper from '@/components/ui/ProgressStepper'
 
 export default function OnboardingCompletePage() {
   const router = useRouter()
@@ -23,7 +25,6 @@ export default function OnboardingCompletePage() {
       await onboardingAPI.complete()
       router.push('/dashboard')
     } catch {
-      // Even if it fails, redirect to dashboard
       router.push('/dashboard')
     } finally {
       setLoading(false)
@@ -42,31 +43,28 @@ export default function OnboardingCompletePage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-elekeza-deep-blue via-white to-elekeza-indigo p-6">
-      <div className="bg-white/90 backdrop-blur-lg p-10 rounded-2xl shadow-xl border border-white/50 w-full max-w-md text-center">
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-elekeza-deep-blue mb-2">Elekeza</h1>
-          <p className="text-elekeza-indigo text-sm">Where learning finds direction</p>
-        </div>
+    <PageShell withSidebar={false}>
+      <div className="mx-auto w-full max-w-3xl">
+        <ProgressStepper
+          steps={['Profile Setup', 'Placement Quiz', 'Start Learning']}
+          currentStep={3}
+        />
 
-        <div className="mb-8">
-          <div className="text-6xl mb-4">🎉</div>
-          <h2 className="text-2xl font-bold mb-2 text-gray-800">
-            Welcome to Elekeza!
-          </h2>
-          <p className="text-gray-600">
-            Your personalized learning journey begins now. We&apos;re excited to help you achieve your goals.
+        <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-10 text-center shadow-xl">
+          <h1 className="text-3xl font-bold text-slate-900">Welcome to Elekeza</h1>
+          <p className="mx-auto mt-3 max-w-xl text-sm text-slate-600">
+            Your setup is complete. You can now start learning with personalized support settings and guided content flow.
           </p>
-        </div>
 
-        <button
-          onClick={handleComplete}
-          disabled={loading}
-          className="w-full bg-elekeza-deep-blue hover:bg-elekeza-indigo text-white py-3 rounded-lg font-semibold transition duration-200 disabled:opacity-50"
-        >
-          {loading ? 'Setting up...' : 'Start Learning'}
-        </button>
+          <button
+            onClick={handleComplete}
+            disabled={loading}
+            className="mt-8 w-full rounded-lg bg-slate-900 py-3 font-semibold text-white transition hover:bg-slate-700 disabled:opacity-50"
+          >
+            {loading ? 'Setting up...' : 'Start Learning'}
+          </button>
+        </div>
       </div>
-    </div>
+    </PageShell>
   )
 }

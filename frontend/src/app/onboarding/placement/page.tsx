@@ -4,6 +4,9 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { onboardingAPI } from '@/lib/api'
 import { useAuth } from '@/hooks/useAuth'
+import PageShell from '@/components/ui/PageShell'
+import ProgressStepper from '@/components/ui/ProgressStepper'
+import StatusBanner from '@/components/ui/StatusBanner'
 
 const questions = [
   {
@@ -99,62 +102,68 @@ export default function PlacementQuizPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-elekeza-deep-blue via-white to-elekeza-indigo p-6">
-      <div className="bg-white/90 backdrop-blur-lg p-10 rounded-2xl shadow-xl border border-white/50 w-full max-w-md">
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-elekeza-deep-blue mb-2">Elekeza</h1>
-          <p className="text-elekeza-indigo text-sm">Literacy Assessment</p>
-        </div>
+    <PageShell withSidebar={false}>
+      <div className="mx-auto w-full max-w-3xl">
+        <ProgressStepper
+          steps={['Profile Setup', 'Placement Quiz', 'Start Learning']}
+          currentStep={2}
+        />
 
-        <div className="mb-6">
-          <div className="flex justify-between text-sm text-gray-600 mb-2">
-            <span>Question {currentQuestion + 1} of {questions.length}</span>
-            <span>{Math.round(((currentQuestion + 1) / questions.length) * 100)}% Complete</span>
+        <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-8 shadow-xl">
+          <div className="mb-7 text-center">
+            <h1 className="text-3xl font-bold text-slate-900">Literacy Placement Quiz</h1>
+            <p className="mt-2 text-sm text-slate-600">Pick one answer for each question. This helps us tune your starting level.</p>
           </div>
-          <div className="w-full bg-gray-200 rounded-full h-2">
-            <div
-              className="bg-elekeza-indigo h-2 rounded-full transition-all"
-              style={{ width: `${((currentQuestion + 1) / questions.length) * 100}%` }}
-            ></div>
-          </div>
-        </div>
 
-        {error && (
-          <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
-            {error}
+          <div className="mb-6">
+            <div className="mb-2 flex justify-between text-sm text-slate-600">
+              <span>Question {currentQuestion + 1} of {questions.length}</span>
+              <span>{Math.round(((currentQuestion + 1) / questions.length) * 100)}% complete</span>
+            </div>
+            <div className="h-2 w-full rounded-full bg-slate-200">
+              <div
+                className="h-2 rounded-full bg-slate-900 transition-all"
+                style={{ width: `${((currentQuestion + 1) / questions.length) * 100}%` }}
+              />
+            </div>
           </div>
-        )}
 
-        <div className="mb-6">
-          <h3 className="text-lg font-semibold mb-4 text-gray-800">
-            {question.question}
-          </h3>
-          <div className="space-y-3">
+          {error && (
+            <div className="mb-4">
+              <StatusBanner tone="error">{error}</StatusBanner>
+            </div>
+          )}
+
+          <div className="mb-6 rounded-xl border border-slate-200 bg-slate-50 p-4">
+            <p className="text-base font-semibold text-slate-800">{question.question}</p>
+          </div>
+
+          <div className="mb-7 space-y-3">
             {question.options.map((option) => (
               <button
                 key={option.id}
                 onClick={() => handleAnswer(option.id)}
-                className={`w-full p-3 text-left rounded-lg border transition-all ${
+                className={`w-full rounded-lg border p-3 text-left text-sm transition-all ${
                   selectedAnswer === option.id
-                    ? 'border-elekeza-indigo bg-elekeza-indigo bg-opacity-10'
-                    : 'border-gray-200 hover:border-elekeza-indigo'
+                    ? 'border-slate-900 bg-slate-900/5 text-slate-900'
+                    : 'border-slate-200 text-slate-700 hover:border-slate-400'
                 }`}
               >
-                <span className="font-semibold mr-2">{option.id.toUpperCase()}.</span>
+                <span className="mr-2 font-semibold">{option.id.toUpperCase()}.</span>
                 {option.text}
               </button>
             ))}
           </div>
-        </div>
 
-        <button
-          onClick={handleNext}
-          disabled={!selectedAnswer || loading}
-          className="w-full bg-elekeza-deep-blue hover:bg-elekeza-indigo text-white py-3 rounded-lg font-semibold transition duration-200 disabled:opacity-50"
-        >
-          {loading ? 'Submitting...' : currentQuestion === questions.length - 1 ? 'Complete Quiz' : 'Next Question'}
-        </button>
+          <button
+            onClick={handleNext}
+            disabled={!selectedAnswer || loading}
+            className="w-full rounded-lg bg-slate-900 py-3 font-semibold text-white transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {loading ? 'Submitting...' : currentQuestion === questions.length - 1 ? 'Complete Quiz' : 'Next Question'}
+          </button>
+        </div>
       </div>
-    </div>
+    </PageShell>
   )
 }
