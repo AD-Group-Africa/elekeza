@@ -1,0 +1,10 @@
+{
+  "learner_context": {
+    "learner_id": "test-001",
+    "cognitive_profiles": ["dyslexia"],
+    "language_level": 2,
+    "content_difficulty": 2,
+    "pathway_stage": "Foundation"
+  },
+  "raw_text": "Photosynthesis is the process by which green plants use sunlight to make food. Plants take in carbon dioxide from the air and water from the soil. Using energy from sunlight, they convert these into glucose and oxygen. The oxygen is released into the air, which is why plants are vital for life on Earth."
+}
