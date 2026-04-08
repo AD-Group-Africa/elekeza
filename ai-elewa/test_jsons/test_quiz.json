@@ -1,0 +1,52 @@
+{
+  "learner_context": {
+    "learner_id": "test-001",
+    "cognitive_profiles": ["dyslexia"],
+    "language_level": 2,
+    "content_difficulty": 2,
+    "pathway_stage": "Foundation"
+  },
+  "lesson_json": {
+    "title": "Photosynthesis Basics",
+    "sections": [
+      {
+        "heading": "What Plants Do",
+        "body": "Plants make their own food. They use sunlight to do this. This process is called photosynthesis.",
+        "visual_hint": "diagram of a plant using sunlight",
+        "reading_level": 2
+      },
+      {
+        "heading": "What Plants Need",
+        "body": "Plants need three things to make food. They need sunlight, water, and carbon dioxide. Carbon dioxide is a gas in the air.",
+        "visual_hint": "diagram showing sun, water, and air going into a plant",
+        "reading_level": 2
+      },
+      {
+        "heading": "What Plants Make",
+        "body": "Plants make glucose. Glucose is a type of sugar. Plants also make oxygen. Oxygen is the gas we breathe.",
+        "visual_hint": "diagram showing glucose and oxygen coming out of a plant",
+        "reading_level": 2
+      },
+      {
+        "heading": "Where It Happens",
+        "body": "Photosynthesis happens in the leaves. Leaves have a green pigment called chlorophyll. Chlorophyll catches sunlight.",
+        "visual_hint": "close-up diagram of a leaf showing chlorophyll",
+        "reading_level": 2
+      }
+    ],
+    "key_terms": [
+      {"term": "photosynthesis", "definition": "how plants make food from sunlight"},
+      {"term": "chlorophyll", "definition": "green pigment in leaves that catches sunlight"},
+      {"term": "glucose", "definition": "a type of sugar that plants make"},
+      {"term": "carbon dioxide", "definition": "a gas in the air that plants need"}
+    ],
+    "estimated_minutes": 5,
+    "profile": "dyslexia",
+    "stage_flags": {
+      "verification_triggered": false,
+      "correction_applied": false,
+      "profile_merged": false
+    }
+  },
+  "num_questions": 5
+}
