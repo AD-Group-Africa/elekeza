@@ -1,6 +1,7 @@
 package com.elewa.backend.service
 
 import com.elewa.backend.dto.*
+import com.elewa.backend.dto.ai.AiQuizQuestion
 import com.elewa.backend.model.*
 import com.elewa.backend.repository.*
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -25,7 +26,7 @@ class QuizService(
     private val objectMapper: ObjectMapper
 ) {
 
-    // ── Quiz Start ────────────────────────────────────────────
+    // ── Quiz Start ────────────────────────────────────────────────────────────
 
     @Transactional
     fun startQuiz(learnerId: UUID, lessonId: UUID): QuizStartResponse {
@@ -35,7 +36,6 @@ class QuizService(
             .orElseThrow { IllegalArgumentException("Lesson not found") }
         check(lesson.learner.id == learnerId) { "Access denied" }
 
-        // If there is an existing incomplete quiz for this learner/lesson, return it
         quizRepository.findByLessonIdAndLearnerId(lessonId, learnerId)
             ?.let { existing ->
                 if (existing.completedAt == null) {
@@ -52,27 +52,25 @@ class QuizService(
                 }
             }
 
-        // Create a new quiz from the stored JSON
         val quiz = Quiz().apply {
             this.lesson = lesson
             this.learner = learner
         }
         quizRepository.save(quiz)
 
-        // FIX 1: removed unused `questionsJson` variable — deserialize directly
         val rawJson = lesson.quizQuestions
             ?: throw IllegalStateException("Lesson has no quiz questions")
 
-        val typeRef = object : TypeReference<List<com.elewa.backend.dto.ai.QuizQuestion>>() {}
-        val questionDTOs: List<com.elewa.backend.dto.ai.QuizQuestion> = objectMapper.readValue(rawJson, typeRef)
+        val typeRef = object : TypeReference<List<AiQuizQuestion>>() {}
+        val questionDTOs: List<AiQuizQuestion> = objectMapper.readValue(rawJson, typeRef)
 
         val quizQuestions = questionDTOs.mapIndexed { idx, dto ->
             QuizQuestion().apply {
                 this.quiz = quiz
                 this.sequenceNumber = idx + 1
-                this.questionText = dto.question
+                this.questionText = dto.text
                 this.options = objectMapper.writeValueAsString(dto.options)
-                this.correctOptionId = dto.correctIndex.toString()
+                this.correctOptionId = dto.correctId
                 this.explanation = dto.explanation
             }
         }
@@ -88,10 +86,10 @@ class QuizService(
         )
     }
 
-    // ── Submit Answer ─────────────────────────────────────────
+    // ── Submit Answer ─────────────────────────────────────────────────────────
+
     @Transactional
     fun submitAnswer(learnerId: UUID, quizId: UUID, request: AnswerRequest): AnswerResponse {
-        // FIX 2: removed unused `learner` lookup — learnerId is only needed for the access check below
         val quiz = quizRepository.findById(quizId)
             .orElseThrow { IllegalArgumentException("Quiz not found") }
         check(quiz.learner.id == learnerId) { "Access denied" }
@@ -105,11 +103,9 @@ class QuizService(
         val learnerMessage = if (isCorrect) {
             "Correct! ${question.explanation ?: "Well done!"}"
         } else {
-            // FIX 3: options is non-null per entity contract; removed redundant null check
             val options = question.options?.let {
                 objectMapper.readValue(it, object : TypeReference<List<String>>() {})
             } ?: emptyList<String>()
-            // FIX 3 cont: correctOptionId is non-null — removed redundant != null check and !! operator
             val correctOption = if (options.isNotEmpty()) {
                 options[question.correctOptionId.toInt()]
             } else "the correct answer"
@@ -142,6 +138,8 @@ class QuizService(
             quizComplete = quizComplete
         )
     }
+
+    // ── Complete Quiz ─────────────────────────────────────────────────────────
 
     @Transactional
     fun completeQuiz(learnerId: UUID, quizId: UUID): QuizCompleteResponse {
@@ -182,7 +180,7 @@ class QuizService(
         )
     }
 
-    // ── Mapper ────────────────────────────────────────────────
+    // ── Mapper ────────────────────────────────────────────────────────────────
 
     private fun QuizQuestion.toResponse(): QuizQuestionResponse {
         val opts = options?.let { objectMapper.readValue<List<QuizOption>>(it) } ?: emptyList()

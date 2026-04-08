@@ -1,5 +1,6 @@
 package com.elewa.backend.common
 
+import com.elewa.backend.service.AiClientException
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -10,7 +11,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
 import org.springframework.web.multipart.MaxUploadSizeExceededException
 
-/** Raw exception messages NEVER reach the client — Harrison's Engineering Rules */
+/** Raw exception messages NEVER reach the client â€” Harrison's Engineering Rules */
 @RestControllerAdvice
 class GlobalExceptionHandler {
 
@@ -21,6 +22,13 @@ class GlobalExceptionHandler {
         val fieldErrors = ex.bindingResult.fieldErrors
             .associate { fe: FieldError -> fe.field to (fe.defaultMessage ?: "Invalid") }
         return ResponseEntity.badRequest().body(ErrorResponse(400, "Validation failed", fieldErrors))
+    }
+
+    @ExceptionHandler(AiClientException::class)
+    fun handleAiClientException(ex: AiClientException): ResponseEntity<ErrorResponse> {
+        return ResponseEntity
+            .status(ex.httpStatus)
+            .body(ErrorResponse(ex.httpStatus, ex.message ?: "AI service error"))
     }
 
     @ExceptionHandler(BadCredentialsException::class)

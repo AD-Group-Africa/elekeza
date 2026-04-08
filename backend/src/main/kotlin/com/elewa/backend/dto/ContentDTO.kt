@@ -46,3 +46,8 @@ data class TermTapResponse(
 data class TermTapRequest(
     val termId: UUID
 )
+
+data class ImageUploadRequest(
+    val base64Image: String,
+    val mediaType: String
+)
