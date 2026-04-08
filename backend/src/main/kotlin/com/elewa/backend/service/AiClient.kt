@@ -1,11 +1,11 @@
-package com.elewa.backend.service
+﻿package com.ELEKEZA.backend.service
 
-import com.elewa.backend.dto.ai.*
+import com.ELEKEZA.backend.dto.ai.*
 
 interface AiClient {
-    suspend fun simplifyText(request: SimplifyTextRequest): LessonJSON
-    suspend fun simplifyImage(request: SimplifyImageRequest): LessonJSON
-    suspend fun generateQuiz(request: GenerateQuizRequest): QuizJSON
-    suspend fun adaptiveResponse(request: AdaptiveResponseRequest): AdaptiveResponseJSON
-    suspend fun wrongAnswerFlow(request: WrongAnswerFlowRequest): WrongAnswerFlowJSON
+    fun simplifyText(request: SimplifyTextRequest): LessonJSON
+    fun simplifyImage(request: SimplifyImageRequest): LessonJSON
+    fun generateQuiz(request: GenerateQuizRequest): QuizJSON
+    fun adaptiveResponse(request: AdaptiveResponseRequest): AdaptiveResponseJSON
+    fun wrongAnswerFlow(request: WrongAnswerFlowRequest): WrongAnswerFlowJSON
 }
