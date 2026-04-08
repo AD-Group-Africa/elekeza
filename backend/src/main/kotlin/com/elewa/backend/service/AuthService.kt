@@ -1,14 +1,14 @@
-package com.elewa.backend.service
+﻿package com.ELEKEZA.backend.service
 
-import com.elewa.backend.dto.AuthResponse
-import com.elewa.backend.dto.LoginRequest
-import com.elewa.backend.dto.RegisterRequest
-import com.elewa.backend.model.Learner
-import com.elewa.backend.model.RefreshToken
-import com.elewa.backend.repository.LearnerRepository
-import com.elewa.backend.repository.RefreshTokenRepository
-import com.elewa.backend.security.JwtUtil
-import com.elewa.backend.security.TokenType
+import com.ELEKEZA.backend.dto.AuthResponse
+import com.ELEKEZA.backend.dto.LoginRequest
+import com.ELEKEZA.backend.dto.RegisterRequest
+import com.ELEKEZA.backend.model.Learner
+import com.ELEKEZA.backend.model.RefreshToken
+import com.ELEKEZA.backend.repository.LearnerRepository
+import com.ELEKEZA.backend.repository.RefreshTokenRepository
+import com.ELEKEZA.backend.security.JwtUtil
+import com.ELEKEZA.backend.security.TokenType
 import jakarta.servlet.http.Cookie
 import jakarta.servlet.http.HttpServletResponse
 import org.slf4j.LoggerFactory
@@ -18,6 +18,7 @@ import org.springframework.security.authentication.AuthenticationManager
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
+import jakarta.persistence.EntityManager
 import org.springframework.transaction.annotation.Transactional
 import java.security.MessageDigest
 import java.time.OffsetDateTime
@@ -26,6 +27,7 @@ import java.util.UUID
 
 @Service
 class AuthService(
+    private val entityManager: EntityManager,
     private val learnerRepository: LearnerRepository,
     private val refreshTokenRepository: RefreshTokenRepository,
     private val passwordEncoder: PasswordEncoder,
@@ -39,7 +41,7 @@ class AuthService(
 ) {
     private val log = LoggerFactory.getLogger(AuthService::class.java)
 
-    // Secure cookies only in Docker/prod — plain HTTP on local dev
+    // Secure cookies only in Docker/prod â€” plain HTTP on local dev
     private val isSecure: Boolean
         get() = environment.activeProfiles.contains("docker")
 
@@ -76,7 +78,7 @@ class AuthService(
         if (parsed.type != TokenType.REFRESH)
             throw IllegalArgumentException("Token is not a refresh token")
         val stored = refreshTokenRepository.findByTokenHash(hashToken(refreshTokenValue))
-            .orElseThrow { IllegalArgumentException("Refresh token not recognised") }
+            ?: throw IllegalArgumentException("Refresh token not recognised")
         if (stored.revoked || stored.expiresAt.isBefore(OffsetDateTime.now()))
             throw IllegalArgumentException("Refresh token expired or revoked")
         stored.revoked = true
@@ -93,6 +95,8 @@ class AuthService(
     }
 
     private fun issueTokenCookies(learner: Learner, response: HttpServletResponse) {
+        refreshTokenRepository.deleteAllByLearnerId(learner.id)
+        entityManager.flush()
         val accessToken  = jwtUtil.generateAccessToken(learner.id, learner.email)
         val refreshToken = jwtUtil.generateRefreshToken(learner.id)
         refreshTokenRepository.save(RefreshToken().apply {
@@ -122,7 +126,7 @@ class AuthService(
             })
         }
 
-    // New instance per call — MessageDigest is NOT thread-safe
+    // New instance per call â€” MessageDigest is NOT thread-safe
     private fun hashToken(token: String): String {
         val bytes = MessageDigest.getInstance("SHA-256").digest(token.toByteArray(Charsets.UTF_8))
         return Base64.getEncoder().encodeToString(bytes)
@@ -136,3 +140,6 @@ class AuthService(
         message            = message
     )
 }
+
+
+
