@@ -1,5 +1,5 @@
-﻿package com.elewa.backend.repository
-import com.elewa.backend.model.RefreshToken
+﻿package com.ELEKEZA.backend.repository
+import com.ELEKEZA.backend.model.RefreshToken
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query

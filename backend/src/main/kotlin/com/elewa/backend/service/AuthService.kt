@@ -1,14 +1,14 @@
-﻿package com.elewa.backend.service
+﻿package com.ELEKEZA.backend.service
 
-import com.elewa.backend.dto.AuthResponse
-import com.elewa.backend.dto.LoginRequest
-import com.elewa.backend.dto.RegisterRequest
-import com.elewa.backend.model.Learner
-import com.elewa.backend.model.RefreshToken
-import com.elewa.backend.repository.LearnerRepository
-import com.elewa.backend.repository.RefreshTokenRepository
-import com.elewa.backend.security.JwtUtil
-import com.elewa.backend.security.TokenType
+import com.ELEKEZA.backend.dto.AuthResponse
+import com.ELEKEZA.backend.dto.LoginRequest
+import com.ELEKEZA.backend.dto.RegisterRequest
+import com.ELEKEZA.backend.model.Learner
+import com.ELEKEZA.backend.model.RefreshToken
+import com.ELEKEZA.backend.repository.LearnerRepository
+import com.ELEKEZA.backend.repository.RefreshTokenRepository
+import com.ELEKEZA.backend.security.JwtUtil
+import com.ELEKEZA.backend.security.TokenType
 import jakarta.servlet.http.Cookie
 import jakarta.servlet.http.HttpServletResponse
 import org.slf4j.LoggerFactory
