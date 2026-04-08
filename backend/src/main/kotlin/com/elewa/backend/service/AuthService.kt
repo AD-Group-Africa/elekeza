@@ -95,7 +95,7 @@ class AuthService(
     }
 
     private fun issueTokenCookies(learner: Learner, response: HttpServletResponse) {
-        refreshTokenRepository.revokeAllByLearnerId(learner.id)
+        refreshTokenRepository.deleteAllByLearnerId(learner.id)
         entityManager.flush()
         val accessToken  = jwtUtil.generateAccessToken(learner.id, learner.email)
         val refreshToken = jwtUtil.generateRefreshToken(learner.id)
@@ -140,5 +140,6 @@ class AuthService(
         message            = message
     )
 }
+
 
 

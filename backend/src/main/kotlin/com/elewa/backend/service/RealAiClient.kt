@@ -1,4 +1,4 @@
-package com.elewa.backend.service
+﻿package com.elewa.backend.service
 
 import com.elewa.backend.dto.ai.*
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -29,15 +29,15 @@ class RealAiClient(
     }
 
     override fun generateQuiz(request: GenerateQuizRequest): QuizJSON {
-        return callAi("/ai/generate-quiz", request, QuizJSON::class.java)
+        return callAi("/ai/quiz/generate", request, QuizJSON::class.java)
     }
 
     override fun adaptiveResponse(request: AdaptiveResponseRequest): AdaptiveResponseJSON {
-        return callAi("/ai/adaptive-response", request, AdaptiveResponseJSON::class.java)
+        return callAi("/ai/quiz/adaptive-response", request, AdaptiveResponseJSON::class.java)
     }
 
     override fun wrongAnswerFlow(request: WrongAnswerFlowRequest): WrongAnswerFlowJSON {
-        return callAi("/ai/wrong-answer-flow", request, WrongAnswerFlowJSON::class.java)
+        return callAi("/ai/quiz/wrong-answer-flow", request, WrongAnswerFlowJSON::class.java)
     }
 
     private inline fun <reified T : Any> callAi(path: String, request: Any, responseType: Class<T>): T {
@@ -49,7 +49,7 @@ class RealAiClient(
             .onStatus(HttpStatusCode::isError) { response ->
                 response.bodyToMono(String::class.java)
                     .flatMap { errorBody ->
-                        log.error("AI error on $path — $errorBody")
+                        log.error("AI error on $path â€” $errorBody")
                         Mono.error(AiClientException(response.statusCode().value(), "AI service error"))
                     }
             }
