@@ -2,14 +2,9 @@
 
 import com.elewa.backend.dto.*
 import com.elewa.backend.dto.ai.*
-import com.elewa.backend.model.KeyTerm
-import com.elewa.backend.model.Lesson
-import com.elewa.backend.model.LessonSection
 import com.elewa.backend.model.LiteracyLevel
 import com.elewa.backend.model.SourceType
 import com.elewa.backend.repository.*
-import com.fasterxml.jackson.databind.ObjectMapper
-import jakarta.persistence.EntityManager
 import kotlinx.coroutines.runBlocking
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -22,11 +17,9 @@ class ContentService(
     private val keyTermRepository: KeyTermRepository,
     private val learnerRepository: LearnerRepository,
     private val aiClient: AiClient,
-    private val objectMapper: ObjectMapper,
-    private val entityManager: EntityManager
+    private val lessonPersistenceService: LessonPersistenceService
 ) {
 
-    @Transactional
     fun uploadText(learnerId: UUID, request: TextUploadRequest): LessonResponse {
         val learner = learnerRepository.findById(learnerId)
             .orElseThrow { IllegalArgumentException("Learner not found") }
@@ -37,43 +30,9 @@ class ContentService(
         val quizJson = runBlocking {
             aiClient.generateQuiz(GenerateQuizRequest(learnerContext = learnerContext, lessonJson = lessonJson, numQuestions = 5))
         }
-        val lesson = Lesson().apply {
-            this.learner = learner
-            this.title = lessonJson.title
-            this.rawText = request.text
-            this.estimatedMinutes = lessonJson.estimatedMinutes
-            this.sourceType = SourceType.TEXT
-            this.quizQuestions = objectMapper.writeValueAsString(quizJson.questions)
-        }
-        lessonRepository.save(lesson)
-        entityManager.flush()
-        val sections = lessonJson.sections.mapIndexed { idx, aiSection ->
-            LessonSection().apply {
-                this.lesson = lesson
-                this.sequenceNumber = idx + 1
-                this.content = "${aiSection.heading}\n\n${aiSection.body}"
-                this.timeSpentSeconds = 0
-            }
-        }
-        lessonSectionRepository.saveAll(sections)
-        val keyTerms = lessonJson.keyTerms.map { aiKeyTerm ->
-            KeyTerm().apply {
-                this.lesson = lesson
-                this.term = aiKeyTerm.term
-                this.definition = aiKeyTerm.definition
-                this.wasTapped = false
-            }
-        }
-        keyTermRepository.saveAll(keyTerms)
-        return LessonResponse(
-            id = lesson.id, title = lesson.title,
-            sections = sections.map { s -> SectionResponse(s.id, s.content, s.timeSpentSeconds) },
-            keyTerms = keyTerms.map { k -> KeyTermResponse(k.id, k.term, k.definition, k.wasTapped) },
-            estimatedMinutes = lesson.estimatedMinutes, totalSections = sections.size
-        )
+        return lessonPersistenceService.persistLesson(learnerId, request.text, lessonJson, quizJson, SourceType.TEXT)
     }
 
-    @Transactional
     fun uploadImage(learnerId: UUID, request: ImageUploadRequest): LessonResponse {
         val learner = learnerRepository.findById(learnerId)
             .orElseThrow { IllegalArgumentException("Learner not found") }
@@ -84,40 +43,7 @@ class ContentService(
         val quizJson = runBlocking {
             aiClient.generateQuiz(GenerateQuizRequest(learnerContext = learnerContext, lessonJson = lessonJson, numQuestions = 5))
         }
-        val lesson = Lesson().apply {
-            this.learner = learner
-            this.title = lessonJson.title
-            this.rawText = ""
-            this.estimatedMinutes = lessonJson.estimatedMinutes
-            this.sourceType = SourceType.IMAGE
-            this.quizQuestions = objectMapper.writeValueAsString(quizJson.questions)
-        }
-        lessonRepository.save(lesson)
-        entityManager.flush()
-        val sections = lessonJson.sections.mapIndexed { idx, aiSection ->
-            LessonSection().apply {
-                this.lesson = lesson
-                this.sequenceNumber = idx + 1
-                this.content = "${aiSection.heading}\n\n${aiSection.body}"
-                this.timeSpentSeconds = 0
-            }
-        }
-        lessonSectionRepository.saveAll(sections)
-        val keyTerms = lessonJson.keyTerms.map { aiKeyTerm ->
-            KeyTerm().apply {
-                this.lesson = lesson
-                this.term = aiKeyTerm.term
-                this.definition = aiKeyTerm.definition
-                this.wasTapped = false
-            }
-        }
-        keyTermRepository.saveAll(keyTerms)
-        return LessonResponse(
-            id = lesson.id, title = lesson.title,
-            sections = sections.map { s -> SectionResponse(s.id, s.content, s.timeSpentSeconds) },
-            keyTerms = keyTerms.map { k -> KeyTermResponse(k.id, k.term, k.definition, k.wasTapped) },
-            estimatedMinutes = lesson.estimatedMinutes, totalSections = sections.size
-        )
+        return lessonPersistenceService.persistLesson(learnerId, "", lessonJson, quizJson, SourceType.IMAGE)
     }
 
     @Transactional(readOnly = true)
@@ -159,21 +85,18 @@ class ContentService(
 
     private fun buildLearnerContext(learner: com.elewa.backend.model.Learner): LearnerContext {
         return LearnerContext(
-            learnerId = learner.id.toString(),
+            learnerId         = learner.id.toString(),
             cognitiveProfiles = listOf("dyslexia"),
-            languageLevel = when (learner.literacyLevel) {
+            languageLevel     = when (learner.literacyLevel) {
                 LiteracyLevel.BEGINNER -> 1; LiteracyLevel.INTERMEDIATE -> 2; LiteracyLevel.ADVANCED -> 3; null -> 2
             },
             contentDifficulty = when (learner.literacyLevel) {
                 LiteracyLevel.BEGINNER -> 1; LiteracyLevel.INTERMEDIATE -> 2; LiteracyLevel.ADVANCED -> 3; null -> 2
             },
-            pathwayStage = when (learner.literacyLevel) {
+            pathwayStage      = when (learner.literacyLevel) {
                 LiteracyLevel.BEGINNER -> "Foundation"; LiteracyLevel.INTERMEDIATE -> "Intermediate"
                 LiteracyLevel.ADVANCED -> "Pre-vocational"; null -> "Foundation"
             }
         )
     }
 }
-
-
-

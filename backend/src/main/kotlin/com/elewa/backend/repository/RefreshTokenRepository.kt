@@ -1,5 +1,4 @@
-package com.elewa.backend.repository
-
+﻿package com.elewa.backend.repository
 import com.elewa.backend.model.RefreshToken
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Modifying
@@ -15,4 +14,9 @@ interface RefreshTokenRepository : JpaRepository<RefreshToken, UUID> {
     @Transactional
     @Query("UPDATE RefreshToken rt SET rt.revoked = true WHERE rt.learner.id = :learnerId AND rt.revoked = false")
     fun revokeAllByLearnerId(learnerId: UUID)
+
+    @Modifying
+    @Transactional
+    @Query("DELETE FROM RefreshToken rt WHERE rt.learner.id = :learnerId")
+    fun deleteAllByLearnerId(learnerId: UUID)
 }

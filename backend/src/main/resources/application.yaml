@@ -32,7 +32,7 @@ security:
     refresh-cookie-name: elewa_refresh
 
 fastapi:
-  base-url: ${FASTAPI_URL:http://localhost:8000}
+  base-url: ${FASTAPI_URL:http://localhost:8001}
   # Must match INTERNAL_SECRET in Alvin's .env â€” never commit the real value
   internal-secret: ${INTERNAL_SECRET:change-me-shared-secret}
   timeout-seconds: 30
@@ -55,4 +55,5 @@ logging:
 
 ai:
   client:
-    type: mock
+    type: real
+
