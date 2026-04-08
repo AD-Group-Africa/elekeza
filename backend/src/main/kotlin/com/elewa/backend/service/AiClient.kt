@@ -1,8 +1,11 @@
 package com.elewa.backend.service
 
-import com.elewa.backend.dto.ai.LessonJSON
-import com.elewa.backend.dto.ai.SimplifyRequest
+import com.elewa.backend.dto.ai.*
 
 interface AiClient {
-    suspend fun simplify(request: SimplifyRequest): LessonJSON
+    fun simplifyText(request: SimplifyTextRequest): LessonJSON
+    fun simplifyImage(request: SimplifyImageRequest): LessonJSON
+    fun generateQuiz(request: GenerateQuizRequest): QuizJSON
+    fun adaptiveResponse(request: AdaptiveResponseRequest): AdaptiveResponseJSON
+    fun wrongAnswerFlow(request: WrongAnswerFlowRequest): WrongAnswerFlowJSON
 }
