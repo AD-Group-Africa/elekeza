@@ -1,4 +1,4 @@
-# Elewa Frontend Pages + API Reference
+﻿# ELEKEZA Frontend Pages + API Reference
 
 This guide shows:
 - all frontend pages/routes
@@ -45,7 +45,7 @@ Register payload:
 
 ```json
 {
-  "email": "user@elewa.com",
+  "email": "user@ELEKEZA.com",
   "password": "YourPassword123!",
   "fullName": "Jane Doe"
 }
@@ -55,7 +55,7 @@ Login payload:
 
 ```json
 {
-  "email": "user@elewa.com",
+  "email": "user@ELEKEZA.com",
   "password": "YourPassword123!"
 }
 ```
@@ -93,7 +93,7 @@ Guardian Link payload:
   "fullName": "Jane Doe",
   "relationship": "parent",
   "phone": "+254712345678",
-  "email": "parent@elewa.com"
+  "email": "parent@ELEKEZA.com"
 }
 ```
 
@@ -156,7 +156,7 @@ Direct backend (Postman/curl style):
 ```bash
 curl -X POST http://localhost:8080/api/auth/register ^
   -H "Content-Type: application/json" ^
-  -d "{\"email\":\"user@elewa.com\",\"password\":\"YourPassword123!\",\"fullName\":\"Jane Doe\"}"
+  -d "{\"email\":\"user@ELEKEZA.com\",\"password\":\"YourPassword123!\",\"fullName\":\"Jane Doe\"}"
 ```
 
 From frontend proxy (same origin style):
@@ -164,7 +164,7 @@ From frontend proxy (same origin style):
 ```bash
 curl -X POST http://localhost:3000/api/auth/login ^
   -H "Content-Type: application/json" ^
-  -d "{\"email\":\"user@elewa.com\",\"password\":\"YourPassword123!\"}"
+  -d "{\"email\":\"user@ELEKEZA.com\",\"password\":\"YourPassword123!\"}"
 ```
 
 ## Optional: Add Swagger (Backend Change Required)

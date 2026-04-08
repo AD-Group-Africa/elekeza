@@ -1,4 +1,4 @@
-services:
+﻿services:
 
   ai-service:
     build: .
@@ -16,7 +16,7 @@ services:
       - postgres
       - langfuse
     networks:
-      - elewa-network
+      - elekeza-network
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
@@ -27,18 +27,18 @@ services:
 
   postgres:
     image: postgres:16
-    container_name: elewa-postgres
+    container_name: elekeza-postgres
     environment:
-      POSTGRES_USER: elewa
-      POSTGRES_PASSWORD: elewa_dev_password
-      POSTGRES_DB: elewa_db
+      POSTGRES_USER: ELEKEZA
+      POSTGRES_PASSWORD: ELEKEZA_dev_password
+      POSTGRES_DB: ELEKEZA_db
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
-      - elewa-network
+      - elekeza-network
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U elewa -d elewa_db"]
+      test: ["CMD-SHELL", "pg_isready -U ELEKEZA -d ELEKEZA_db"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -49,21 +49,21 @@ services:
     ports:
       - "3000:3000"
     environment:
-      DATABASE_URL: postgresql://elewa:elewa_dev_password@postgres:5432/elewa_db
-      NEXTAUTH_SECRET: elewa_nextauth_secret_change_in_production
+      DATABASE_URL: postgresql://ELEKEZA:ELEKEZA_dev_password@postgres:5432/ELEKEZA_db
+      NEXTAUTH_SECRET: ELEKEZA_nextauth_secret_change_in_production
       NEXTAUTH_URL: http://localhost:3000
-      SALT: elewa_salt_change_in_production
+      SALT: ELEKEZA_salt_change_in_production
       TELEMETRY_ENABLED: "false"
       LANGFUSE_ENABLE_EXPERIMENTAL_FEATURES: "false"
     depends_on:
       postgres:
         condition: service_healthy
     networks:
-      - elewa-network
+      - elekeza-network
     restart: unless-stopped
 
 networks:
-  elewa-network:
+  elekeza-network:
     driver: bridge
 
 volumes:

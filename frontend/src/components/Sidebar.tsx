@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useMemo, useState } from 'react'
 import Link from 'next/link'
@@ -66,7 +66,7 @@ export default function Sidebar() {
                 data-distraction="true"
                 className="text-[10px] font-semibold uppercase tracking-[0.25em] text-slate-500"
               >
-                Elewa Space
+                ELEKEZA Space
               </p>
               <h2 className="mt-1 text-xl font-bold text-slate-900">Navigation</h2>
             </div>
