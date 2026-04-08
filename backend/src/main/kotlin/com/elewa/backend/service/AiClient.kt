@@ -1,6 +1,6 @@
-package com.elewa.backend.service
+﻿package com.ELEKEZA.backend.service
 
-import com.elewa.backend.dto.ai.*
+import com.ELEKEZA.backend.dto.ai.*
 
 interface AiClient {
     fun simplifyText(request: SimplifyTextRequest): LessonJSON

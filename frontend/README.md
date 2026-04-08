@@ -1,6 +1,6 @@
-# Elewa Frontend
+﻿# ELEKEZA Frontend
 
-Frontend for the Elewa adaptive literacy platform, built with Next.js (App Router), React, TypeScript, and Tailwind CSS.
+Frontend for the ELEKEZA adaptive literacy platform, built with Next.js (App Router), React, TypeScript, and Tailwind CSS.
 
 ## What this app does
 
