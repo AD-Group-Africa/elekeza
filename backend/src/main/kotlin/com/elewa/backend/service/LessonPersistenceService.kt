@@ -1,12 +1,12 @@
-﻿package com.ELEKEZA.backend.service
+﻿package com.elewa.backend.service
 
-import com.ELEKEZA.backend.dto.*
-import com.ELEKEZA.backend.dto.ai.*
-import com.ELEKEZA.backend.model.KeyTerm
-import com.ELEKEZA.backend.model.Lesson
-import com.ELEKEZA.backend.model.LessonSection
-import com.ELEKEZA.backend.model.SourceType
-import com.ELEKEZA.backend.repository.*
+import com.elewa.backend.dto.*
+import com.elewa.backend.dto.ai.*
+import com.elewa.backend.model.KeyTerm
+import com.elewa.backend.model.Lesson
+import com.elewa.backend.model.LessonSection
+import com.elewa.backend.model.SourceType
+import com.elewa.backend.repository.*
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional

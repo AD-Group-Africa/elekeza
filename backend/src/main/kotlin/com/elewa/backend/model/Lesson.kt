@@ -1,4 +1,4 @@
-﻿package com.ELEKEZA.backend.model
+﻿package com.elewa.backend.model
 import jakarta.persistence.*
 import org.hibernate.annotations.JdbcTypeCode
 import org.hibernate.type.SqlTypes
