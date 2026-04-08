@@ -1,0 +1,46 @@
+{
+  "learner_context": {
+    "learner_id": "test-002",
+    "cognitive_profiles": ["adhd"],
+    "language_level": 2,
+    "content_difficulty": 2,
+    "pathway_stage": "Foundation"
+  },
+  "lesson_json": {
+    "title": "Photosynthesis Basics",
+    "sections": [
+      {
+        "heading": "What Plants Do",
+        "body": "Plants make their own food. They use sunlight to do this. This process is called photosynthesis.",
+        "visual_hint": null,
+        "reading_level": 2
+      },
+      {
+        "heading": "What Plants Need",
+        "body": "Plants need sunlight, water, and carbon dioxide. Carbon dioxide is a gas in the air.",
+        "visual_hint": null,
+        "reading_level": 2
+      },
+      {
+        "heading": "What Plants Make",
+        "body": "Plants make glucose and oxygen. Glucose is sugar. Oxygen is the gas we breathe.",
+        "visual_hint": null,
+        "reading_level": 2
+      }
+    ],
+    "key_terms": [
+      {
+        "term": "photosynthesis",
+        "definition": "how plants make food from sunlight"
+      }
+    ],
+    "estimated_minutes": 4,
+    "profile": "adhd",
+    "stage_flags": {
+      "verification_triggered": false,
+      "correction_applied": false,
+      "profile_merged": false
+    }
+  },
+  "num_questions": 5
+}

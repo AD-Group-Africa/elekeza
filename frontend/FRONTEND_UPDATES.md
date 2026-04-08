@@ -1,0 +1,96 @@
+# Frontend Updates Log
+
+## 2026-04-06
+- Redesigned the sidebar with a cleaner visual style, improved active states, and better collapsed behavior.
+- Upgraded the settings page with grouped cognitive-disability support controls and one-click profile presets.
+- Extended accessibility settings persistence to include dyslexia support, ADHD support, reduced motion, reading guide, simplified language, and cognitive flexibility support.
+- Added global CSS hooks for the new accessibility options so they apply across pages.
+- Redesigned the document history page with a new hero section, quick stats, and improved call-to-action placement.
+- Added live search, action filtering chips, and sort controls for faster history navigation.
+- Upgraded document cards with richer metadata display, action color tags, and clearer status/entry points.
+- Redesigned the upload page with a dashboard-style layout, structured guidance panels, and clearer upload workflow feedback.
+- Added upload text analytics (character count, word count, estimated read time) for better content readiness checks.
+- Implemented shared frontend accessibility UI primitives for consistency across pages (`PageShell`, `StatusBanner`, `ActionBar`, `ProgressStepper`, `ConfirmActionDialog`).
+- Applied consistency-first UI patterns on upload, onboarding, login, and register pages with clearer guidance, predictable CTA placement, and prevention-first button disabling.
+- Added onboarding progress step indicators across profile, placement, and completion pages to reinforce step-by-step guidance.
+- Added safer action confirmation (clear content dialog) and standardized feedback banners for immediate user feedback.
+- Rebuilt settings into structured cognitive sections: Memory Support, Attention Support, Language Support, Visual Support, Task Guidance, Audio and Voice, and Calm Mode.
+- Added expandable section controls with section-level toggles, per-option toggles, and one-click `Apply Recommended` actions.
+- Added profile presets (`Easy Mode`, `Focus Mode`, `Guided Mode`) that auto-enable grouped settings.
+- Added per-profile `Turn Off` controls so applied presets can be quickly disabled.
+- Added neutral `Reading Font` choices in Global Display (`Default`, `Readable Sans`, `Dyslexia-Friendly`, `High Clarity`) with persistent font-family classes.
+- Updated profile presets to auto-apply recommended reading fonts and reset font settings safely when profiles are turned off.
+- Redesigned the top `Calm UI` and `Focus Mode` controls with improved visual hierarchy, clear labels, and switch-style state indicators.
+- Connected calm/focus styling to sidebar and shared layout via global body classes so mode effects are consistent across pages.
+- Added isolated role-based frontend directories and pages for `guardian`, `teacher`, and `admin` without modifying existing student routes.
+- Implemented shared role UI scaffolding (`RoleLayout`, role nav config, reusable role panels/stats/hero blocks) to keep role pages consistent.
+- Scaffolded required Guardian pages: dashboard, progress reports, schedule routine, communication, guardian settings.
+- Scaffolded required Teacher pages: dashboard, student management, content lessons, assignments tasks, student progress, communication.
+- Scaffolded required Admin pages: dashboard, user management, class management, system settings, reports analytics, security permissions.
+- Added frontend demo role-auth flow for interim access before backend role endpoints are ready.
+- Reserved role emails now skip onboarding on register and redirect to login (`admin@elekeza.org`, `teacher@elekeza.org`, `guardian@elekeza.org`, `parent@elekeza.org`).
+- Added role-based login redirect so authenticated users land in the correct workspace (`/admin`, `/teacher`, `/guardian`, `/dashboard`).
+- Added demo credentials support for role sign-in with local session persistence across refresh.
+- Added logout control to shared role layout so guardian, teacher, and admin pages can sign out safely.
+- Expanded accessibility settings model and persistence to include memory, attention, language, executive function, audio, and anxiety-overload controls.
+- Added new global CSS hooks for settings behaviors such as distraction-free UI, reduced visual clutter, highlighted active focus, and time-pressure hiding.
+- Updated onboarding flow so `CHILD` and `TEEN` users are routed to guardian link request before placement quiz.
+- Added onboarding guardian-link page with validation: guardian name + relationship + at least one contact (`phone` or `email`).
+
+### Files Altered
+- `src/components/Sidebar.tsx`
+- `src/hooks/useAccessibilitySettings.tsx`
+- `src/app/dashboard/settings/page.tsx`
+- `src/app/globals.css`
+- `src/app/dashboard/history/page.tsx`
+- `src/components/DocumentCard.tsx`
+- `src/types/index.ts`
+- `src/app/upload/page.tsx`
+- `src/app/onboarding/profile/page.tsx`
+- `src/app/onboarding/placement/page.tsx`
+- `src/app/onboarding/complete/page.tsx`
+- `src/app/login/page.tsx`
+- `src/app/register/page.tsx`
+- `src/components/ui/PageShell.tsx`
+- `src/components/ui/StatusBanner.tsx`
+- `src/components/ui/ActionBar.tsx`
+- `src/components/ui/ProgressStepper.tsx`
+- `src/components/ui/ConfirmActionDialog.tsx`
+- `src/components/roles/RoleLayout.tsx`
+- `src/components/roles/RoleBlocks.tsx`
+- `src/components/roles/roleConfig.ts`
+- `src/app/guardian/page.tsx`
+- `src/app/guardian/reports/page.tsx`
+- `src/app/guardian/schedule/page.tsx`
+- `src/app/guardian/communication/page.tsx`
+- `src/app/guardian/settings/page.tsx`
+- `src/app/teacher/page.tsx`
+- `src/app/teacher/students/page.tsx`
+- `src/app/teacher/content/page.tsx`
+- `src/app/teacher/assignments/page.tsx`
+- `src/app/teacher/progress/page.tsx`
+- `src/app/teacher/communication/page.tsx`
+- `src/app/admin/page.tsx`
+- `src/app/admin/users/page.tsx`
+- `src/app/admin/classes/page.tsx`
+- `src/app/admin/system-settings/page.tsx`
+- `src/app/admin/reports/page.tsx`
+- `src/app/admin/security/page.tsx`
+- `src/lib/roleAuth.ts`
+- `src/hooks/useAuth.tsx`
+- `src/app/login/page.tsx`
+- `src/app/register/page.tsx`
+- `src/app/page.tsx`
+- `src/app/onboarding/guardian-link/page.tsx`
+- `FRONTEND_UPDATES.md`
+
+## Template For New Entries
+- `YYYY-MM-DD`
+- Short summary of what changed.
+- Any affected areas or pages.
+- `Files altered` list with relative paths.
+
+- Added show/hide password eye toggle on both login and register password fields for better usability.
+
+- Added student profile page (/dashboard/profile) with account details, onboarding status, and quick actions.
+- Added Profile entry in student sidebar navigation for direct access.

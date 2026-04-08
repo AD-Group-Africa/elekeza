@@ -1,0 +1,46 @@
+{
+  "learner_context": {
+    "learner_id": "test-004",
+    "cognitive_profiles": ["intellectual_disability"],
+    "language_level": 1,
+    "content_difficulty": 1,
+    "pathway_stage": "Foundation"
+  },
+  "lesson_json": {
+    "title": "Plants Make Food",
+    "sections": [
+      {
+        "heading": "Plants Make Food",
+        "body": "Plants make food. They use the sun. This is called photosynthesis. Remember: plants need sun to live.",
+        "visual_hint": "photo of a plant in sunlight",
+        "reading_level": 1
+      },
+      {
+        "heading": "Plants Need Help",
+        "body": "Plants need water. Plants need air. Plants need sunlight. Remember: plants need three things.",
+        "visual_hint": "photo of someone watering a plant",
+        "reading_level": 1
+      },
+      {
+        "heading": "Plants Give Us Air",
+        "body": "Plants make oxygen. Oxygen is the air we breathe. We need plants to live. Remember: plants help us breathe.",
+        "visual_hint": "photo of a child breathing fresh air near plants",
+        "reading_level": 1
+      }
+    ],
+    "key_terms": [
+      {
+        "term": "photosynthesis",
+        "definition": "plants making food from the sun"
+      }
+    ],
+    "estimated_minutes": 3,
+    "profile": "intellectual_disability",
+    "stage_flags": {
+      "verification_triggered": false,
+      "correction_applied": false,
+      "profile_merged": false
+    }
+  },
+  "num_questions": 5
+}

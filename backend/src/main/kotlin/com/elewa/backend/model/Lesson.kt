@@ -1,6 +1,7 @@
-package com.elewa.backend.model
-
+﻿package com.ELEKEZA.backend.model
 import jakarta.persistence.*
+import org.hibernate.annotations.JdbcTypeCode
+import org.hibernate.type.SqlTypes
 import java.time.Instant
 import java.util.UUID
 
@@ -24,12 +25,12 @@ class Lesson(
     @Enumerated(EnumType.STRING)
     var sourceType: SourceType? = null,
 
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "jsonb")
     var quizQuestions: String? = null,
 
     @Column(updatable = false)
     val createdAt: Instant = Instant.now()
 ) {
-    // Default constructor for JPA
     constructor() : this(learner = Learner())
 }
