@@ -1,6 +1,6 @@
-﻿package com.ELEKEZA.backend.service
+package com.elewa.backend.service
 
-import com.ELEKEZA.backend.dto.ai.*
+import com.elewa.backend.dto.ai.*
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.slf4j.LoggerFactory
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty

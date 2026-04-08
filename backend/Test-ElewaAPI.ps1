@@ -35,7 +35,7 @@ $lessonId   = $null
 $sectionId  = $null
 $quizId     = $null
 $firstOptId = $null
-$email      = "testuser_$(Get-Random)@ELEKEZA.dev"
+$email      = "testuser_$(Get-Random)@elewa.dev"
 $password   = "Test1234!"
 
 Section "AUTH"
@@ -86,7 +86,7 @@ try {
         fullName     = "Jane Guardian"   # was: guardianEmail
         relationship = "PARENT"
         phone        = "+254700000000"
-        email        = "guardian@ELEKEZA.dev"
+        email        = "guardian@elewa.dev"
     }
     Print-OK "Guardian link -- guardianId=$($r.guardianId)"
 } catch { Print-FAIL "Guardian link -- $_" }

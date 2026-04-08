@@ -1,6 +1,6 @@
-﻿package com.ELEKEZA.backend.common
+package com.elewa.backend.common
 
-import com.ELEKEZA.backend.service.AiClientException
+import com.elewa.backend.service.AiClientException
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity

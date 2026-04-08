@@ -1,10 +1,10 @@
-﻿package com.ELEKEZA.backend.service
+﻿package com.elewa.backend.service
 
-import com.ELEKEZA.backend.dto.*
-import com.ELEKEZA.backend.dto.ai.*
-import com.ELEKEZA.backend.model.LiteracyLevel
-import com.ELEKEZA.backend.model.SourceType
-import com.ELEKEZA.backend.repository.*
+import com.elewa.backend.dto.*
+import com.elewa.backend.dto.ai.*
+import com.elewa.backend.model.LiteracyLevel
+import com.elewa.backend.model.SourceType
+import com.elewa.backend.repository.*
 import kotlinx.coroutines.runBlocking
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -83,7 +83,7 @@ class ContentService(
         return TermTapResponse(term.id, term.term)
     }
 
-    private fun buildLearnerContext(learner: com.ELEKEZA.backend.model.Learner): LearnerContext {
+    private fun buildLearnerContext(learner: com.elewa.backend.model.Learner): LearnerContext {
         return LearnerContext(
             learnerId         = learner.id.toString(),
             cognitiveProfiles = listOf("dyslexia"),
