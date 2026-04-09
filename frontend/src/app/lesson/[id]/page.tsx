@@ -3,8 +3,9 @@
 import { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { useAuth } from '@/hooks/useAuth'
-import { contentAPI, quizAPI } from '@/lib/api'
-import { Lesson, Section, KeyTerm } from '@/types'
+import { useCognitiveProfile } from '@/hooks/useCognitiveProfile'
+import { contentAPI } from '@/lib/api'
+import { Lesson, Section } from '@/types'
 
 function parseSection(section: Section) {
   if (section.heading || section.body) {
@@ -23,6 +24,7 @@ function parseSection(section: Section) {
 
 export default function LessonPage() {
   const { user, loading: authLoading } = useAuth()
+  const { activeMode, hasProfile } = useCognitiveProfile()
   const router = useRouter()
   const params = useParams()
   const lessonId = params.id as string
@@ -32,6 +34,7 @@ export default function LessonPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [sectionStartTime, setSectionStartTime] = useState<Date>(new Date())
+  const [termDefinition, setTermDefinition] = useState('')
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -53,7 +56,7 @@ export default function LessonPage() {
     try {
       const lessonData = await contentAPI.getLesson(lessonId)
       setLesson(lessonData)
-    } catch (err: any) {
+    } catch {
       setError('Failed to load lesson')
     } finally {
       setLoading(false)
@@ -68,7 +71,7 @@ export default function LessonPage() {
 
     try {
       await contentAPI.updateSectionProgress(lessonId, section.id, { additionalSeconds: timeSpent })
-    } catch (err) {
+    } catch {
       console.error('Failed to update progress')
     }
   }
@@ -86,10 +89,10 @@ export default function LessonPage() {
 
   const handleTermTap = async (termId: string) => {
     try {
-      const response = await contentAPI.tapTerm(lessonId, { termId })
-      // Could show definition in a modal or tooltip
-      alert(`Definition: ${response.definition}`)
-    } catch (err) {
+      await contentAPI.tapTerm(lessonId, { termId })
+      const term = lesson?.keyTerms.find((item) => item.id === termId)
+      setTermDefinition(term?.definition ?? 'Definition unavailable for this term.')
+    } catch {
       console.error('Failed to get term definition')
     }
   }
@@ -145,10 +148,22 @@ export default function LessonPage() {
   const progress = ((currentSection + 1) / lesson.sections.length) * 100
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-elekeza-deep-blue via-white to-elekeza-indigo">
+    <div className="lesson-shell">
+      {hasProfile('ADHD') && (
+        <div className="adhd-progress-mini">
+          <div className="mx-auto flex max-w-4xl items-center justify-between px-4 py-1 text-xs font-semibold text-slate-700">
+            <span>Focused Reading Progress</span>
+            <span>{Math.round(progress)}%</span>
+          </div>
+          <div className="adhd-progress-mini-track">
+            <div className="adhd-progress-mini-fill transition-all" style={{ width: `${progress}%` }} />
+          </div>
+        </div>
+      )}
+
       {/* Header */}
-      <div className="bg-white border-b border-slate-200">
-        <div className="max-w-4xl mx-auto px-6 py-4">
+      <div className="border-b border-slate-200 bg-white">
+        <div className={`adaptive-reading-width mx-auto px-6 ${hasProfile('ADHD') ? 'pt-14 pb-4' : 'py-4'}`}>
           <div className="flex justify-between items-center">
             <div>
               <h1 className="text-2xl font-bold text-elekeza-deep-blue">Elekeza</h1>
@@ -165,7 +180,7 @@ export default function LessonPage() {
       </div>
 
       {/* Progress Bar */}
-      <div className="max-w-4xl mx-auto px-6 py-4">
+      <div className="adaptive-reading-width mx-auto px-6 py-4">
         <div className="mb-2 flex justify-between text-sm text-slate-800 font-medium">
           <span>Section {currentSection + 1} of {lesson.sections.length}</span>
           <span>{Math.round(progress)}% Complete</span>
@@ -179,32 +194,99 @@ export default function LessonPage() {
       </div>
 
       {/* Main Content */}
-      <div className="max-w-4xl mx-auto px-6 pb-8">
-        <div className="bg-white p-8 rounded-2xl shadow-xl border border-slate-200">
+      <div className="adaptive-reading-width mx-auto px-6 pb-8">
+        <div
+          className={`rounded-2xl border p-8 shadow-xl ${
+            hasProfile('AUTISM')
+              ? 'border-slate-300 bg-slate-100'
+              : hasProfile('ADHD')
+              ? currentSection % 2 === 0
+                ? 'border-blue-200 bg-blue-50 adhd-enter'
+                : 'border-indigo-200 bg-indigo-50 adhd-enter'
+              : hasProfile('DYSLEXIA')
+              ? 'border-amber-200 bg-[#FAFAF0]'
+              : hasProfile('INTELLECTUAL_DISABILITY')
+              ? 'border-slate-800 bg-white'
+              : 'border-slate-200 bg-white'
+          }`}
+        >
           {/* Section Title */}
-          <h2 className="text-2xl font-bold text-slate-900 mb-6">{heading}</h2>
+          <h2 className="mb-6 flex items-center gap-2 text-2xl font-bold text-slate-900">
+            {hasProfile('INTELLECTUAL_DISABILITY') && <span className="id-section-icon">i</span>}
+            <span>{heading}</span>
+          </h2>
 
           {/* Section Content */}
-          <div className="prose prose-lg max-w-none mb-8">
-            <div className="text-slate-900 leading-relaxed text-lg">
-              {(body || "").split(' ').map((word, index) => {
-                const term = lesson.keyTerms.find(t => t.term.toLowerCase() === word.toLowerCase().replace(/[.,!?;]$/, ''))
-                if (term) {
-                  return (
-                    <span key={index}>
-                      <button
-                        onClick={() => handleTermTap(term.id)}
-                        className="text-blue-700 hover:text-blue-800 hover:underline font-semibold"
-                      >
-                        {word}
-                      </button>{' '}
-                    </span>
-                  )
-                }
-                return <span key={index}>{word} </span>
-              })}
+          <div className="mb-8">
+            <div className={`text-slate-900 ${hasProfile('INTELLECTUAL_DISABILITY') ? 'text-xl leading-9' : 'text-lg leading-relaxed'}`}>
+              {hasProfile('DYSLEXIA') ? (
+                <ul className="dyslexia-bullet-list space-y-3">
+                  {(body || '')
+                    .split(/(?<=[.!?])\s+/)
+                    .filter((line) => line.trim().length > 0)
+                    .map((sentence, sentenceIndex) => (
+                      <li key={`sentence-${sentenceIndex}`}>
+                        {sentence.split(' ').map((word, index) => {
+                          const clean = word.toLowerCase().replace(/[.,!?;:]$/, '')
+                          const term = lesson.keyTerms.find((t) => t.term.toLowerCase() === clean)
+                          if (!term) return <span key={`plain-${sentenceIndex}-${index}`}>{word} </span>
+                          return (
+                            <button
+                              key={`term-${term.id}-${index}`}
+                              onClick={() => handleTermTap(term.id)}
+                              className="dyslexia-keyterm font-semibold text-blue-900 hover:text-blue-700"
+                            >
+                              {word}{' '}
+                            </button>
+                          )
+                        })}
+                      </li>
+                    ))}
+                </ul>
+              ) : hasProfile('AUTISM') ? (
+                <div className="autism-card-grid">
+                  <div className="autism-card">
+                    <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Definition:</p>
+                    <p className="mt-1 text-slate-900">{heading}</p>
+                  </div>
+                  <div className="autism-card">
+                    <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Example:</p>
+                    <p className="mt-1 whitespace-pre-line text-slate-900">{body}</p>
+                  </div>
+                  <div className="autism-card">
+                    <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Why this matters:</p>
+                    <p className="mt-1 text-slate-900">Understanding this section supports better recall in the quiz and later lessons.</p>
+                  </div>
+                </div>
+              ) : (
+                <div className="whitespace-pre-line">
+                  {(body || '').split(' ').map((word, index) => {
+                    const term = lesson.keyTerms.find((t) => t.term.toLowerCase() === word.toLowerCase().replace(/[.,!?;:]$/, ''))
+                    if (term) {
+                      return (
+                        <span key={index}>
+                          <button
+                            onClick={() => handleTermTap(term.id)}
+                            className="font-semibold text-blue-700 underline-offset-2 hover:text-blue-800 hover:underline"
+                          >
+                            {word}
+                          </button>{' '}
+                        </span>
+                      )
+                    }
+                    return <span key={index}>{word} </span>
+                  })}
+                </div>
+              )}
             </div>
           </div>
+
+          {termDefinition && (
+            <div className="mb-8 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-900">
+              <p className="font-semibold">Definition</p>
+              <p>{termDefinition}</p>
+            </div>
+          )}
 
           {/* Navigation */}
           <div className="flex justify-between items-center">
@@ -216,14 +298,18 @@ export default function LessonPage() {
                 }
               }}
               disabled={currentSection === 0}
-              className="px-6 py-3 bg-slate-100 text-slate-800 rounded-lg hover:bg-slate-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              className={`rounded-lg bg-slate-100 px-6 py-3 text-slate-800 hover:bg-slate-200 disabled:cursor-not-allowed disabled:opacity-50 ${
+                activeMode === 'intellectualDisability' ? 'min-h-12 text-lg font-semibold' : ''
+              }`}
             >
               Previous
             </button>
 
             <button
               onClick={handleNextSection}
-              className="px-6 py-3 bg-elekeza-deep-blue text-white rounded-lg hover:bg-elekeza-indigo"
+              className={`rounded-lg bg-elekeza-deep-blue px-6 py-3 text-white hover:bg-elekeza-indigo ${
+                activeMode === 'intellectualDisability' ? 'min-h-12 text-lg font-semibold' : ''
+              }`}
             >
               {currentSection === lesson.sections.length - 1 ? 'Take Quiz' : 'Next Section'}
             </button>

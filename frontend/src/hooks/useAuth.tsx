@@ -2,14 +2,15 @@
 
 import { useState, useEffect, createContext, useContext, ReactNode, useCallback } from 'react'
 import { authAPI } from '@/lib/api'
-import { AuthResponse, User } from '@/types'
+import { AuthResponse, CognitiveProfile, User } from '@/types'
 import { getDemoRoleAccountByCredentials } from '@/lib/roleAuth'
+import { persistCognitiveProfiles, readCognitiveProfiles } from '@/lib/cognitiveProfiles'
 
 interface AuthContextType {
   user: User | null
   loading: boolean
   login: (email: string, password: string) => Promise<User>
-  register: (email: string, password: string, fullName: string) => Promise<User>
+  register: (email: string, password: string, fullName: string, cognitiveProfiles?: CognitiveProfile[]) => Promise<User>
   logout: () => Promise<void>
 }
 
@@ -26,6 +27,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     fullName: data.fullName || '',
     onboardingComplete: data.onboardingComplete,
     role: 'Student',
+    cognitiveProfiles: data.cognitiveProfiles && data.cognitiveProfiles.length > 0
+      ? data.cognitiveProfiles
+      : readCognitiveProfiles(data.learnerId),
   })
 
   const checkAuth = useCallback(async () => {
@@ -86,8 +90,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return mappedUser
   }
 
-  const register = async (email: string, password: string, fullName: string) => {
-    const data = await authAPI.register(email, password, fullName)
+  const register = async (email: string, password: string, fullName: string, cognitiveProfiles: CognitiveProfile[] = []) => {
+    const data = await authAPI.register(email, password, fullName, cognitiveProfiles)
+    if (data?.learnerId && cognitiveProfiles.length > 0) {
+      persistCognitiveProfiles(data.learnerId, cognitiveProfiles)
+    }
     const mappedUser = mapAuthResponseToUser(data)
     setUser(mappedUser)
     return mappedUser
