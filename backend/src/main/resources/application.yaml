@@ -4,8 +4,8 @@
 
   datasource:
     url: jdbc:postgresql://localhost:5433/accessibledocs
-    username: ${DB_USERNAME:postgres}
-    password: ${DB_PASSWORD:2634Hp$$}
+    username: ${DB_USERNAME:${DB_USER:postgres}}
+    password: ${DB_PASSWORD:password}
     driver-class-name: org.postgresql.Driver
 
   jpa:

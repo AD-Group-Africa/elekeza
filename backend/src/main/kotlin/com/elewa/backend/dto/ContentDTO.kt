@@ -51,3 +51,11 @@ data class ImageUploadRequest(
     val base64Image: String,
     val mediaType: String
 )
+
+data class LessonHistoryItemResponse(
+    val id: UUID,
+    val title: String,
+    val sourceType: String,
+    val createdAt: String,
+    val summary: String
+)

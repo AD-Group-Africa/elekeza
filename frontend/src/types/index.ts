@@ -49,9 +49,11 @@ export interface Lesson {
 
 export interface Section {
   id: string;
-  heading: string;
-  body: string;
-  order: number;
+  content: string;
+  timeSpentSeconds?: number;
+  heading?: string;
+  body?: string;
+  order?: number;
 }
 
 export interface KeyTerm {
@@ -119,21 +121,30 @@ export interface DashboardData {
 export interface LessonSummary {
   id: string;
   title: string;
-  completedAt: string;
-  score?: number;
+  createdAt: string;
+  estimatedMinutes?: number;
 }
 
 export interface QuizHistory {
   id: string;
   lessonTitle: string;
-  score: number;
-  completedAt: string;
+  scorePercentage: number;
+  completedAt?: string | null;
+}
+
+export interface LessonHistoryItem {
+  id: string;
+  title: string;
+  sourceType: string;
+  createdAt: string;
+  summary: string;
 }
 
 export interface Document {
   id: string;
   title: string;
   uploadedAt: string;
+  href?: string;
   actions?: string[];
   summary?: string;
   fileType?: string;

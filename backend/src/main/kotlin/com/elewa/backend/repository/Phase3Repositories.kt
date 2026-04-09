@@ -20,7 +20,10 @@ interface KeyTermRepository : JpaRepository<KeyTerm, UUID> {
 }
 
 interface QuizRepository : JpaRepository<Quiz, UUID> {
-    fun findByLessonIdAndLearnerId(lessonId: UUID, learnerId: UUID): Quiz?
+    fun findFirstByLessonIdAndLearnerIdAndCompletedAtIsNullOrderByCreatedAtDesc(
+        lessonId: UUID,
+        learnerId: UUID
+    ): Quiz?
     fun findAllByLearnerIdOrderByCreatedAtDesc(learnerId: UUID): List<Quiz>
 
     @Query("SELECT AVG(q.scorePercentage) FROM Quiz q WHERE q.learner.id = :learnerId AND q.completedAt IS NOT NULL")

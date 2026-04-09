@@ -7,51 +7,15 @@ import Sidebar from '@/components/Sidebar'
 import AccessibilityToolbar from '@/components/AccessibilityToolbar'
 import { useAccessibilitySettings } from '@/hooks/useAccessibilitySettings'
 import { useAuth } from '@/hooks/useAuth'
-import { Document } from '@/types'
-
-const historyDocs: Document[] = [
-  {
-    id: '1',
-    title: 'Project Proposal',
-    uploadedAt: '2026-03-01',
-    actions: ['Simplified', 'Q&A'],
-    fileType: 'PDF',
-    summary: 'Proposal text adapted for easier reading with guided follow-up questions.',
-    status: 'Processed',
-  },
-  {
-    id: '2',
-    title: 'User Manual',
-    uploadedAt: '2026-02-25',
-    actions: ['ReadAloud'],
-    fileType: 'DOCX',
-    summary: 'Manual converted to speech-enabled format for auditory learning support.',
-    status: 'Processed',
-  },
-  {
-    id: '3',
-    title: 'Research Notes',
-    uploadedAt: '2026-02-20',
-    actions: ['Simplified'],
-    fileType: 'TXT',
-    summary: 'Dense research notes transformed into concise point-by-point highlights.',
-    status: 'Processed',
-  },
-  {
-    id: '4',
-    title: 'Chemistry Revision Pack',
-    uploadedAt: '2026-01-15',
-    actions: ['Q&A', 'ReadAloud'],
-    fileType: 'PDF',
-    summary: 'Revision pack now includes interactive comprehension checks and read-aloud.',
-    status: 'In Review',
-  },
-]
+import { contentAPI } from '@/lib/api'
+import { Document, LessonHistoryItem } from '@/types'
 
 export default function HistoryPage() {
   const router = useRouter()
   const { user, loading: authLoading } = useAuth()
   const { settings, toggleSetting } = useAccessibilitySettings()
+  const [historyDocs, setHistoryDocs] = useState<Document[]>([])
+  const [loadingHistory, setLoadingHistory] = useState(true)
   const [searchText, setSearchText] = useState('')
   const [selectedAction, setSelectedAction] = useState('All')
   const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'title'>('newest')
@@ -61,6 +25,33 @@ export default function HistoryPage() {
       router.replace('/login')
     }
   }, [authLoading, user, router])
+
+  useEffect(() => {
+    if (!user) return
+    fetchHistory()
+  }, [user])
+
+  async function fetchHistory() {
+    try {
+      const items: LessonHistoryItem[] = await contentAPI.history()
+      const mapped: Document[] = items.map((item) => ({
+        id: item.id,
+        title: item.title,
+        uploadedAt: item.createdAt,
+        href: `/lesson/${item.id}`,
+        actions: ['Simplified', 'Quiz'],
+        fileType: item.sourceType,
+        summary: item.summary,
+        status: 'Processed',
+      }))
+      setHistoryDocs(mapped)
+    } catch (error) {
+      console.error('Failed to fetch content history', error)
+      setHistoryDocs([])
+    } finally {
+      setLoadingHistory(false)
+    }
+  }
 
   const allActions = useMemo(() => {
     const actionSet = new Set<string>()
@@ -87,8 +78,8 @@ export default function HistoryPage() {
     return docs.sort((a, b) => {
       if (sortBy === 'title') return a.title.localeCompare(b.title)
 
-      const aTime = new Date(a.uploadedAt).getTime()
-      const bTime = new Date(b.uploadedAt).getTime()
+      const aTime = new Date(a.uploadedAt).getTime() || 0
+      const bTime = new Date(b.uploadedAt).getTime() || 0
 
       return sortBy === 'newest' ? bTime - aTime : aTime - bTime
     })
@@ -101,7 +92,7 @@ export default function HistoryPage() {
     return newest.toLocaleDateString()
   }, [])
 
-  if (authLoading || !user) {
+  if (authLoading || loadingHistory || !user) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-elekeza-deep-blue via-white to-elekeza-indigo">
         <div className="text-center">
