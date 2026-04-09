@@ -51,7 +51,7 @@ export default function DashboardPage() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-elekeza-deep-blue via-white to-elekeza-indigo p-6">
         <div className="bg-white/90 backdrop-blur-lg p-10 rounded-2xl shadow-xl border border-white/50 max-w-md text-center">
-          <div className="text-red-500 mb-4">⚠️</div>
+          <div className="text-red-500 mb-4">??</div>
           <h2 className="text-xl font-bold mb-2">Error Loading Dashboard</h2>
           <p className="text-gray-600 mb-4">{error}</p>
           <button
@@ -114,8 +114,8 @@ export default function DashboardPage() {
             <h3 className="text-xl font-bold text-gray-800 mb-4">Recent Lessons</h3>
             {data?.recentLessons && data.recentLessons.length > 0 ? (
               <div className="space-y-4">
-                {data.recentLessons.map((lesson) => (
-                  <div key={lesson.id} className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
+                {data.recentLessons.map((lesson, index) => (
+                  <div key={index} className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
                     <div>
                       <h4 className="font-semibold text-gray-800">{lesson.title}</h4>
                       <p className="text-sm text-gray-600">Completed {new Date(lesson.completedAt).toLocaleDateString()}</p>
