@@ -164,12 +164,46 @@ class QuizService(
         }
         quizRepository.save(quiz)
 
+        val failedQuestions = buildFailedQuestions(responses)
+
         return QuizCompleteResponse(
             quizId = quiz.id,
             scorePercentage = score.toDouble(),
             correctCount = correctCount,
             totalQuestions = total,
-            summaryMessage = summary
+            summaryMessage = summary,
+            failedQuestions = failedQuestions
+        )
+    }
+
+    @Transactional(readOnly = true)
+    fun reviewQuiz(learnerId: UUID, quizId: UUID): QuizCompleteResponse {
+        val quiz = quizRepository.findById(quizId)
+            .orElseThrow { IllegalArgumentException("Quiz not found") }
+        check(quiz.learner.id == learnerId) { "Access denied" }
+
+        val responses = quizResponseRepository.findAllByQuizId(quizId)
+        val correctCount = responses.count { it.isCorrect }
+        val total = quiz.totalQuestions
+
+        val score = quiz.scorePercentage?.toDouble() ?: if (total > 0) {
+            (correctCount.toDouble() / total) * 100.0
+        } else 0.0
+
+        val summary = quiz.summaryMessage ?: when {
+            score >= 80.0 -> "Excellent work! You understood this lesson very well."
+            score >= 60.0 -> "Good effort! You are making great progress."
+            score >= 40.0 -> "Keep going! Reading the lesson again will help."
+            else -> "Do not worry - learning takes time. Try the lesson again."
+        }
+
+        return QuizCompleteResponse(
+            quizId = quiz.id,
+            scorePercentage = score,
+            correctCount = correctCount,
+            totalQuestions = total,
+            summaryMessage = summary,
+            failedQuestions = buildFailedQuestions(responses)
         )
     }
 
@@ -207,5 +241,41 @@ class QuizService(
         }.getOrNull()?.let { return it }
 
         return "the correct answer"
+    }
+
+    private fun buildFailedQuestions(responses: List<QuizResponse>): List<FailedQuestionReview> {
+        return responses
+            .filter { !it.isCorrect }
+            .sortedBy { it.question.sequenceNumber }
+            .map { response ->
+                val question = response.question
+                FailedQuestionReview(
+                    questionId = question.id,
+                    questionText = question.questionText,
+                    selectedOptionId = response.selectedOptionId,
+                    selectedAnswerText = resolveOptionText(question, response.selectedOptionId),
+                    correctOptionId = question.correctOptionId,
+                    correctAnswerText = resolveCorrectOptionText(question)
+                )
+            }
+    }
+
+    private fun resolveOptionText(question: QuizQuestion, optionId: String?): String? {
+        if (optionId.isNullOrBlank()) return null
+        val rawOptions = question.options ?: return null
+        val normalizedId = optionId.trim()
+
+        runCatching {
+            val quizOptions = objectMapper.readValue<List<QuizOption>>(rawOptions)
+            quizOptions.firstOrNull { it.id.equals(normalizedId, ignoreCase = true) }?.text
+        }.getOrNull()?.let { return it }
+
+        runCatching {
+            val listOptions = objectMapper.readValue(rawOptions, object : TypeReference<List<String>>() {})
+            val index = normalizedId.toIntOrNull()
+            if (index != null && index in listOptions.indices) listOptions[index] else null
+        }.getOrNull()?.let { return it }
+
+        return null
     }
 }
