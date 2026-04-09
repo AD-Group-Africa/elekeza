@@ -5,11 +5,13 @@ import { useRouter } from 'next/navigation'
 import PageShell from '@/components/ui/PageShell'
 import { useAuth } from '@/hooks/useAuth'
 import { useAccessibilitySettings } from '@/hooks/useAccessibilitySettings'
+import { useCognitiveProfile } from '@/hooks/useCognitiveProfile'
 
 export default function StudentProfilePage() {
   const router = useRouter()
   const { user, loading: authLoading } = useAuth()
   const { settings, toggleSetting } = useAccessibilitySettings()
+  const { profiles } = useCognitiveProfile()
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -66,6 +68,27 @@ export default function StudentProfilePage() {
               <p className="text-sm font-semibold text-slate-900">
                 {user.onboardingComplete ? 'Completed' : 'In progress'}
               </p>
+            </div>
+            <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-3">
+              <p className="text-xs text-emerald-700">Profile Storage</p>
+              <p className="text-sm font-semibold text-emerald-900">
+                Disability profile is saved in the database for this user.
+              </p>
+              <p className="mt-2 text-xs text-emerald-700">Saved Profile</p>
+              {profiles.length > 0 ? (
+                <div className="mt-1 flex flex-wrap gap-2">
+                  {profiles.map((profile) => (
+                    <span
+                      key={profile}
+                      className="inline-flex items-center rounded-full border border-emerald-300 bg-white px-2 py-1 text-xs font-semibold text-emerald-900"
+                    >
+                      {profile}
+                    </span>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm font-semibold text-emerald-900">Not set</p>
+              )}
             </div>
           </div>
         </section>

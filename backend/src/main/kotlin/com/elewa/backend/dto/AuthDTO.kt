@@ -12,7 +12,8 @@ data class RegisterRequest(
     @field:NotBlank @field:Size(min = 8, message = "Password must be at least 8 characters")
     val password: String,
 
-    val fullName: String? = null
+    val fullName: String? = null,
+    val cognitiveProfiles: List<String> = emptyList()
 )
 
 data class LoginRequest(
@@ -27,6 +28,7 @@ data class AuthResponse(
     val learnerId: UUID,
     val email: String,
     val fullName: String? = null,
+    val cognitiveProfiles: List<String> = emptyList(),
     val onboardingComplete: Boolean = false,
     val message: String
 )

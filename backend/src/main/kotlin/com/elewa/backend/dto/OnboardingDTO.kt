@@ -9,7 +9,8 @@ import java.util.UUID
 data class ProfileRequest(
     val preferredLanguage: String,
     val ageGroup: AgeGroup,
-    val learningGoal: String? = null
+    val learningGoal: String? = null,
+    val cognitiveProfiles: List<String>? = null
 )
 
 data class PlacementRequest(

@@ -3,11 +3,13 @@
 import { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { useAuth } from '@/hooks/useAuth'
+import { useCognitiveProfile } from '@/hooks/useCognitiveProfile'
 import { quizAPI } from '@/lib/api'
 import { QuizStartResponse, QuizAnswerResponse, QuizCompleteResponse } from '@/types'
 
 export default function QuizPage() {
   const { user, loading: authLoading } = useAuth()
+  const { activeMode, hasProfile } = useCognitiveProfile()
   const router = useRouter()
   const params = useParams()
   const lessonId = params.lessonId as string
@@ -168,10 +170,22 @@ export default function QuizPage() {
   const selectedAnswer = answers[currentQuestionIndex]
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-elekeza-deep-blue via-white to-elekeza-indigo p-4 sm:p-6">
-      <div className="max-w-2xl mx-auto">
+    <div className="lesson-shell p-4 sm:p-6">
+      <div className={hasProfile('INTELLECTUAL_DISABILITY') ? 'mx-auto max-w-[600px]' : 'mx-auto max-w-2xl'}>
+        {hasProfile('ADHD') && (
+          <div className="adhd-progress-mini">
+            <div className="mx-auto flex max-w-2xl items-center justify-between px-4 py-1 text-xs font-semibold text-slate-700">
+              <span>Quiz Progress</span>
+              <span>{Math.round(progress)}%</span>
+            </div>
+            <div className="adhd-progress-mini-track">
+              <div className="adhd-progress-mini-fill transition-all" style={{ width: `${progress}%` }} />
+            </div>
+          </div>
+        )}
+
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-elekeza-deep-blue mb-2">Elekeza</h1>
+          <h1 className={`mb-2 font-bold text-elekeza-deep-blue ${hasProfile('INTELLECTUAL_DISABILITY') ? 'text-5xl' : 'text-4xl'}`}>Elekeza</h1>
           <p className="text-elekeza-indigo text-sm">Quiz Time!</p>
         </div>
 
@@ -185,8 +199,24 @@ export default function QuizPage() {
           </div>
         </div>
 
-        <div className="bg-white p-8 rounded-2xl shadow-xl border border-slate-200">
-          <h2 className="text-xl font-bold text-slate-900 mb-6">{currentQuestion.text}</h2>
+        <div
+          className={`rounded-2xl border p-8 shadow-xl ${
+            hasProfile('AUTISM')
+              ? 'border-slate-300 bg-slate-100'
+              : hasProfile('ADHD')
+              ? currentQuestionIndex % 2 === 0
+                ? 'border-blue-200 bg-blue-50 adhd-enter'
+                : 'border-indigo-200 bg-indigo-50 adhd-enter'
+              : hasProfile('DYSLEXIA')
+              ? 'border-amber-200 bg-[#FAFAF0]'
+              : hasProfile('INTELLECTUAL_DISABILITY')
+              ? 'border-slate-800 bg-white'
+              : 'border-slate-200 bg-white'
+          }`}
+        >
+          <h2 className={`mb-6 font-bold text-slate-900 ${hasProfile('INTELLECTUAL_DISABILITY') ? 'text-3xl' : 'text-xl'}`}>
+            {currentQuestion.text}
+          </h2>
 
           <div className="space-y-3 mb-8">
             {currentQuestion.options.map((option) => (
@@ -196,11 +226,19 @@ export default function QuizPage() {
                 className={`w-full p-4 text-left rounded-lg border transition-all ${
                   selectedAnswer === option.id
                     ? 'border-elekeza-indigo bg-indigo-50 text-slate-900'
+                    : activeMode === 'autism'
+                    ? 'border-slate-500 bg-slate-200 text-slate-900'
+                    : activeMode === 'dyslexia'
+                    ? 'border-slate-400 bg-[#FAFAF0] text-slate-900 hover:border-slate-700'
+                    : activeMode === 'adhd'
+                    ? 'border-blue-400 bg-white text-slate-900 hover:border-blue-700'
+                    : activeMode === 'intellectualDisability'
+                    ? 'border-slate-800 bg-white text-slate-900 hover:bg-slate-100'
                     : 'border-gray-300 bg-white text-slate-900 hover:border-elekeza-indigo'
                 }`}
               >
                 <span className="font-semibold mr-3">{option.id.toUpperCase()}.</span>
-                <span className="text-slate-900">{option.text}</span>
+                <span className={hasProfile('INTELLECTUAL_DISABILITY') ? 'text-xl text-slate-900' : 'text-slate-900'}>{option.text}</span>
               </button>
             ))}
           </div>
@@ -208,7 +246,9 @@ export default function QuizPage() {
           <button
             onClick={handleSubmitAnswer}
             disabled={!selectedAnswer || submitting}
-            className="w-full bg-elekeza-deep-blue hover:bg-elekeza-indigo text-white py-3 rounded-lg font-semibold transition duration-200 disabled:opacity-50 flex items-center justify-center"
+            className={`flex w-full items-center justify-center rounded-lg bg-elekeza-deep-blue py-3 font-semibold text-white transition duration-200 hover:bg-elekeza-indigo disabled:opacity-50 ${
+              hasProfile('INTELLECTUAL_DISABILITY') ? 'min-h-12 text-xl' : ''
+            }`}
           >
             {submitting ? (
               <>

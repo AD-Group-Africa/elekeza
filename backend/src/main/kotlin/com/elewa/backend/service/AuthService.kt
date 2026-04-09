@@ -53,6 +53,10 @@ class AuthService(
             email        = request.email
             passwordHash = passwordEncoder.encode(request.password)
             fullName     = request.fullName ?: ""
+            cognitiveProfiles = request.cognitiveProfiles.map { it.trim().lowercase() }
+                .filter { it.isNotBlank() }
+                .distinct()
+                .toTypedArray()
         })
         issueTokenCookies(saved, response)
         log.info("Registered: ${saved.id}")
@@ -136,6 +140,7 @@ class AuthService(
         learnerId          = id,
         email              = email,
         fullName           = fullName,
+        cognitiveProfiles  = cognitiveProfiles.toList(),
         onboardingComplete = onboardingComplete,
         message            = message
     )

@@ -98,9 +98,13 @@ class ContentService(
     }
 
     private fun buildLearnerContext(learner: com.elewa.backend.model.Learner): LearnerContext {
+        val normalizedProfiles = learner.cognitiveProfiles
+            .map { it.trim().lowercase() }
+            .filter { it.isNotBlank() }
+
         return LearnerContext(
             learnerId         = learner.id.toString(),
-            cognitiveProfiles = listOf("dyslexia"),
+            cognitiveProfiles = if (normalizedProfiles.isNotEmpty()) normalizedProfiles else listOf("general"),
             languageLevel     = when (learner.literacyLevel) {
                 LiteracyLevel.BEGINNER -> 1; LiteracyLevel.INTERMEDIATE -> 2; LiteracyLevel.ADVANCED -> 3; null -> 2
             },

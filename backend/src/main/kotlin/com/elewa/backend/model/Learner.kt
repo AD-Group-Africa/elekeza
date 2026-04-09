@@ -1,6 +1,8 @@
 package com.elewa.backend.model
 
 import jakarta.persistence.*
+import org.hibernate.annotations.JdbcTypeCode
+import org.hibernate.type.SqlTypes
 import java.time.Instant
 import java.util.UUID
 
@@ -39,6 +41,10 @@ class Learner {
 
     @Column(name = "learning_goal")
     var learningGoal: String? = null
+
+    @JdbcTypeCode(SqlTypes.ARRAY)
+    @Column(name = "cognitive_profiles", columnDefinition = "text[]")
+    var cognitiveProfiles: Array<String> = emptyArray()
 
     @Column(name = "created_at", nullable = false, updatable = false)
     val createdAt: Instant = Instant.now()
