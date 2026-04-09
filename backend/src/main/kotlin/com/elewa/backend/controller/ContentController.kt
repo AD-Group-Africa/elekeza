@@ -32,6 +32,14 @@ class ContentController(
         return ResponseEntity.ok(contentService.getLesson(learnerId, lessonId))
     }
 
+    @GetMapping("/history")
+    fun getHistory(
+        @AuthenticationPrincipal principal: UserDetails
+    ): ResponseEntity<List<LessonHistoryItemResponse>> {
+        val learnerId = UUID.fromString(principal.username)
+        return ResponseEntity.ok(contentService.getLessonHistory(learnerId))
+    }
+
     @PatchMapping("/lessons/{lessonId}/sections/{sectionId}/progress")
     fun updateSectionProgress(
         @AuthenticationPrincipal principal: UserDetails,

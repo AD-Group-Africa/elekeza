@@ -36,20 +36,18 @@ class QuizService(
             .orElseThrow { IllegalArgumentException("Lesson not found") }
         check(lesson.learner.id == learnerId) { "Access denied" }
 
-        quizRepository.findByLessonIdAndLearnerId(lessonId, learnerId)
+        quizRepository.findFirstByLessonIdAndLearnerIdAndCompletedAtIsNullOrderByCreatedAtDesc(lessonId, learnerId)
             ?.let { existing ->
-                if (existing.completedAt == null) {
-                    val questions = quizQuestionRepository.findAllByQuizIdOrderBySequenceNumberAsc(existing.id)
-                    val answeredIds = quizResponseRepository.findAllByQuizId(existing.id)
-                        .map { it.question.id }.toSet()
-                    val next = questions.firstOrNull { it.id !in answeredIds }
-                        ?: questions.first()
-                    return QuizStartResponse(
-                        quizId = existing.id,
-                        totalQuestions = existing.totalQuestions,
-                        firstQuestion = next.toResponse()
-                    )
-                }
+                val questions = quizQuestionRepository.findAllByQuizIdOrderBySequenceNumberAsc(existing.id)
+                val answeredIds = quizResponseRepository.findAllByQuizId(existing.id)
+                    .map { it.question.id }.toSet()
+                val next = questions.firstOrNull { it.id !in answeredIds }
+                    ?: questions.first()
+                return QuizStartResponse(
+                    quizId = existing.id,
+                    totalQuestions = existing.totalQuestions,
+                    firstQuestion = next.toResponse()
+                )
             }
 
         val quiz = Quiz().apply {
@@ -103,12 +101,7 @@ class QuizService(
         val learnerMessage = if (isCorrect) {
             "Correct! ${question.explanation ?: "Well done!"}"
         } else {
-            val options = question.options?.let {
-                objectMapper.readValue(it, object : TypeReference<List<String>>() {})
-            } ?: emptyList<String>()
-            val correctOption = if (options.isNotEmpty()) {
-                options[question.correctOptionId.toInt()]
-            } else "the correct answer"
+            val correctOption = resolveCorrectOptionText(question)
             "Incorrect. The correct answer is: $correctOption"
         }
 
@@ -190,5 +183,29 @@ class QuizService(
             text = questionText,
             options = opts
         )
+    }
+
+    private fun resolveCorrectOptionText(question: QuizQuestion): String {
+        val rawOptions = question.options ?: return "the correct answer"
+        val optionId = question.correctOptionId.trim()
+
+        // Primary format used in this project: [{ "id": "a", "text": "..." }]
+        runCatching {
+            val quizOptions = objectMapper.readValue<List<QuizOption>>(rawOptions)
+            quizOptions.firstOrNull { it.id.equals(optionId, ignoreCase = true) }?.text
+        }.getOrNull()?.let { return it }
+
+        // Backward-compatible fallback: ["Option A", "Option B", ...] + numeric index/id.
+        runCatching {
+            val listOptions = objectMapper.readValue(rawOptions, object : TypeReference<List<String>>() {})
+            val index = optionId.toIntOrNull()
+            when {
+                index != null && index in listOptions.indices -> listOptions[index]
+                listOptions.isNotEmpty() -> listOptions.first()
+                else -> null
+            }
+        }.getOrNull()?.let { return it }
+
+        return "the correct answer"
     }
 }

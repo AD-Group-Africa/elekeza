@@ -6,6 +6,21 @@ import { useAuth } from '@/hooks/useAuth'
 import { contentAPI, quizAPI } from '@/lib/api'
 import { Lesson, Section, KeyTerm } from '@/types'
 
+function parseSection(section: Section) {
+  if (section.heading || section.body) {
+    return {
+      heading: section.heading ?? `Section`,
+      body: section.body ?? '',
+    }
+  }
+
+  const raw = section.content ?? ''
+  const [headingPart, ...bodyParts] = raw.split(/\n\s*\n/)
+  const heading = headingPart?.trim() || 'Section'
+  const body = bodyParts.join('\n\n').trim() || headingPart?.trim() || ''
+  return { heading, body }
+}
+
 export default function LessonPage() {
   const { user, loading: authLoading } = useAuth()
   const router = useRouter()
@@ -84,7 +99,7 @@ export default function LessonPage() {
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-elekeza-deep-blue via-white to-elekeza-indigo">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-elekeza-indigo mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading lesson...</p>
+          <p className="text-slate-800">Loading lesson...</p>
         </div>
       </div>
     )
@@ -93,10 +108,27 @@ export default function LessonPage() {
   if (error || !lesson) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-elekeza-deep-blue via-white to-elekeza-indigo p-6">
-        <div className="bg-white/90 backdrop-blur-lg p-10 rounded-2xl shadow-xl border border-white/50 max-w-md text-center">
+        <div className="bg-white p-10 rounded-2xl shadow-xl border border-slate-200 max-w-md text-center">
           <div className="text-red-500 mb-4">⚠️</div>
-          <h2 className="text-xl font-bold mb-2">Error Loading Lesson</h2>
-          <p className="text-gray-600 mb-4">{error}</p>
+          <h2 className="text-xl font-bold text-slate-900 mb-2">Error Loading Lesson</h2>
+          <p className="text-slate-700 mb-4">{error}</p>
+          <button
+            onClick={() => router.push('/dashboard')}
+            className="bg-elekeza-deep-blue text-white px-6 py-2 rounded-lg hover:bg-elekeza-indigo"
+          >
+            Back to Dashboard
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  if (!lesson.sections || lesson.sections.length === 0) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-elekeza-deep-blue via-white to-elekeza-indigo p-6">
+        <div className="bg-white p-10 rounded-2xl shadow-xl border border-slate-200 max-w-md text-center">
+          <h2 className="text-xl font-bold text-slate-900 mb-2">No Lesson Sections Found</h2>
+          <p className="text-slate-700 mb-4">This lesson was created, but no readable sections were returned.</p>
           <button
             onClick={() => router.push('/dashboard')}
             className="bg-elekeza-deep-blue text-white px-6 py-2 rounded-lg hover:bg-elekeza-indigo"
@@ -109,21 +141,22 @@ export default function LessonPage() {
   }
 
   const section = lesson.sections[currentSection]
+  const { heading, body } = parseSection(section)
   const progress = ((currentSection + 1) / lesson.sections.length) * 100
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-elekeza-deep-blue via-white to-elekeza-indigo">
       {/* Header */}
-      <div className="bg-white/90 backdrop-blur-lg border-b border-white/50">
+      <div className="bg-white border-b border-slate-200">
         <div className="max-w-4xl mx-auto px-6 py-4">
           <div className="flex justify-between items-center">
             <div>
               <h1 className="text-2xl font-bold text-elekeza-deep-blue">Elekeza</h1>
-              <p className="text-elekeza-indigo text-sm">Reading: {lesson.title}</p>
+              <p className="text-slate-700 text-sm">Reading: {lesson.title}</p>
             </div>
             <button
               onClick={() => router.push('/dashboard')}
-              className="text-elekeza-indigo hover:underline"
+              className="text-slate-800 hover:underline font-medium"
             >
               ← Dashboard
             </button>
@@ -133,7 +166,7 @@ export default function LessonPage() {
 
       {/* Progress Bar */}
       <div className="max-w-4xl mx-auto px-6 py-4">
-        <div className="mb-2 flex justify-between text-sm text-gray-600">
+        <div className="mb-2 flex justify-between text-sm text-slate-800 font-medium">
           <span>Section {currentSection + 1} of {lesson.sections.length}</span>
           <span>{Math.round(progress)}% Complete</span>
         </div>
@@ -147,21 +180,21 @@ export default function LessonPage() {
 
       {/* Main Content */}
       <div className="max-w-4xl mx-auto px-6 pb-8">
-        <div className="bg-white/90 backdrop-blur-lg p-8 rounded-2xl shadow-xl border border-white/50">
+        <div className="bg-white p-8 rounded-2xl shadow-xl border border-slate-200">
           {/* Section Title */}
-          <h2 className="text-2xl font-bold text-gray-800 mb-6">{section.heading}</h2>
+          <h2 className="text-2xl font-bold text-slate-900 mb-6">{heading}</h2>
 
           {/* Section Content */}
           <div className="prose prose-lg max-w-none mb-8">
-            <div className="text-gray-700 leading-relaxed text-lg">
-              {(section.body || "").split(' ').map((word, index) => {
+            <div className="text-slate-900 leading-relaxed text-lg">
+              {(body || "").split(' ').map((word, index) => {
                 const term = lesson.keyTerms.find(t => t.term.toLowerCase() === word.toLowerCase().replace(/[.,!?;]$/, ''))
                 if (term) {
                   return (
                     <span key={index}>
                       <button
                         onClick={() => handleTermTap(term.id)}
-                        className="text-elekeza-indigo hover:underline font-semibold"
+                        className="text-blue-700 hover:text-blue-800 hover:underline font-semibold"
                       >
                         {word}
                       </button>{' '}
@@ -183,7 +216,7 @@ export default function LessonPage() {
                 }
               }}
               disabled={currentSection === 0}
-              className="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-6 py-3 bg-slate-100 text-slate-800 rounded-lg hover:bg-slate-200 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Previous
             </button>
@@ -200,3 +233,4 @@ export default function LessonPage() {
     </div>
   )
 }
+
