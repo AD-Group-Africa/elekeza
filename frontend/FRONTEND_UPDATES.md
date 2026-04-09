@@ -94,3 +94,23 @@
 
 - Added student profile page (/dashboard/profile) with account details, onboarding status, and quick actions.
 - Added Profile entry in student sidebar navigation for direct access.
+
+## 2026-04-09
+- Fixed lesson page rendering so section content displays correctly when backend returns `content` instead of separate `heading/body`.
+- Improved lesson and quiz readability with higher-contrast text and clearer option/button states.
+- Fixed dashboard data mapping mismatches causing `Invalid Date` and empty `%` values in recent lessons and quiz history.
+- Replaced static document history with live user history fetched from backend (`/api/content/history`), including links into saved lessons.
+- Fixed history page stale memoization so fetched documents actually appear in the filtered list.
+- Added quiz completion review details in frontend (failed questions with selected vs correct answers).
+- Added dashboard quiz history `Review` button and a dedicated quiz review page route.
+
+### Files Altered
+- `src/app/lesson/[id]/page.tsx`
+- `src/app/quiz/[lessonId]/page.tsx`
+- `src/app/quiz/review/[quizId]/page.tsx`
+- `src/app/dashboard/page.tsx`
+- `src/app/dashboard/history/page.tsx`
+- `src/components/DocumentCard.tsx`
+- `src/lib/api.ts`
+- `src/types/index.ts`
+- `FRONTEND_UPDATES.md`

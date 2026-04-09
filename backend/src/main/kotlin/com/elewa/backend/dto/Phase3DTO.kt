@@ -55,7 +55,17 @@ data class QuizCompleteResponse(
     val scorePercentage: Double,
     val correctCount: Int,
     val totalQuestions: Int,
-    val summaryMessage: String
+    val summaryMessage: String,
+    val failedQuestions: List<FailedQuestionReview> = emptyList()
+)
+
+data class FailedQuestionReview(
+    val questionId: UUID,
+    val questionText: String,
+    val selectedOptionId: String?,
+    val selectedAnswerText: String?,
+    val correctOptionId: String,
+    val correctAnswerText: String?
 )
 
 // ── Dashboard ─────────────────────────────────────────────────────────────────

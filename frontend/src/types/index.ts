@@ -104,10 +104,21 @@ export interface QuizAnswerResponse {
 }
 
 export interface QuizCompleteResponse {
+  quizId?: string;
   scorePercentage: number;
   correctCount: number;
   totalQuestions: number;
   summaryMessage: string;
+  failedQuestions?: FailedQuestionReview[];
+}
+
+export interface FailedQuestionReview {
+  questionId: string;
+  questionText: string;
+  selectedOptionId?: string | null;
+  selectedAnswerText?: string | null;
+  correctOptionId: string;
+  correctAnswerText?: string | null;
 }
 
 // Progress types
@@ -119,14 +130,14 @@ export interface DashboardData {
 }
 
 export interface LessonSummary {
-  id: string;
+  lessonId: string;
   title: string;
   createdAt: string;
   estimatedMinutes?: number;
 }
 
 export interface QuizHistory {
-  id: string;
+  quizId: string;
   lessonTitle: string;
   scorePercentage: number;
   completedAt?: string | null;

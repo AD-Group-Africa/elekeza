@@ -57,7 +57,7 @@ export default function HistoryPage() {
     const actionSet = new Set<string>()
     historyDocs.forEach((doc) => doc.actions?.forEach((action) => actionSet.add(action)))
     return ['All', ...Array.from(actionSet)]
-  }, [])
+  }, [historyDocs])
 
   const filteredDocs = useMemo(() => {
     const searchValue = searchText.trim().toLowerCase()
@@ -83,14 +83,14 @@ export default function HistoryPage() {
 
       return sortBy === 'newest' ? bTime - aTime : aTime - bTime
     })
-  }, [searchText, selectedAction, sortBy])
+  }, [historyDocs, searchText, selectedAction, sortBy])
 
   const latestUpload = useMemo(() => {
     if (historyDocs.length === 0) return 'N/A'
     const dates = historyDocs.map((doc) => new Date(doc.uploadedAt))
     const newest = new Date(Math.max(...dates.map((date) => date.getTime())))
     return newest.toLocaleDateString()
-  }, [])
+  }, [historyDocs])
 
   if (authLoading || loadingHistory || !user) {
     return (
