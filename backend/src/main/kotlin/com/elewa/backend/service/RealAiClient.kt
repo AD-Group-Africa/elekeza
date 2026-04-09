@@ -1,4 +1,4 @@
-﻿package com.elewa.backend.service
+package com.elewa.backend.service
 
 import com.elewa.backend.dto.ai.*
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -16,7 +16,7 @@ import java.time.Duration
 class RealAiClient(
     private val webClient: WebClient,
     private val objectMapper: ObjectMapper,
-    @Value("\${fastapi.timeout-seconds:30}") private val timeoutSeconds: Long
+    @Value("\${fastapi.timeout-seconds:30}") private val timeoutSeconds: Long = 120
 ) : AiClient {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -49,7 +49,7 @@ class RealAiClient(
             .onStatus(HttpStatusCode::isError) { response ->
                 response.bodyToMono(String::class.java)
                     .flatMap { errorBody ->
-                        log.error("AI error on $path â€” $errorBody")
+                        log.error("AI error on $path — $errorBody")
                         Mono.error(AiClientException(response.statusCode().value(), "AI service error"))
                     }
             }
