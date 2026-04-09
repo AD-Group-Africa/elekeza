@@ -61,6 +61,20 @@ class ContentService(
         )
     }
 
+    @Transactional(readOnly = true)
+    fun getLessonHistory(learnerId: UUID): List<LessonHistoryItemResponse> {
+        return lessonRepository.findAllByLearnerIdOrderByCreatedAtDesc(learnerId).map { lesson ->
+            val summarySource = lesson.rawText.takeIf { it.isNotBlank() } ?: "Lesson uploaded and simplified."
+            LessonHistoryItemResponse(
+                id = lesson.id,
+                title = lesson.title.ifBlank { "Untitled lesson" },
+                sourceType = lesson.sourceType?.name ?: "TEXT",
+                createdAt = lesson.createdAt.toString(),
+                summary = summarySource.take(220)
+            )
+        }
+    }
+
     @Transactional
     fun updateSectionProgress(learnerId: UUID, lessonId: UUID, sectionId: UUID, request: UpdateProgressRequest): SectionProgressResponse {
         val lesson = lessonRepository.findById(lessonId).orElseThrow { IllegalArgumentException("Lesson not found") }

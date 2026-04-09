@@ -73,6 +73,11 @@ export const contentAPI = {
     const res = await api.post(`/api/content/lessons/${lessonId}/term-tap`, data)
     return res.data
   },
+
+  history: async () => {
+    const res = await api.get('/api/content/history')
+    return res.data
+  },
 }
 
 export const quizAPI = {

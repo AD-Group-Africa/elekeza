@@ -7,6 +7,12 @@ import { progressAPI } from '@/lib/api'
 import { DashboardData } from '@/types'
 import Sidebar from '@/components/Sidebar'
 
+function formatDateOrFallback(value?: string | null): string {
+  if (!value) return 'N/A'
+  const parsed = new Date(value)
+  return Number.isNaN(parsed.getTime()) ? 'N/A' : parsed.toLocaleDateString()
+}
+
 export default function DashboardPage() {
   const { user, loading: authLoading } = useAuth()
   const router = useRouter()
@@ -101,7 +107,9 @@ export default function DashboardPage() {
             </div>
             <div className="bg-white/90 backdrop-blur-lg p-6 rounded-xl shadow-lg border border-white/50">
               <h3 className="text-lg font-semibold text-gray-700 mb-2">Average Quiz Score</h3>
-              <p className="text-3xl font-bold text-elekeza-indigo">{data?.avgQuizScore ? `${data.avgQuizScore}%` : 'N/A'}</p>
+              <p className="text-3xl font-bold text-elekeza-indigo">
+                {data?.avgQuizScore != null ? `${Math.round(data.avgQuizScore)}%` : 'N/A'}
+              </p>
             </div>
             <div className="bg-white/90 backdrop-blur-lg p-6 rounded-xl shadow-lg border border-white/50">
               <h3 className="text-lg font-semibold text-gray-700 mb-2">Recent Activity</h3>
@@ -118,13 +126,11 @@ export default function DashboardPage() {
                   <div key={index} className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
                     <div>
                       <h4 className="font-semibold text-gray-800">{lesson.title}</h4>
-                      <p className="text-sm text-gray-600">Completed {new Date(lesson.completedAt).toLocaleDateString()}</p>
+                      <p className="text-sm text-gray-600">Uploaded {formatDateOrFallback(lesson.createdAt)}</p>
                     </div>
-                    {lesson.score && (
-                      <div className="text-right">
-                        <p className="font-bold text-elekeza-indigo">{lesson.score}%</p>
-                      </div>
-                    )}
+                    <div className="text-right">
+                      <p className="text-sm text-gray-600">{lesson.estimatedMinutes ?? 0} min</p>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -142,10 +148,10 @@ export default function DashboardPage() {
                   <div key={index} className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
                     <div>
                       <h4 className="font-semibold text-gray-800">{quiz.lessonTitle}</h4>
-                      <p className="text-sm text-gray-600">Completed {new Date(quiz.completedAt).toLocaleDateString()}</p>
+                      <p className="text-sm text-gray-600">Completed {formatDateOrFallback(quiz.completedAt)}</p>
                     </div>
                     <div className="text-right">
-                      <p className="font-bold text-elekeza-indigo">{quiz.score}%</p>
+                      <p className="font-bold text-elekeza-indigo">{Math.round(quiz.scorePercentage)}%</p>
                     </div>
                   </div>
                 ))}

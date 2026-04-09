@@ -8,6 +8,9 @@ interface Props {
 }
 
 const DocumentCard: React.FC<Props> = ({ document, calmUI }) => {
+  const uploaded = new Date(document.uploadedAt)
+  const uploadedLabel = Number.isNaN(uploaded.getTime()) ? document.uploadedAt : uploaded.toLocaleDateString()
+
   const actionColorMap: Record<string, string> = {
     Simplified: 'bg-sky-100 text-sky-800 border-sky-200',
     'Q&A': 'bg-violet-100 text-violet-800 border-violet-200',
@@ -15,7 +18,7 @@ const DocumentCard: React.FC<Props> = ({ document, calmUI }) => {
   }
 
   return (
-    <Link href={`/document/${document.id}`} className="group block h-full">
+    <Link href={document.href ?? `/document/${document.id}`} className="group block h-full">
       <div
         className={`h-full rounded-2xl border p-5 shadow-sm transition duration-200 group-hover:-translate-y-1 group-hover:shadow-lg ${
           calmUI
@@ -27,7 +30,7 @@ const DocumentCard: React.FC<Props> = ({ document, calmUI }) => {
           <p className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">
             {document.fileType ?? 'Document'}
           </p>
-          <p className="text-xs font-medium text-slate-500">{document.uploadedAt}</p>
+          <p className="text-xs font-medium text-slate-500">{uploadedLabel}</p>
         </div>
 
         <h2 className="line-clamp-2 text-xl font-bold text-slate-900">{document.title}</h2>
