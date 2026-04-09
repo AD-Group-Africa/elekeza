@@ -45,6 +45,16 @@ class QuizController(
         val learnerId = UUID.fromString(principal.username)
         return ResponseEntity.ok(quizService.completeQuiz(learnerId, quizId))
     }
+
+    // GET /api/quiz/{quizId}/review
+    @GetMapping("/{quizId}/review")
+    fun reviewQuiz(
+        @AuthenticationPrincipal principal: UserDetails,
+        @PathVariable quizId: UUID
+    ): ResponseEntity<QuizCompleteResponse> {
+        val learnerId = UUID.fromString(principal.username)
+        return ResponseEntity.ok(quizService.reviewQuiz(learnerId, quizId))
+    }
 }
 
 @RestController

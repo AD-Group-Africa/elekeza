@@ -95,6 +95,11 @@ export const quizAPI = {
     const res = await api.get(`/api/quiz/${quizId}/complete`)
     return res.data
   },
+
+  review: async (quizId: string) => {
+    const res = await api.get(`/api/quiz/${quizId}/review`)
+    return res.data
+  },
 }
 
 export const progressAPI = {
