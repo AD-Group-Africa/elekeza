@@ -1,3 +1,10 @@
+export type CognitiveProfile =
+  | 'DYSLEXIA'
+  | 'ADHD'
+  | 'AUTISM'
+  | 'INTELLECTUAL_DISABILITY'
+  | 'DYSCALCULIA';
+
 // Auth types
 export interface User {
   id: string;
@@ -5,6 +12,7 @@ export interface User {
   fullName: string;
   onboardingComplete?: boolean;
   role: 'Student' | 'Teacher' | 'School Admin' | 'Guardian';
+  cognitiveProfiles?: CognitiveProfile[];
 }
 
 export interface AuthResponse {
@@ -13,6 +21,7 @@ export interface AuthResponse {
   fullName?: string | null;
   onboardingComplete: boolean;
   message: string;
+  cognitiveProfiles?: CognitiveProfile[];
 }
 
 // Onboarding types

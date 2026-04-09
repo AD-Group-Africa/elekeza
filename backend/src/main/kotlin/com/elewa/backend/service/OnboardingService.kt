@@ -22,6 +22,12 @@ class OnboardingService(
         learner.preferredLanguage = request.preferredLanguage
         learner.ageGroup          = request.ageGroup
         learner.learningGoal      = request.learningGoal
+        request.cognitiveProfiles?.let { profiles ->
+            learner.cognitiveProfiles = profiles.map { it.trim().lowercase() }
+                .filter { it.isNotBlank() }
+                .distinct()
+                .toTypedArray()
+        }
         learnerRepository.save(learner)
         return OnboardingResponse(
             learnerId          = learner.id,
