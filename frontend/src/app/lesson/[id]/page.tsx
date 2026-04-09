@@ -154,7 +154,7 @@ export default function LessonPage() {
           {/* Section Content */}
           <div className="prose prose-lg max-w-none mb-8">
             <div className="text-gray-700 leading-relaxed text-lg">
-              {section.body.split(' ').map((word, index) => {
+              {(section.body || "").split(' ').map((word, index) => {
                 const term = lesson.keyTerms.find(t => t.term.toLowerCase() === word.toLowerCase().replace(/[.,!?;]$/, ''))
                 if (term) {
                   return (

@@ -76,7 +76,8 @@ class QuizQuestion {
     lateinit var questionText: String
 
     // Stored as JSON string: ["Option A", "Option B", ...]
-    @Column(columnDefinition = "JSONB")
+    @Column(columnDefinition = "jsonb")
+    @org.hibernate.annotations.JdbcTypeCode(org.hibernate.type.SqlTypes.JSON)
     var options: String? = null
 
     @Column(name = "correct_option_id", nullable = false)

@@ -34,9 +34,10 @@ security:
 fastapi:
   base-url: ${FASTAPI_URL:http://localhost:8001}
   # Must match INTERNAL_SECRET in Alvin's .env â€” never commit the real value
-  internal-secret: ${INTERNAL_SECRET:change-me-shared-secret}
-  timeout-seconds: 30
-
+  internal-secret: ${INTERNAL_SECRET:AO2xgxEVnV2r6ySzhajgl8M98aSQp3wD}
+  timeout-seconds: 120
+
+
 
 server:
   port: 8080
