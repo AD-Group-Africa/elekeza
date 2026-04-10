@@ -20,6 +20,7 @@ repositories {
 }
 
 dependencies {
+	implementation("io.hypersistence:hypersistence-utils-hibernate-63:3.7.3")
 	implementation("org.springframework.boot:spring-boot-starter-web")
 	implementation("org.springframework.boot:spring-boot-starter-security")
 	implementation("org.springframework.boot:spring-boot-starter-data-jpa")
