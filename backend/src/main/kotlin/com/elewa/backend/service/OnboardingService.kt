@@ -22,6 +22,7 @@ class OnboardingService(
         learner.preferredLanguage = request.preferredLanguage
         learner.ageGroup          = request.ageGroup
         learner.learningGoal      = request.learningGoal
+        learner.cognitiveProfile = request.cognitiveProfile
         learnerRepository.save(learner)
         return OnboardingResponse(
             learnerId          = learner.id,

@@ -10,6 +10,7 @@ data class ProfileRequest(
     val preferredLanguage: String,
     val ageGroup: AgeGroup,
     val learningGoal: String? = null
+    val cognitiveProfile: CognitiveProfile = CognitiveProfile.DEFAULT
 )
 
 data class PlacementRequest(
