@@ -28,6 +28,10 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-actuator")
 	implementation("org.springframework.boot:spring-boot-starter-webflux")  // WebClient → FastAPI
 
+	implementation("org.apache.pdfbox:pdfbox:3.0.2")
+	implementation("org.apache.poi:poi:5.2.5")
+	implementation("org.apache.poi:poi-ooxml:5.2.5")
+
 	implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
 	implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
 	implementation("org.jetbrains.kotlin:kotlin-reflect")

@@ -6,7 +6,6 @@ import java.util.UUID
 
 enum class AgeGroup { CHILD, TEEN, ADULT }
 enum class LiteracyLevel { BEGINNER, INTERMEDIATE, ADVANCED }
-enum class CognitiveProfile { DEFAULT, DYSLEXIA, ADHD, AUTISM, INTELLECTUAL_DISABILITY }
 
 @Entity
 @Table(name = "learners")
@@ -41,9 +40,14 @@ class Learner {
     @Column(name = "learning_goal")
     var learningGoal: String? = null
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "cognitive_profile", nullable = false)
-    var cognitiveProfile: CognitiveProfile = CognitiveProfile.DEFAULT
+    // Stored as a joined collection table: learner_cognitive_profiles
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(
+        name = "learner_cognitive_profiles",
+        joinColumns = [JoinColumn(name = "learner_id")]
+    )
+    @Column(name = "profile")
+    var cognitiveProfiles: List<String> = emptyList()
 
     @Column(name = "created_at", nullable = false, updatable = false)
     val createdAt: Instant = Instant.now()
