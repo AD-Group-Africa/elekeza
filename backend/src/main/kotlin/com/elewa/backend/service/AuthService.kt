@@ -1,4 +1,4 @@
-﻿package com.elewa.backend.service
+package com.elewa.backend.service
 
 import com.elewa.backend.dto.AuthResponse
 import com.elewa.backend.dto.LoginRequest
@@ -41,7 +41,7 @@ class AuthService(
 ) {
     private val log = LoggerFactory.getLogger(AuthService::class.java)
 
-    // Secure cookies only in Docker/prod â€” plain HTTP on local dev
+    // Secure cookies only in Docker/prod — plain HTTP on local dev
     private val isSecure: Boolean
         get() = environment.activeProfiles.contains("docker")
 
@@ -56,7 +56,7 @@ class AuthService(
             cognitiveProfiles = request.cognitiveProfiles.map { it.trim().lowercase() }
                 .filter { it.isNotBlank() }
                 .distinct()
-                .toTypedArray()
+                .toList()
         })
         issueTokenCookies(saved, response)
         log.info("Registered: ${saved.id}")
@@ -130,7 +130,7 @@ class AuthService(
             })
         }
 
-    // New instance per call â€” MessageDigest is NOT thread-safe
+    // New instance per call — MessageDigest is NOT thread-safe
     private fun hashToken(token: String): String {
         val bytes = MessageDigest.getInstance("SHA-256").digest(token.toByteArray(Charsets.UTF_8))
         return Base64.getEncoder().encodeToString(bytes)

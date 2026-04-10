@@ -26,7 +26,7 @@ class OnboardingService(
             learner.cognitiveProfiles = profiles.map { it.trim().lowercase() }
                 .filter { it.isNotBlank() }
                 .distinct()
-                .toTypedArray()
+                .toList()
         }
         learnerRepository.save(learner)
         return OnboardingResponse(
