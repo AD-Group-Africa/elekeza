@@ -1,13 +1,12 @@
 package com.elewa.backend.model
 
 import jakarta.persistence.*
-import org.hibernate.annotations.JdbcTypeCode
-import org.hibernate.type.SqlTypes
 import java.time.Instant
 import java.util.UUID
 
 enum class AgeGroup { CHILD, TEEN, ADULT }
 enum class LiteracyLevel { BEGINNER, INTERMEDIATE, ADVANCED }
+enum class CognitiveProfile { DEFAULT, DYSLEXIA, ADHD, AUTISM, INTELLECTUAL_DISABILITY }
 
 @Entity
 @Table(name = "learners")
@@ -42,9 +41,9 @@ class Learner {
     @Column(name = "learning_goal")
     var learningGoal: String? = null
 
-    @JdbcTypeCode(SqlTypes.ARRAY)
-    @Column(name = "cognitive_profiles", columnDefinition = "text[]")
-    var cognitiveProfiles: Array<String> = emptyArray()
+    @Enumerated(EnumType.STRING)
+    @Column(name = "cognitive_profile", nullable = false)
+    var cognitiveProfile: CognitiveProfile = CognitiveProfile.DEFAULT
 
     @Column(name = "created_at", nullable = false, updatable = false)
     val createdAt: Instant = Instant.now()
