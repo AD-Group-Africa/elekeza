@@ -49,10 +49,6 @@ app.include_router(quiz_router)
 
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
-    """
-    Catches Pydantic validation errors on incoming requests.
-    Returns a clean ErrorResponse instead of FastAPI's default 422 detail format.
-    """
     errors = exc.errors()
     field_errors = "; ".join(
         f"{' -> '.join(str(loc) for loc in e['loc'])}: {e['msg']}"
@@ -64,16 +60,14 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
         message=f"Request validation failed: {field_errors}",
         stage="request_validation",
         retried=False,
+        # No learner_message — Pydantic errors occur before learner context
+        # is validated, so we cannot guarantee profiles are present.
     )
     return JSONResponse(status_code=422, content=error.model_dump())
 
 
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
-    """
-    Catches any unhandled exception anywhere in the app.
-    Last line of defence — no stack trace ever reaches the client.
-    """
     logger.error(
         f"Unhandled exception on {request.url.path}: {type(exc).__name__}: {exc}",
         exc_info=True,

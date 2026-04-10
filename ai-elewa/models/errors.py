@@ -1,8 +1,10 @@
 from pydantic import BaseModel
 from typing import Optional
 
+
 # ---------------------------------------------------------------------------
-# Error code constants — used across the entire service
+# Error code constants
+# Used throughout the service — never use raw strings for error codes.
 # ---------------------------------------------------------------------------
 
 ERROR_TIMEOUT         = "TIMEOUT"
@@ -15,30 +17,23 @@ ERROR_OCR_FAILED      = "OCR_FAILED"
 ERROR_UNAUTHORISED    = "UNAUTHORISED"
 
 
+# ---------------------------------------------------------------------------
+# Error response schema
+# ---------------------------------------------------------------------------
+
 class ErrorResponse(BaseModel):
-    """
-    Structured error returned to Spring Boot on any failure.
-    Never expose Python stack traces — always return this shape.
-    """
     error_code: str
     message: str
     stage: Optional[str] = None
     retried: bool = False
+    learner_message: Optional[str] = None
 
+
+# ---------------------------------------------------------------------------
+# Internal exception type
+# ---------------------------------------------------------------------------
 
 class AIServiceError(Exception):
-    """
-    Raised anywhere in the pipeline, caught at the endpoint layer,
-    and converted into an ErrorResponse + correct HTTP status code.
-
-    Usage:
-        raise AIServiceError(ErrorResponse(
-            error_code=ERROR_TIMEOUT,
-            message="Model did not respond in time.",
-            stage="stage2_simplify",
-            retried=True
-        ))
-    """
     def __init__(self, error_response: ErrorResponse):
         self.error_response = error_response
         super().__init__(error_response.error_code)

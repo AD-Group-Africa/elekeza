@@ -10,3 +10,4 @@ Pillow==10.4.0
 langfuse==2.51.3
 python-dotenv==1.0.1
 httpx==0.27.2
+textstat==0.7.3

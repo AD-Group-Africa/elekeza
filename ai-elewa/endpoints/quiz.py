@@ -152,10 +152,13 @@ async def quiz_generate(request: QuizGenerateRequest):
         _validate_quiz_completeness(quiz, request.num_questions, stage="quiz_generate")
         return quiz
     except AIServiceError as e:
-        return _error_response(e.error_response)
+        return error_json_response(
+            e.error_response,
+            profiles=list(request.learner_context.cognitive_profiles),
+        )
     except Exception as e:
         logger.error(f"Unhandled error in /ai/quiz/generate: {e}", exc_info=True)
-        return _error_response(ErrorResponse(
+        return error_json_response(ErrorResponse(
             error_code=ERROR_SCHEMA_INVALID,
             message="An unexpected error occurred generating the quiz.",
             stage="quiz_generate",
@@ -169,53 +172,100 @@ async def quiz_generate(request: QuizGenerateRequest):
 ADAPTIVE_SYSTEM_PROMPT = """
 You are an adaptive learning assistant for learners with cognitive disabilities.
 You will receive information about a quiz question, the learner's answer, and
-whether it was correct.
+a detailed profile-specific context block that tells you exactly how to interpret
+the learner's performance.
 
-Your job is to:
-1. Write a short, encouraging learner_message appropriate to the profile.
+YOUR JOB:
+1. Write a short learner_message appropriate to the profile and outcome.
 2. Return a directive that tells the system what to do next.
+3. Write a directive_reason — one sentence explaining your choice (for debugging).
 
-DIRECTIVE RULES — return exactly one of these four values:
-- "easier"  — learner answered wrong and took a long time (latency_ms > 5000)
-- "revisit" — learner answered wrong and was within normal time
-- "same"    — learner answered correctly but took a long time (latency_ms > 5000)
-- "harder"  — learner answered correctly and quickly (latency_ms <= 5000)
+DIRECTIVE VALUES — return exactly one:
+  "easier"  — content difficulty should decrease
+  "revisit" — learner should see the same concept again before moving on
+  "same"    — keep the same difficulty level
+  "harder"  — learner is ready for more challenging content
+
+CRITICAL DIRECTIVE RULES — read the profile context block carefully:
+- If the context says "Easier directive allowed: NO", you MUST return "revisit"
+  in any situation where you would otherwise return "easier". No exceptions.
+- If the context says "Impulsivity signal: YES", return "revisit" with a message
+  that encourages the learner to slow down and think before answering.
+- If the context says "Consecutive correct required for harder: 2", do NOT return
+  "harder" unless you have been told the learner has answered correctly multiple
+  times in a row. When in doubt, return "same".
+- Use the "Adjusted response time" not the raw time when deciding if the
+  learner was slow. The adjustment accounts for profile-specific decoding time.
 
 LEARNER MESSAGE RULES:
+- The message is shown directly to the learner. Write for the profile.
 - dyslexia: short sentences (max 12 words), positive tone, active voice.
-- adhd: punchy, energetic, 1-2 sentences max.
-- autism: literal, factual, no emotional language, state what happens next.
-- intellectual_disability: max 8 words per sentence, simple vocabulary, warm tone.
-- For comorbid: apply stricter vocabulary, more direct structure.
+- adhd: punchy, direct, 1–2 sentences. If revisit_framing is slow_down,
+  include a gentle encouragement to take more time before answering.
+- autism: literal, factual, no emotional language, no idioms.
+  If directive is revisit, say "Let us look at this again." — never imply failure.
+- intellectual_disability: max 8 words per sentence, warm, simple vocabulary.
+- For comorbid: apply the stricter vocabulary rule.
+
+directive_reason: one sentence, technical, for Harrison's logs. Example:
+  "Correct answer at normal speed — escalating difficulty."
+  "Fast wrong answer (1200ms) — impulsivity signal, returning revisit."
+  "Autism profile — easier replaced with revisit per profile rule."
 
 You must respond with ONLY a valid JSON object. No markdown, no extra text.
 
 {
-  "learner_message": "string — message shown directly to the learner",
-  "directive": "easier" | "same" | "harder" | "revisit"
+  "learner_message": "string — shown directly to the learner",
+  "directive": "easier" | "same" | "harder" | "revisit",
+  "directive_reason": "string — one sentence for debugging, not shown to learner"
 }
 """
 
 
 def _build_adaptive_user_prompt(request: AdaptiveResponseRequest) -> str:
+    from utils.adaptive_rules import get_adaptive_rule, build_adaptive_context_block
+
     profiles = request.learner_context.cognitive_profiles
     profile = profiles[0] if len(profiles) == 1 else f"{profiles[0]}+{profiles[1]}"
+
+    rule = get_adaptive_rule(profile)
+    context_block = build_adaptive_context_block(
+        profile=profile,
+        language_level=request.learner_context.language_level,
+        is_correct=request.is_correct,
+        latency_ms=request.latency_ms,
+        rule=rule,
+    )
+
     outcome = "CORRECT" if request.is_correct else "INCORRECT"
 
-    return f"""LEARNER PROFILE: {profile}
-LANGUAGE LEVEL: {request.learner_context.language_level}
+    return f"""{context_block}
 
 QUESTION: {request.question}
 LEARNER'S ANSWER: {request.selected_option}
 OUTCOME: {outcome}
-RESPONSE TIME: {request.latency_ms}ms
+RAW RESPONSE TIME: {request.latency_ms}ms
 
-Based on this, return the learner_message and directive JSON object.
+Based on the profile context above, return the learner_message, directive,
+and directive_reason JSON object.
 """
 
 
-def _parse_adaptive_response(raw_response: str) -> AdaptiveResponse:
-    """Parse and validate adaptive response. Raises AIServiceError on failure."""
+def _parse_adaptive_response(
+    raw_response: str,
+    profile: str,
+) -> AdaptiveResponse:
+    """
+    Parse and validate the adaptive response from the model.
+
+    Applies a post-parse safety check to ensure the directive is
+    consistent with the profile rules — catches cases where the model
+    ignores the profile context block instructions.
+
+    Raises AIServiceError on parse or validation failure.
+    """
+    from utils.adaptive_rules import get_adaptive_rule, validate_directive
+
     cleaned = raw_response.strip()
     if cleaned.startswith("```"):
         cleaned = "\n".join(cleaned.split("\n")[1:-1]).strip()
@@ -229,7 +279,6 @@ def _parse_adaptive_response(raw_response: str) -> AdaptiveResponse:
             stage="adaptive_response",
         ))
 
-    # Validate directive before Pydantic — give clearer error message
     valid_directives = {"easier", "same", "harder", "revisit"}
     directive = data.get("directive", "")
     if directive not in valid_directives:
@@ -241,6 +290,19 @@ def _parse_adaptive_response(raw_response: str) -> AdaptiveResponse:
             ),
             stage="adaptive_response",
         ))
+
+    # Safety check — validate directive against profile rules
+    rule = get_adaptive_rule(profile)
+    validated_directive, reason = validate_directive(directive, profile, rule)
+
+    # If directive was overridden by the safety check, update the reason
+    if validated_directive != directive:
+        data["directive_reason"] = reason
+        data["directive"] = validated_directive
+
+    # Use model's reason if safety check did not override
+    if not data.get("directive_reason"):
+        data["directive_reason"] = f"Directive '{validated_directive}' accepted."
 
     try:
         return AdaptiveResponse(**data)
@@ -255,9 +317,9 @@ def _parse_adaptive_response(raw_response: str) -> AdaptiveResponse:
 @router.post("/ai/quiz/adaptive-response", response_model=AdaptiveResponse)
 async def adaptive_response(request: AdaptiveResponseRequest):
     try:
-        profile = _profile_label(request)
+        profiles = request.learner_context.cognitive_profiles
+        profile = profiles[0] if len(profiles) == 1 else f"{profiles[0]}+{profiles[1]}"
 
-        # Track latency for P95 target (800ms)
         wall_start = time.monotonic()
 
         raw_response = await complete(
@@ -273,17 +335,32 @@ async def adaptive_response(request: AdaptiveResponseRequest):
         logger.info(f"Adaptive response wall latency: {wall_latency_ms:.0f}ms")
 
         if wall_latency_ms > 800:
-            logger.warning(f"⚠️  Adaptive response exceeded 800ms target: {wall_latency_ms:.0f}ms")
+            logger.warning(
+                f"⚠️  Adaptive response exceeded 800ms target: {wall_latency_ms:.0f}ms"
+            )
 
-        result = _parse_adaptive_response(raw_response)
+        # Pass profile to parser for safety check
+        result = _parse_adaptive_response(raw_response, profile)
+
+        logger.info(
+            f"Adaptive response [{profile}]: "
+            f"directive={result.directive} | "
+            f"reason={result.directive_reason}"
+        )
+
         return result
 
     except AIServiceError as e:
-        return _error_response(e.error_response)
+        return error_json_response(
+            e.error_response,
+            profiles=list(request.learner_context.cognitive_profiles),
+        )
 
     except Exception as e:
-        logger.error(f"Unhandled error in /ai/quiz/adaptive-response: {e}", exc_info=True)
-        return _error_response(ErrorResponse(
+        logger.error(
+            f"Unhandled error in /ai/quiz/adaptive-response: {e}", exc_info=True
+        )
+        return error_json_response(ErrorResponse(
             error_code=ERROR_SCHEMA_INVALID,
             message="An unexpected error occurred in adaptive response.",
             stage="adaptive_response",
@@ -293,23 +370,6 @@ async def adaptive_response(request: AdaptiveResponseRequest):
 # ---------------------------------------------------------------------------
 # POST /ai/quiz/wrong-answer-flow
 # ---------------------------------------------------------------------------
-
-REEXPLAIN_SYSTEM_PROMPT = """
-You are a re-explanation assistant for learners with cognitive disabilities.
-A learner answered a quiz question incorrectly. You will be given the question
-and the lesson section it came from.
-
-Your job is to re-explain the concept clearly, using profile-appropriate language.
-
-RULES:
-- dyslexia: short sentences (max 12 words), simple vocabulary, active voice.
-- adhd: hook opening, punchy sentences, 3-4 sentences max.
-- autism: literal, factual, structured. State the fact, explain why, give one example.
-- intellectual_disability: max 8 words per sentence, 1000 common words, warm tone.
-
-Return ONLY the re-explanation as a plain string. No JSON. No labels. No preamble.
-Just the re-explanation text the learner will read.
-"""
 
 REATTEMPT_SYSTEM_PROMPT = """
 You are a question regeneration assistant for learners with cognitive disabilities.
@@ -337,12 +397,20 @@ Answer: [correct letter]
 No JSON. No preamble. Just this format.
 """
 
-
 @router.post("/ai/quiz/wrong-answer-flow", response_model=WrongAnswerFlowResponse)
 async def wrong_answer_flow(request: WrongAnswerFlowRequest):
     try:
         profiles = request.learner_context.cognitive_profiles
         profile = profiles[0] if len(profiles) == 1 else f"{profiles[0]}+{profiles[1]}"
+
+        from utils.explanation_strategies import (
+            get_strategy,
+            build_reexplanation_system_prompt,
+            validate_explanation_structure,
+        )
+
+        strategy = get_strategy(profile)
+        reexplain_system_prompt = build_reexplanation_system_prompt(profile)
 
         reexplain_prompt = f"""LEARNER PROFILE: {profile}
 LANGUAGE LEVEL: {request.learner_context.language_level}
@@ -352,7 +420,8 @@ ORIGINAL QUESTION: {request.question}
 LESSON SECTION CONTENT:
 {request.section_content}
 
-Re-explain the concept from this section clearly for this learner.
+Re-explain the concept from this section for this learner.
+Follow the structure instructions in the system prompt exactly.
 """
 
         reattempt_prompt = f"""LEARNER PROFILE: {profile}
@@ -364,52 +433,84 @@ LESSON SECTION CONTENT:
 {request.section_content}
 
 Generate a new version of this question testing the same concept.
+Use simpler wording than the original if possible.
+Provide exactly 4 options: a, b, c, d. Only one is correct.
+
+Profile rules:
+- dyslexia: max 12 words in question, active voice.
+- adhd: punchy opening, engaging phrasing, answer given immediately after submission.
+- autism: literal, unambiguous, factual. No "what would happen if..." questions.
+- intellectual_disability: max 8 words in question, max 5 words per option.
+
+Return ONLY a plain string in this format:
+Question: [question text]
+a) [option a]
+b) [option b]
+c) [option c]
+d) [option d]
+Answer: [correct letter]
 """
 
         # Fire both calls concurrently — never sequential
         parallel_start = time.monotonic()
 
-        re_explanation_task = complete(
-            system_prompt=REEXPLAIN_SYSTEM_PROMPT,
-            user_prompt=reexplain_prompt,
-            model=config.STAGE2_MODEL,
-            temperature=config.TEMPERATURE_SIMPLIFY,
-            stage="wrong_answer_reexplain",
-            profile=profile,
-        )
-
-        reattempt_task = complete(
-            system_prompt=REATTEMPT_SYSTEM_PROMPT,
-            user_prompt=reattempt_prompt,
-            model=config.STAGE3_MODEL,
-            temperature=config.TEMPERATURE_QUIZ,
-            stage="wrong_answer_reattempt",
-            profile=profile,
-        )
-
-        # asyncio.gather — both fire simultaneously
-        re_explanation, reattempt_question = await asyncio.gather(
-            re_explanation_task,
-            reattempt_task,
+        re_explanation_raw, reattempt_question = await asyncio.gather(
+            complete(
+                system_prompt=reexplain_system_prompt,
+                user_prompt=reexplain_prompt,
+                model=config.STAGE2_MODEL,
+                temperature=config.TEMPERATURE_SIMPLIFY,
+                stage="wrong_answer_reexplain",
+                profile=profile,
+            ),
+            complete(
+                system_prompt=REATTEMPT_SYSTEM_PROMPT,
+                user_prompt=reattempt_prompt,
+                model=config.STAGE3_MODEL,
+                temperature=config.TEMPERATURE_QUIZ,
+                stage="wrong_answer_reattempt",
+                profile=profile,
+            ),
         )
 
         parallel_latency_ms = (time.monotonic() - parallel_start) * 1000
         logger.info(
             f"Wrong answer flow — both calls completed in {parallel_latency_ms:.0f}ms "
-            f"(parallel, not sequential)"
+            f"(parallel) | profile: {profile} | strategy: {strategy.strategy_name}"
         )
 
+        # Validate re-explanation structure
+        re_explanation = re_explanation_raw.strip()
+        passes, issues = validate_explanation_structure(re_explanation, strategy)
+
+        if not passes:
+            logger.warning(
+                f"Wrong answer re-explanation structure issues [{profile}]: "
+                f"{'; '.join(issues)}"
+            )
+        else:
+            logger.debug(
+                f"Wrong answer re-explanation structure validated "
+                f"[{profile} / {strategy.strategy_name}]"
+            )
+
         return WrongAnswerFlowResponse(
-            re_explanation=re_explanation.strip(),
+            re_explanation=re_explanation,
             reattempt_question=reattempt_question.strip(),
+            explanation_strategy=strategy.strategy_name,
         )
 
     except AIServiceError as e:
-        return _error_response(e.error_response)
+        return error_json_response(
+            e.error_response,
+            profiles=list(request.learner_context.cognitive_profiles),
+        )
 
     except Exception as e:
-        logger.error(f"Unhandled error in /ai/quiz/wrong-answer-flow: {e}", exc_info=True)
-        return _error_response(ErrorResponse(
+        logger.error(
+            f"Unhandled error in /ai/quiz/wrong-answer-flow: {e}", exc_info=True
+        )
+        return error_json_response(ErrorResponse(
             error_code=ERROR_SCHEMA_INVALID,
             message="An unexpected error occurred in wrong answer flow.",
             stage="wrong_answer_flow",

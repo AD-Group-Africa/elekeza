@@ -10,7 +10,7 @@ import config
 from pipeline.stage1_profile import build_system_prompt
 from pipeline.stage2_simplify import simplify
 from pipeline.stage3_verify import verify
-from pipeline.stage4_concepts import extract_concepts
+from pipeline.stage4_concepts import extract_concepts, standardise_visual_hints, measure_readability
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -48,19 +48,29 @@ def _validate_text(raw_text: str) -> None:
 async def _run_pipeline(raw_text: str, learner_context) -> LessonJSON:
     """Shared pipeline runner — used by both text and image endpoints."""
     system_prompt = build_system_prompt(learner_context)
+
     lesson = await simplify(
         system_prompt=system_prompt,
         raw_text=raw_text,
         learner_context=learner_context,
     )
+
     lesson = await verify(
         lesson_json=lesson,
         raw_text=raw_text,
         learner_context=learner_context,
     )
-    lesson = extract_concepts(lesson)
-    return lesson
 
+    # Stage 4 — concept extraction (pure function)
+    lesson = extract_concepts(lesson)
+
+    # Stage 4 — visual hint standardisation (pure function)
+    lesson = standardise_visual_hints(lesson, learner_context)
+
+    # Stage 4 — readability measurement (pure function)
+    lesson = measure_readability(lesson, learner_context)
+
+    return lesson
 
 @router.post("/ai/simplify/text", response_model=LessonJSON)
 async def simplify_text(request: SimplifyTextRequest):
@@ -70,7 +80,10 @@ async def simplify_text(request: SimplifyTextRequest):
         return lesson
 
     except AIServiceError as e:
-        return error_json_response(e.error_response)
+        return error_json_response(
+            e.error_response,
+            profiles=list(request.learner_context.cognitive_profiles),
+        )
 
     except Exception as e:
         logger.error(f"Unhandled error in /ai/simplify/text: {e}", exc_info=True)
@@ -94,7 +107,10 @@ async def simplify_image(request: SimplifyImageRequest):
         return lesson
 
     except AIServiceError as e:
-        return error_json_response(e.error_response)
+        return error_json_response(
+            e.error_response,
+            profiles=list(request.learner_context.cognitive_profiles),
+        )
 
     except Exception as e:
         logger.error(f"Unhandled error in /ai/simplify/image: {e}", exc_info=True)
