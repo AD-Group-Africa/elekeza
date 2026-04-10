@@ -1,4 +1,4 @@
-﻿package com.elewa.backend.service
+package com.elewa.backend.service
 
 import com.elewa.backend.dto.*
 import com.elewa.backend.dto.ai.*
@@ -104,7 +104,7 @@ class ContentService(
 
         return LearnerContext(
             learnerId         = learner.id.toString(),
-            cognitiveProfiles = if (normalizedProfiles.isNotEmpty()) normalizedProfiles else listOf("general"),
+            cognitiveProfiles = if (normalizedProfiles.isNotEmpty()) normalizedProfiles else listOf("adhd"),
             languageLevel     = when (learner.literacyLevel) {
                 LiteracyLevel.BEGINNER -> 1; LiteracyLevel.INTERMEDIATE -> 2; LiteracyLevel.ADVANCED -> 3; null -> 2
             },
