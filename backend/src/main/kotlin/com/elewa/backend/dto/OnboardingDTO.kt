@@ -4,13 +4,12 @@ import com.elewa.backend.model.AgeGroup
 import com.elewa.backend.model.LiteracyLevel
 import java.util.UUID
 
-// ── Requests ──────────────────────────────────────────────────
+// â”€â”€ Requests â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 data class ProfileRequest(
     val preferredLanguage: String,
     val ageGroup: AgeGroup,
     val learningGoal: String? = null
-    val cognitiveProfile: CognitiveProfile = CognitiveProfile.DEFAULT
 )
 
 data class PlacementRequest(
@@ -25,7 +24,7 @@ data class GuardianLinkRequest(
     val email: String? = null
 )
 
-// ── Responses ─────────────────────────────────────────────────
+// â”€â”€ Responses â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 data class OnboardingResponse(
     val learnerId: UUID,
