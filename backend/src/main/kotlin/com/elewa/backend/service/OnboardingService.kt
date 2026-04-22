@@ -1,4 +1,4 @@
-package com.elewa.backend.service
+﻿package com.elewa.backend.service
 
 import com.elewa.backend.dto.*
 import com.elewa.backend.model.Guardian
@@ -22,7 +22,6 @@ class OnboardingService(
         learner.preferredLanguage = request.preferredLanguage
         learner.ageGroup          = request.ageGroup
         learner.learningGoal      = request.learningGoal
-        learner.cognitiveProfile = request.cognitiveProfile
         learnerRepository.save(learner)
         return OnboardingResponse(
             learnerId          = learner.id,
@@ -48,7 +47,7 @@ class OnboardingService(
         return PlacementResponse(
             learnerId     = learner.id,
             literacyLevel = level,
-            message       = "Placement complete — level: ${level.name.lowercase()}"
+            message       = "Placement complete â€” level: ${level.name.lowercase()}"
         )
     }
 
