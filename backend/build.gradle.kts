@@ -6,7 +6,7 @@ plugins {
 	kotlin("plugin.jpa") version "1.9.23"     // no-arg constructors for @Entity
 }
 
-group = "com.elewa"
+group = "com.elekeza"
 version = "0.0.1-SNAPSHOT"
 
 // Use the JDK already installed on the machine — no toolchain auto-download needed
@@ -25,8 +25,12 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-security")
 	implementation("org.springframework.boot:spring-boot-starter-data-jpa")
 	implementation("org.springframework.boot:spring-boot-starter-validation")
+	implementation("org.springframework.boot:spring-boot-starter-oauth2-client")
 	implementation("org.springframework.boot:spring-boot-starter-actuator")
+	implementation("org.springframework.boot:spring-boot-starter-mail")
 	implementation("org.springframework.boot:spring-boot-starter-webflux")  // WebClient → FastAPI
+	implementation("com.github.vladimir-bukhtoyarov:bucket4j-core:8.0.1")
+	implementation("net.logstash.logback:logstash-logback-encoder:7.4")
 
 	implementation("org.apache.pdfbox:pdfbox:3.0.2")
 	implementation("org.apache.poi:poi:5.2.5")
@@ -58,4 +62,8 @@ tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach 
 
 tasks.withType<Test> {
 	useJUnitPlatform()
+}
+
+springBoot {
+    mainClass.set("com.elekeza.backend.ElekzaApplicationKt")
 }
