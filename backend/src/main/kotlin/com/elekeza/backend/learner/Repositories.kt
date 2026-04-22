@@ -27,7 +27,7 @@ interface LessonProgressRepository : JpaRepository<LessonProgress, Long> {
     @Query("SELECT p FROM LessonProgress p WHERE p.user.id = :userId AND p.completedAt >= :since")
     fun findRecentActivity(@Param("userId") userId: Long, @Param("since") since: LocalDateTime): List<LessonProgress>
 
-    @Query("SELECT p FROM LessonProgress p WHERE p.user.id = :userId AND p.completed = true")
+    @Query("SELECT p FROM LessonProgress p WHERE p.user.id = :userId AND p.completed = :completed")
     fun findByUserIdAndCompleted(@Param("userId") userId: Long, completed: Boolean): List<LessonProgress>
 
     @Query("SELECT p FROM LessonProgress p WHERE p.user.id = :userId AND p.contentId = :contentId")
