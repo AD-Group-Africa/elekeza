@@ -18,7 +18,7 @@ interface LessonProgressRepository : JpaRepository<LessonProgress, Long> {
 
     fun findByUserAndContentId(user: User, contentId: Long): LessonProgress?
 
-    @Query("SELECT COUNT(p) FROM LessonProgress p WHERE p.user.id = :userId AND p.completed = true")
+    @Query("SELECT COUNT(p) FROM LessonProgress p WHERE p.user.id = :userId AND p.completed = :completed")
     fun countByUserIdAndCompleted(@Param("userId") userId: Long, completed: Boolean): Long
 
     @Query("SELECT AVG(p.quizScore) FROM LessonProgress p WHERE p.user.id = :userId AND p.quizScore IS NOT NULL")
