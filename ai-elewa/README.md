@@ -1,4 +1,4 @@
-# Elewa AI Service
+﻿# Elewa AI Service
 
 **FastAPI microservice powering the AI layer of the Elewa adaptive learning platform.**
 
@@ -741,7 +741,7 @@ Harrison's Spring Boot service must be on the same Docker network. Add it to `do
 ```yaml
 services:
   spring-boot:
-    image: elewa-backend:latest
+    image: elekeza-backend:latest
     networks:
       - elewa-network
 

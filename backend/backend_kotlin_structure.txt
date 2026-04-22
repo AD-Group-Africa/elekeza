@@ -1,0 +1,103 @@
+﻿Folder PATH listing
+Volume serial number is 000000D2 AEC1:4ED0
+C:\USERS\THRILLERPARK\DESKTOP\ELEWA\BACKEND\SRC\MAIN\KOTLIN
+\---com
+    \---elewa
+        \---backend
+            |   ElekzaApplication.kt
+            |   
+            +---auth
+            |       SneType.kt
+            |       User.kt
+            |       UserRepository.kt
+            |       UserRole.kt
+            |       
+            +---common
+            |   |   AuditLogService.kt
+            |   |   CircuitBreaker.kt
+            |   |   ErrorResponse.kt
+            |   |   FeatureFlags.kt
+            |   |   GlobalExceptionHandler.kt
+            |   |   HealthController.kt
+            |   |   
+            |   \---events
+            |           SystemEventLogger.kt
+            |           
+            +---config
+            |       AiConfig.kt
+            |       SecurityConfig.kt
+            |       WebClientConfig.kt
+            |       
+            +---content
+            |       Content.kt
+            |       
+            +---controller
+            |       AuthController.kt
+            |       ContentController.kt
+            |       FileUploadController.kt
+            |       LearnerProfileController.kt
+            |       OnboardingController.kt
+            |       QuizAndProgressController.kt
+            |       QuizController.kt
+            |       
+            +---dto
+            |   |   AuthDTO.kt
+            |   |   ContentDTO.kt
+            |   |   OnboardingDTO.kt
+            |   |   Phase3DTO.kt
+            |   |   
+            |   \---ai
+            |           AiDTOs.kt
+            |           
+            +---learner
+            |       AdaptiveUIService.kt
+            |       
+            +---model
+            |       Guardian.kt
+            |       KeyTerm.kt
+            |       Learner.kt
+            |       Lesson.kt
+            |       LessonSection.kt
+            |       LiteracyLevel.kt
+            |       QuizEntities.kt
+            |       RefreshTokens.kt
+            |       SourceType.kt
+            |       User.kt
+            |       
+            +---payments
+            |       Mpesa.kt
+            |       
+            +---quiz
+            |       Quiz.kt
+            |       
+            +---repository
+            |       GuardianRepository.kt
+            |       LearnerRepository.kt
+            |       Phase3Repositories.kt
+            |       RefreshTokenRepository.kt
+            |       
+            +---security
+            |       JwtAuthFilter.kt
+            |       JwtUtil.kt
+            |       OAuth2SuccessHandler.kt
+            |       RateLimitFilter.kt
+            |       
+            +---service
+            |       AiClient.kt
+            |       AiClientException.kt
+            |       AuthService.kt
+            |       ContentService.kt
+            |       DashboardService.kt
+            |       EmailUserDetailsService.kt
+            |       FileUploadService.kt
+            |       LearnerDetailsService.kt
+            |       LessonPersistenceService.kt
+            |       MockAiClient.kt
+            |       OnboardingService.kt
+            |       QuizService.kt
+            |       RealAiClient.kt
+            |       
+            \---waitlist
+                    Waitlist.kt
+                    WaitlistController.kt
+                    
