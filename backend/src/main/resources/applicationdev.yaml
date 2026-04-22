@@ -1,0 +1,28 @@
+﻿# ============================================================
+# DEV profile — activate with: -Dspring.profiles.active=dev
+# or SPRING_PROFILES_ACTIVE=dev in your .env
+# ============================================================
+
+spring:
+  jpa:
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+  # Use local Postgres for dev — no Supabase required
+  datasource:
+    url: jdbc:postgresql://localhost:5432/${DB_NAME:elekeza_db}
+
+app:
+  cors:
+    allowed-origins: http://localhost:3000,http://localhost:3001
+
+mpesa:
+  sandbox: true
+
+logging:
+  level:
+    com.elekeza: DEBUG
+    org.springframework.web: DEBUG
+    org.springframework.security: DEBUG

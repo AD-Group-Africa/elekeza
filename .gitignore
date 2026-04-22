@@ -1,0 +1,35 @@
+﻿# IDE
+.idea/
+*.iml
+
+# Build artifacts
+backend/build/
+backend/.gradle/
+backend/.gradle-user-home/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+ai-elewa/__pycache__/
+Accessible-docs/chroma_db/
+Accessible-docs/temp_uploads/
+
+# Env files - NEVER commit these
+.env
+.env.local
+.env.production
+
+# Node
+node_modules/
+frontend/.next/
+
+# Logs
+*.log
+spring*.log
+backend-errors.log
+startup.log
+bootrun-check*.log
+
+# Corrupted paths
+ersthrillerparkDesktopELEWA
