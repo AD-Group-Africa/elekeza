@@ -36,12 +36,20 @@ class AuthService(
         ))
     }
 
-    fun login(req: LoginRequest): User {
+    fun login(req: LoginRequest): AuthResponse {
+        // 1. Verify credentials
         authenticationManager.authenticate(
             UsernamePasswordAuthenticationToken(req.email.lowercase().trim(), req.password)
         )
-        return userRepository.findByEmail(req.email.lowercase().trim())
+
+        // 2. Retrieve user
+        val user = userRepository.findByEmail(req.email.lowercase().trim())
             ?: throw ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not found")
+
+        // 3. Generate JWT (Assume you have a JwtService)
+        val token = jwtService.generateToken(user)
+
+        return AuthResponse(token, user)
     }
 
     fun forgotPassword(email: String) {

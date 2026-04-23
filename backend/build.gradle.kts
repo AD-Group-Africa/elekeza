@@ -37,7 +37,6 @@ dependencies {
 	implementation("org.apache.poi:poi-ooxml:5.2.5")
 
 	implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
-	implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
 
 	implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core")
@@ -65,5 +64,5 @@ tasks.withType<Test> {
 }
 
 springBoot {
-    mainClass.set("com.elekeza.backend.ElekzaApplicationKt")
+    mainClass.set("com.elekeza.backend.ElekezaApplicationKt")
 }

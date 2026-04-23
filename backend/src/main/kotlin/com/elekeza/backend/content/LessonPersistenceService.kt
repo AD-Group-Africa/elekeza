@@ -2,6 +2,7 @@ package com.elekeza.backend.content
 
 import com.elekeza.backend.common.ai.*
 import com.elekeza.backend.learner.LearnerRepository
+import com.elekeza.backend.content.Lesson
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional

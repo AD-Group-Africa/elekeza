@@ -1,33 +1,24 @@
-﻿# ============================================================
-# Elekeza Backend — Base application config
-# All secrets read from environment variables / .env
-# ============================================================
-
 spring:
   application:
     name: elekeza-backend
 
   datasource:
-    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:elekeza_db}
-    username: ${DB_USER}
-    password: ${DB_PASSWORD}
+    url: jdbc:postgresql://aws-1-eu-central-1.pooler.supabase.com:6543/postgres?sslmode=require
+    username: "postgres.ptrwshzwyaxmjxqpcuus"
+    password: "2634Hp$$HM22"
     driver-class-name: org.postgresql.Driver
     hikari:
       maximum-pool-size: 10
       minimum-idle: 2
       connection-timeout: 30000
-      idle-timeout: 600000
-      max-lifetime: 1800000
-      pool-name: ElekezaPool
 
   jpa:
     hibernate:
-      ddl-auto: validate          # Flyway owns schema — Hibernate validates only
+      ddl-auto: update
     show-sql: false
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
-        format_sql: false
 
   flyway:
     enabled: true
@@ -40,9 +31,6 @@ spring:
     port: ${MAIL_PORT:587}
     username: ${MAIL_USERNAME}
     password: ${MAIL_PASSWORD}
-    properties:
-      mail.smtp.auth: true
-      mail.smtp.starttls.enable: true
 
   security:
     oauth2:
@@ -52,57 +40,47 @@ spring:
             client-id: ${GOOGLE_CLIENT_ID}
             client-secret: ${GOOGLE_CLIENT_SECRET}
             scope: openid,email,profile
-            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
 
-  servlet:
-    multipart:
-      max-file-size: 10MB
-      max-request-size: 12MB
+# ── JWT Config (Matches @Value("${jwt.secret}")) ──────────────────────────────
+jwt:
+  secret: "elekeza-mastercard-demo-secret-key-2026-secure"
+  cookie-name: ${SECURITY_JWT_COOKIE_NAME:elekeza_access}
+  refresh-cookie-name: ${SECURITY_JWT_REFRESH_COOKIE_NAME:elekeza_refresh}
+  access-token-expiry-ms: 900000
+  refresh-token-expiry-ms: 604800000
 
-# ── JWT / Auth ────────────────────────────────────────────────────────────────
-security:
-  jwt:
-    secret: ${SECURITY_JWT_SECRET}
-    cookie-name: ${SECURITY_JWT_COOKIE_NAME:elekeza_access}
-    refresh-cookie-name: ${SECURITY_JWT_REFRESH_COOKIE_NAME:elekeza_refresh}
-    access-token-expiry-ms: ${SECURITY_JWT_ACCESS_TOKEN_EXPIRY_MS:900000}      # 15 min
-    refresh-token-expiry-ms: ${SECURITY_JWT_REFRESH_TOKEN_EXPIRY_MS:604800000} # 7 days
-
-# ── AI Service ────────────────────────────────────────────────────────────────
+# ── Other Services ────────────────────────────────────────────────────────────
 ai-service:
   url: ${AI_SERVICE_URL:http://localhost:8000}
   internal-secret: ${INTERNAL_AI_SECRET}
 
-# ── M-Pesa / Daraja ───────────────────────────────────────────────────────────
-mpesa:
-  consumer-key: ${MPESA_CONSUMER_KEY:}
-  consumer-secret: ${MPESA_CONSUMER_SECRET:}
-  shortcode: ${MPESA_SHORTCODE:}
-  passkey: ${MPESA_PASSKEY:}
-  callback-url: ${MPESA_CALLBACK_URL:https://api.elekeza.app/api/payments/mpesa/callback}
-  sandbox: ${MPESA_SANDBOX:true}
-
-# ── CORS ──────────────────────────────────────────────────────────────────────
-app:
-  cors:
-    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000}
-  frontend-url: ${FRONTEND_URL:http://localhost:3000}
-  upload-dir: ${UPLOAD_DIR:uploads}
-
-# ── Actuator / Health ─────────────────────────────────────────────────────────
 management:
   endpoints:
     web:
       exposure:
-        include: health
-  endpoint:
-    health:
-      show-details: never
+        include: health, info
 
-# ── Logging ───────────────────────────────────────────────────────────────────
+app:
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000}
+  frontend-url: ${FRONTEND_URL:http://localhost:3000}
+  upload-dir: uploads
+
 logging:
   level:
     root: INFO
     com.elekeza: DEBUG
-    org.springframework.security: WARN
-    org.hibernate.SQL: WARN
+
+fastapi:
+  base-url: ${FASTAPI_URL:http://localhost:8000}
+  internal-secret: ${FASTAPI_INTERNAL_SECRET:your-super-secret-key-here}
+
+ai:
+  internal-secret: ${AI_INTERNAL_SECRET:your-ai-secret-key-here}
+
+mpesa:
+  consumer-key: ${MPESA_CONSUMER_KEY:your_key_here}
+  consumer-secret: ${MPESA_CONSUMER_SECRET:your_secret_here}
+  pass-key: ${MPESA_PASS_KEY:your_passkey_here}
+  short-code: ${MPESA_SHORT_CODE:174379}
+  callback-url: ${MPESA_CALLBACK_URL:https://yourdomain.com/callback}
