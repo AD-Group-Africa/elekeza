@@ -38,3 +38,8 @@ out/
 
 ### Kotlin ###
 .kotlin
+
+.gradle/
+build/
+spring.log
+spring-err.log

@@ -31,6 +31,15 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
+@font-face {
+  font-family: "OpenDyslexic";
+  src:
+    local("OpenDyslexic"),
+    local("OpenDyslexic3"),
+    url("/fonts/OpenDyslexic-Regular.woff2") format("woff2");
+  font-display: swap;
+}
+
 body.a11y-font-family-default {
   font-family: Arial, Helvetica, sans-serif;
 }
@@ -208,4 +217,152 @@ body.a11y-task-breakdown [data-step] {
 
 body.a11y-recommended-choice [data-recommended='true'] {
   border: 2px solid #0f172a !important;
+}
+
+body.cognitive-mode-dyslexia {
+  background: #fafaf0;
+  color: #1f2937;
+  font-family: "OpenDyslexic", "Trebuchet MS", Verdana, sans-serif;
+  letter-spacing: 0.12em;
+  line-height: 2;
+  text-align: left;
+}
+
+body.cognitive-mode-dyslexia * {
+  font-style: normal !important;
+  text-align: left !important;
+}
+
+body.cognitive-mode-adhd {
+  font-family: var(--font-inter), "Segoe UI", Tahoma, sans-serif;
+}
+
+body.cognitive-mode-adhd .adhd-enter {
+  animation: adhd-enter 150ms ease-out both;
+}
+
+body.cognitive-mode-autism *,
+body.cognitive-mode-autism *::before,
+body.cognitive-mode-autism *::after {
+  animation: none !important;
+  transition: none !important;
+}
+
+body.cognitive-mode-autism {
+  color: #1f2937;
+}
+
+body.cognitive-mode-intellectual-disability {
+  color: #111827;
+}
+
+body.cognitive-mode-intellectual-disability p,
+body.cognitive-mode-intellectual-disability li,
+body.cognitive-mode-intellectual-disability span,
+body.cognitive-mode-intellectual-disability button,
+body.cognitive-mode-intellectual-disability a,
+body.cognitive-mode-intellectual-disability input,
+body.cognitive-mode-intellectual-disability textarea,
+body.cognitive-mode-intellectual-disability select {
+  font-size: max(18px, 1rem);
+}
+
+body.cognitive-mode-intellectual-disability button,
+body.cognitive-mode-intellectual-disability a[role="button"],
+body.cognitive-mode-intellectual-disability input,
+body.cognitive-mode-intellectual-disability select {
+  min-height: 48px;
+}
+
+.lesson-shell {
+  min-height: 100vh;
+  background: linear-gradient(to bottom right, #0a1f44, #f8fafc, #5a4fcf);
+}
+
+body.cognitive-mode-dyslexia .lesson-shell {
+  background: #fafaf0;
+}
+
+body.cognitive-mode-adhd .lesson-shell {
+  background: linear-gradient(to bottom, #f8fbff, #eef2ff);
+}
+
+body.cognitive-mode-autism .lesson-shell {
+  background: #eef1f1;
+}
+
+body.cognitive-mode-intellectual-disability .lesson-shell {
+  background: #ffffff;
+}
+
+.adaptive-reading-width {
+  max-width: 64rem;
+}
+
+body.cognitive-mode-intellectual-disability .adaptive-reading-width {
+  max-width: 600px;
+}
+
+.dyslexia-bullet-list {
+  list-style: disc;
+  padding-left: 1.6rem;
+}
+
+.dyslexia-keyterm {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.adhd-progress-mini {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 40;
+  border-bottom: 1px solid #cbd5e1;
+  background: rgba(248, 250, 252, 0.98);
+  backdrop-filter: blur(4px);
+}
+
+.adhd-progress-mini-track {
+  height: 6px;
+  background: #dbeafe;
+}
+
+.adhd-progress-mini-fill {
+  height: 6px;
+  background: #1d4ed8;
+}
+
+.autism-card-grid {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.autism-card {
+  border: 1px solid #cbd5d1;
+  background: #f3f4f6;
+  border-radius: 14px;
+  padding: 1rem;
+}
+
+.id-section-icon {
+  display: inline-flex;
+  height: 28px;
+  width: 28px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: #111827;
+  color: #ffffff;
+  font-size: 14px;
+}
+
+@keyframes adhd-enter {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }

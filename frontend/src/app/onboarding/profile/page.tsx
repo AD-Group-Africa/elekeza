@@ -4,20 +4,33 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { onboardingAPI } from '@/lib/api'
 import { useAuth } from '@/hooks/useAuth'
+import { useCognitiveProfile } from '@/hooks/useCognitiveProfile'
 import PageShell from '@/components/ui/PageShell'
 import ProgressStepper from '@/components/ui/ProgressStepper'
 import StatusBanner from '@/components/ui/StatusBanner'
+import { COGNITIVE_PROFILE_OPTIONS } from '@/lib/cognitiveProfiles'
+import { CognitiveProfile } from '@/types'
 
 export default function ProfileSetupPage() {
   const router = useRouter()
   const { user, loading: authLoading } = useAuth()
+  const { setProfilesForCurrentUser } = useCognitiveProfile()
 
   const [preferredLanguage, setPreferredLanguage] = useState('')
   const [ageGroup, setAgeGroup] = useState('')
   const [learningGoal, setLearningGoal] = useState('')
+  const [cognitiveProfiles, setCognitiveProfiles] = useState<CognitiveProfile[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const canContinue = Boolean(preferredLanguage && ageGroup && learningGoal && !loading)
+
+  const toggleProfile = (profile: CognitiveProfile) => {
+    setCognitiveProfiles((prev) => (
+      prev.includes(profile)
+        ? prev.filter((item) => item !== profile)
+        : [...prev, profile]
+    ))
+  }
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -31,7 +44,8 @@ export default function ProfileSetupPage() {
     setError('')
 
     try {
-      await onboardingAPI.profile({ preferredLanguage, ageGroup, learningGoal })
+      await onboardingAPI.profile({ preferredLanguage, ageGroup, learningGoal, cognitiveProfiles })
+      setProfilesForCurrentUser(cognitiveProfiles)
       if (ageGroup === 'CHILD' || ageGroup === 'TEEN') {
         router.push('/onboarding/guardian-link')
       } else {
@@ -127,6 +141,37 @@ export default function ProfileSetupPage() {
             <option value="professional-development">Professional development</option>
           </select>
           </div>
+
+          <fieldset className="mb-7 rounded-xl border border-slate-200 bg-slate-50 p-4">
+            <legend className="px-1 text-sm font-semibold text-slate-800">Cognitive support profile (optional)</legend>
+            <p className="mb-3 text-xs text-slate-600">
+              Select all profiles that should shape lesson and quiz rendering.
+            </p>
+            <div className="space-y-2">
+              {COGNITIVE_PROFILE_OPTIONS.map((option) => {
+                const checked = cognitiveProfiles.includes(option.value)
+                return (
+                  <label
+                    key={option.value}
+                    className={`flex cursor-pointer items-start gap-3 rounded-lg border px-3 py-2 transition ${
+                      checked ? 'border-slate-700 bg-white' : 'border-slate-200 bg-white hover:border-slate-300'
+                    }`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={checked}
+                      onChange={() => toggleProfile(option.value)}
+                      className="mt-0.5 h-4 w-4 accent-slate-800"
+                    />
+                    <span>
+                      <span className="block text-sm font-medium text-slate-900">{option.label}</span>
+                      <span className="block text-xs text-slate-600">{option.helper}</span>
+                    </span>
+                  </label>
+                )
+              })}
+            </div>
+          </fieldset>
 
           <button
             type="submit"

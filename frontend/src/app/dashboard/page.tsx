@@ -150,8 +150,14 @@ export default function DashboardPage() {
                       <h4 className="font-semibold text-gray-800">{quiz.lessonTitle}</h4>
                       <p className="text-sm text-gray-600">Completed {formatDateOrFallback(quiz.completedAt)}</p>
                     </div>
-                    <div className="text-right">
+                    <div className="text-right space-y-2">
                       <p className="font-bold text-elekeza-indigo">{Math.round(quiz.scorePercentage)}%</p>
+                      <button
+                        onClick={() => router.push(`/quiz/review/${quiz.quizId}`)}
+                        className="text-xs bg-white border border-slate-300 text-slate-800 px-3 py-1 rounded-md hover:bg-slate-100"
+                      >
+                        Review
+                      </button>
                     </div>
                   </div>
                 ))}

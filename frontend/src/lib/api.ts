@@ -15,8 +15,8 @@ export const authAPI = {
     return res.data
   },
 
-  register: async (email: string, password: string, fullName: string) => {
-    const res = await api.post('/api/auth/register', { email, password, fullName })
+  register: async (email: string, password: string, fullName: string, cognitiveProfiles?: string[]) => {
+    const res = await api.post('/api/auth/register', { email, password, fullName, cognitiveProfiles })
     return res.data
   },
 
@@ -32,7 +32,7 @@ export const authAPI = {
 }
 
 export const onboardingAPI = {
-  profile: async (data: { preferredLanguage: string; ageGroup: string; learningGoal: string }) => {
+  profile: async (data: { preferredLanguage: string; ageGroup: string; learningGoal: string; cognitiveProfiles?: string[] }) => {
     const res = await api.post('/api/onboarding/profile', data)
     return res.data
   },
@@ -93,6 +93,11 @@ export const quizAPI = {
 
   complete: async (quizId: string) => {
     const res = await api.get(`/api/quiz/${quizId}/complete`)
+    return res.data
+  },
+
+  review: async (quizId: string) => {
+    const res = await api.get(`/api/quiz/${quizId}/review`)
     return res.data
   },
 }

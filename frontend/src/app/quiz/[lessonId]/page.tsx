@@ -3,11 +3,13 @@
 import { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { useAuth } from '@/hooks/useAuth'
+import { useCognitiveProfile } from '@/hooks/useCognitiveProfile'
 import { quizAPI } from '@/lib/api'
-import { QuizStartResponse, Question, QuizAnswerResponse, QuizCompleteResponse } from '@/types'
+import { QuizStartResponse, QuizAnswerResponse, QuizCompleteResponse } from '@/types'
 
 export default function QuizPage() {
   const { user, loading: authLoading } = useAuth()
+  const { activeMode, hasProfile } = useCognitiveProfile()
   const router = useRouter()
   const params = useParams()
   const lessonId = params.lessonId as string
@@ -42,7 +44,7 @@ export default function QuizPage() {
       const data = await quizAPI.start(lessonId)
       setQuizData(data)
       setAnswers(new Array(data.totalQuestions).fill(''))
-    } catch (err: any) {
+    } catch {
       setError('Failed to start quiz')
     } finally {
       setLoading(false)
@@ -63,26 +65,23 @@ export default function QuizPage() {
 
     try {
       const response: QuizAnswerResponse = await quizAPI.answer(quizData.quizId, {
-        questionId: quizData.firstQuestion.id, // This should be the current question id
+        questionId: quizData.firstQuestion.id,
         selectedOptionId: answers[currentQuestionIndex],
-        latencyMs
+        latencyMs,
       })
 
       if (response.quizComplete) {
-        // Quiz finished
         const completeData = await quizAPI.complete(quizData.quizId)
         setResult(completeData)
         setShowResult(true)
       } else if (response.nextQuestion) {
-        // Next question
         setCurrentQuestionIndex(currentQuestionIndex + 1)
-        // Update quizData with next question
         setQuizData({
           ...quizData,
-          firstQuestion: response.nextQuestion
+          firstQuestion: response.nextQuestion,
         })
       }
-    } catch (err: any) {
+    } catch {
       setError('Failed to submit answer')
     } finally {
       setSubmitting(false)
@@ -103,10 +102,9 @@ export default function QuizPage() {
   if (error) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-elekeza-deep-blue via-white to-elekeza-indigo p-6">
-        <div className="bg-white/90 backdrop-blur-lg p-10 rounded-2xl shadow-xl border border-white/50 max-w-md text-center">
-          <div className="text-red-500 mb-4">⚠️</div>
-          <h2 className="text-xl font-bold mb-2">Error Loading Quiz</h2>
-          <p className="text-gray-600 mb-4">{error}</p>
+        <div className="bg-white p-8 rounded-2xl shadow-xl border border-slate-200 max-w-md w-full text-center">
+          <h2 className="text-xl font-bold text-slate-900 mb-2">Error Loading Quiz</h2>
+          <p className="text-slate-700 mb-4">{error}</p>
           <button
             onClick={() => router.push('/dashboard')}
             className="bg-elekeza-deep-blue text-white px-6 py-2 rounded-lg hover:bg-elekeza-indigo"
@@ -121,19 +119,32 @@ export default function QuizPage() {
   if (showResult && result) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-elekeza-deep-blue via-white to-elekeza-indigo p-6">
-        <div className="bg-white/90 backdrop-blur-lg p-10 rounded-2xl shadow-xl border border-white/50 max-w-md text-center">
-          <div className="text-6xl mb-4">
-            {result.scorePercentage >= 70 ? '🎉' : result.scorePercentage >= 50 ? '👍' : '💪'}
+        <div className="bg-white p-8 rounded-2xl shadow-xl border border-slate-200 max-w-2xl w-full">
+          <div className="text-center">
+            <h2 className="text-2xl font-bold mb-2 text-slate-900">Quiz Complete!</h2>
+            <div className="mb-6">
+              <p className="text-3xl font-bold text-elekeza-indigo mb-2">{Math.round(result.scorePercentage)}%</p>
+              <p className="text-slate-700">{result.correctCount} out of {result.totalQuestions} correct</p>
+            </div>
+            <p className="text-slate-700 mb-6">{result.summaryMessage}</p>
           </div>
-          <h2 className="text-2xl font-bold mb-2 text-gray-800">Quiz Complete!</h2>
-          <div className="mb-6">
-            <p className="text-3xl font-bold text-elekeza-indigo mb-2">{result.scorePercentage}%</p>
-            <p className="text-gray-600">
-              {result.correctCount} out of {result.totalQuestions} correct
-            </p>
-          </div>
-          <p className="text-gray-700 mb-6">{result.summaryMessage}</p>
-          <div className="space-y-3">
+
+          {result.failedQuestions && result.failedQuestions.length > 0 && (
+            <div className="mb-6 rounded-xl border border-amber-200 bg-amber-50 p-4">
+              <h3 className="mb-3 text-left text-lg font-semibold text-amber-900">Questions to Review</h3>
+              <div className="space-y-3">
+                {result.failedQuestions.map((q, idx) => (
+                  <div key={q.questionId} className="rounded-lg border border-amber-200 bg-white p-3 text-left">
+                    <p className="font-semibold text-slate-900">{idx + 1}. {q.questionText}</p>
+                    <p className="mt-1 text-sm text-red-700">Your answer: {q.selectedAnswerText ?? q.selectedOptionId ?? 'Not answered'}</p>
+                    <p className="text-sm text-emerald-700">Correct answer: {q.correctAnswerText ?? q.correctOptionId}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div className="space-y-3 text-center">
             <button
               onClick={() => router.push('/dashboard')}
               className="w-full bg-elekeza-deep-blue text-white py-3 rounded-lg hover:bg-elekeza-indigo"
@@ -159,31 +170,53 @@ export default function QuizPage() {
   const selectedAnswer = answers[currentQuestionIndex]
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-elekeza-deep-blue via-white to-elekeza-indigo p-6">
-      <div className="max-w-2xl mx-auto">
-        {/* Header */}
+    <div className="lesson-shell p-4 sm:p-6">
+      <div className={hasProfile('INTELLECTUAL_DISABILITY') ? 'mx-auto max-w-[600px]' : 'mx-auto max-w-2xl'}>
+        {hasProfile('ADHD') && (
+          <div className="adhd-progress-mini">
+            <div className="mx-auto flex max-w-2xl items-center justify-between px-4 py-1 text-xs font-semibold text-slate-700">
+              <span>Quiz Progress</span>
+              <span>{Math.round(progress)}%</span>
+            </div>
+            <div className="adhd-progress-mini-track">
+              <div className="adhd-progress-mini-fill transition-all" style={{ width: `${progress}%` }} />
+            </div>
+          </div>
+        )}
+
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-elekeza-deep-blue mb-2">Elekeza</h1>
+          <h1 className={`mb-2 font-bold text-elekeza-deep-blue ${hasProfile('INTELLECTUAL_DISABILITY') ? 'text-5xl' : 'text-4xl'}`}>Elekeza</h1>
           <p className="text-elekeza-indigo text-sm">Quiz Time!</p>
         </div>
 
-        {/* Progress */}
         <div className="mb-6">
-          <div className="flex justify-between text-sm text-gray-600 mb-2">
+          <div className="flex justify-between text-sm text-slate-700 mb-2">
             <span>Question {currentQuestionIndex + 1} of {quizData.totalQuestions}</span>
             <span>{Math.round(progress)}% Complete</span>
           </div>
           <div className="w-full bg-gray-200 rounded-full h-2">
-            <div
-              className="bg-elekeza-indigo h-2 rounded-full transition-all"
-              style={{ width: `${progress}%` }}
-            ></div>
+            <div className="bg-elekeza-indigo h-2 rounded-full transition-all" style={{ width: `${progress}%` }}></div>
           </div>
         </div>
 
-        {/* Question */}
-        <div className="bg-white/90 backdrop-blur-lg p-8 rounded-2xl shadow-xl border border-white/50">
-          <h2 className="text-xl font-bold text-gray-800 mb-6">{currentQuestion.text}</h2>
+        <div
+          className={`rounded-2xl border p-8 shadow-xl ${
+            hasProfile('AUTISM')
+              ? 'border-slate-300 bg-slate-100'
+              : hasProfile('ADHD')
+              ? currentQuestionIndex % 2 === 0
+                ? 'border-blue-200 bg-blue-50 adhd-enter'
+                : 'border-indigo-200 bg-indigo-50 adhd-enter'
+              : hasProfile('DYSLEXIA')
+              ? 'border-amber-200 bg-[#FAFAF0]'
+              : hasProfile('INTELLECTUAL_DISABILITY')
+              ? 'border-slate-800 bg-white'
+              : 'border-slate-200 bg-white'
+          }`}
+        >
+          <h2 className={`mb-6 font-bold text-slate-900 ${hasProfile('INTELLECTUAL_DISABILITY') ? 'text-3xl' : 'text-xl'}`}>
+            {currentQuestion.text}
+          </h2>
 
           <div className="space-y-3 mb-8">
             {currentQuestion.options.map((option) => (
@@ -192,12 +225,20 @@ export default function QuizPage() {
                 onClick={() => handleAnswerSelect(option.id)}
                 className={`w-full p-4 text-left rounded-lg border transition-all ${
                   selectedAnswer === option.id
-                    ? 'border-elekeza-indigo bg-elekeza-indigo bg-opacity-10'
-                    : 'border-gray-200 hover:border-elekeza-indigo'
+                    ? 'border-elekeza-indigo bg-indigo-50 text-slate-900'
+                    : activeMode === 'autism'
+                    ? 'border-slate-500 bg-slate-200 text-slate-900'
+                    : activeMode === 'dyslexia'
+                    ? 'border-slate-400 bg-[#FAFAF0] text-slate-900 hover:border-slate-700'
+                    : activeMode === 'adhd'
+                    ? 'border-blue-400 bg-white text-slate-900 hover:border-blue-700'
+                    : activeMode === 'intellectualDisability'
+                    ? 'border-slate-800 bg-white text-slate-900 hover:bg-slate-100'
+                    : 'border-gray-300 bg-white text-slate-900 hover:border-elekeza-indigo'
                 }`}
               >
                 <span className="font-semibold mr-3">{option.id.toUpperCase()}.</span>
-                {option.text}
+                <span className={hasProfile('INTELLECTUAL_DISABILITY') ? 'text-xl text-slate-900' : 'text-slate-900'}>{option.text}</span>
               </button>
             ))}
           </div>
@@ -205,7 +246,9 @@ export default function QuizPage() {
           <button
             onClick={handleSubmitAnswer}
             disabled={!selectedAnswer || submitting}
-            className="w-full bg-elekeza-deep-blue hover:bg-elekeza-indigo text-white py-3 rounded-lg font-semibold transition duration-200 disabled:opacity-50 flex items-center justify-center"
+            className={`flex w-full items-center justify-center rounded-lg bg-elekeza-deep-blue py-3 font-semibold text-white transition duration-200 hover:bg-elekeza-indigo disabled:opacity-50 ${
+              hasProfile('INTELLECTUAL_DISABILITY') ? 'min-h-12 text-xl' : ''
+            }`}
           >
             {submitting ? (
               <>
