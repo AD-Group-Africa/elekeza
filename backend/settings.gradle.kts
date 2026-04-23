@@ -1,1 +1,2 @@
-rootProject.name = "elewa-backend"
+﻿rootProject.name = "elekeza-backend"
+

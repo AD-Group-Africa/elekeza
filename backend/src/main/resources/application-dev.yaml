@@ -1,0 +1,50 @@
+jwt:
+  secret: "replace_with_a_long_random_string_minimum_32_chars_x"
+  expiration: 900000
+  refresh-expiration: 604800000
+
+security:
+  jwt:
+    secret: "replace_with_a_long_random_string_minimum_32_chars_x"
+    cookie-name: elewa_access
+    refresh-cookie-name: elewa_refresh
+
+ai:
+  client:
+    type: mock
+  internal-secret: "dev-internal-secret"
+  service:
+    url: "http://localhost:8000"
+
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5433/accessibledocs
+    username: postgres
+    password: "2634Hp$$"
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+  flyway:
+    enabled: false
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: dev@elekeza.app
+    password: dev-password
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: dev-client-id
+            client-secret: dev-client-secret
+
+app:
+  cors:
+    allowed-origins: "http://localhost:3000"
+  frontend-url: "http://localhost:3000"
+fastapi:
+  base-url: "http://localhost:8000"
+
+  internal-secret: "dev-internal-secret"
