@@ -27,6 +27,4 @@ data class ResetPasswordRequest(
 
 data class UserDto(val id: Long, val name: String, val email: String, val role: String)
 
-data class AuthResponse(val user: UserDto, val learnerId: Long)
-
 fun User.toDto() = UserDto(id = id, name = name, email = email, role = role.name)
