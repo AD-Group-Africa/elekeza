@@ -1,5 +1,5 @@
 -- =============================================================
--- V14__seed_test_accounts.sql
+-- V15__seed_test_accounts.sql
 -- Elekeza — Test account seed for MasterCard / iHub review
 --
 -- Flyway placement: backend/src/main/resources/db/migration/
@@ -10,7 +10,7 @@
 --   Test1234!     →  test (fallback)
 --
 -- To run manually instead:
---   psql -U <user> -d elekeza_db -f V14__seed_test_accounts.sql
+--   psql -U <user> -d elekeza_db -f V15__seed_test_accounts.sql
 -- =============================================================
 
 -- ── Assumptions (adjust column names to match your User.kt entity) ──────────
