@@ -31,8 +31,8 @@ class AuthController(
 
     @PostMapping("/register")
     fun register(@Valid @RequestBody req: RegisterRequest, res: HttpServletResponse): ResponseEntity<AuthResponse> {
-        val user = authService.register(req)
-        val accessToken  = jwtUtil.generateAccessToken(user.id.toString(), user.email)
+        val user: User = authService.register(req) // Explicitly type as User
+        val accessToken = jwtUtil.generateAccessToken(user.id.toString(), user.email)
         val refreshToken = jwtUtil.generateRefreshToken(user.id.toString())
         setAuthCookies(res, accessToken, refreshToken)
         return ResponseEntity.status(201).body(AuthResponse(user = user.toDto(), learnerId = user.id))
@@ -40,8 +40,8 @@ class AuthController(
 
     @PostMapping("/login")
     fun login(@Valid @RequestBody req: LoginRequest, res: HttpServletResponse): ResponseEntity<AuthResponse> {
-        val user = authService.login(req)
-        val accessToken  = jwtUtil.generateAccessToken(user.id.toString(), user.email)
+        val user: User = authService.login(req) // Explicitly type as User
+        val accessToken = jwtUtil.generateAccessToken(user.id.toString(), user.email)
         val refreshToken = jwtUtil.generateRefreshToken(user.id.toString())
         setAuthCookies(res, accessToken, refreshToken)
         return ResponseEntity.ok(AuthResponse(user = user.toDto(), learnerId = user.id))
