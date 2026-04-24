@@ -1,7 +1,8 @@
 package com.elekeza.backend.security
 
-import com.elekeza.backend.model.User           // Verify if 'model' or 'models'
-import com.elekeza.backend.repository.UserRepository // FIX: Check if 'repository' or 'repositories'
+// FIX: Added 's' to model and repository
+import com.elekeza.backend.models.User           
+import com.elekeza.backend.repositories.UserRepository 
 import com.elekeza.backend.auth.JwtUtil
 import jakarta.servlet.http.Cookie
 import jakarta.servlet.http.HttpServletRequest
@@ -25,27 +26,23 @@ class OAuth2SuccessHandler(
         authentication: Authentication
     ) {
         val oauthUser = authentication.principal as OAuth2User
-        val email = oauthUser.getAttribute<String>("email") ?: throw IllegalStateException("Email not found from Google")
+        val email = oauthUser.getAttribute<String>("email") ?: throw IllegalStateException("Email not found")
 
-        // 1. Just-In-Time Registration logic
         val user = userRepository.findByEmail(email) ?: run {
-            // FIX: Ensure you pass ALL required parameters for your User constructor here
-            val newUser = User(
-                email = email,
-                name = oauthUser.getAttribute<String>("name") ?: "Google User",
-                // role = "USER", // Add other required fields if your User class needs them
-                // provider = "GOOGLE"
-            )
+            // FIX: Ensure you match your User entity's constructor exactly
+            val newUser = User().apply {
+                this.email = email
+                this.fullName = oauthUser.getAttribute<String>("name") ?: "Google User"
+                this.enabled = true
+            }
             userRepository.save(newUser)
         }
 
-        // 2. Generate Token
         val token = jwtUtil.generateAccessToken(user.id.toString(), user.email)
 
-        // 3. Set Cookie and Redirect
         val cookie = Cookie("elekeza_access", token).apply {
             isHttpOnly = true
-            secure = true // Crucial for Vercel/Railway HTTPS
+            secure = true 
             path = "/"
             maxAge = 86400
         }
