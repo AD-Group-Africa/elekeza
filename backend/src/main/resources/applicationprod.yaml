@@ -1,13 +1,12 @@
-﻿# ============================================================
-# PROD profile — set SPRING_PROFILES_ACTIVE=prod in Railway/Render
-# ============================================================
-
 spring:
   jpa:
     show-sql: false
-
+    hibernate:
+      ddl-auto: update # Ensure this is what you want for prod
   datasource:
-    url: jdbc:postgresql://${DB_HOST}:${DB_PORT:5432}/${DB_NAME}
+    url: postgresql://postgres.ptrwshzwyaxmjxqpcuus:[2634Hp$$HM22]@aws-1-eu-central-1.pooler.supabase.com:6543/postgres
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
     hikari:
       maximum-pool-size: 20
 
@@ -18,19 +17,14 @@ spring:
           google:
             client-id: ${GOOGLE_CLIENT_ID}
             client-secret: ${GOOGLE_CLIENT_SECRET}
-            scope:
-              - email
-              - profile
 
 app:
+  auth:
+    token-secret: ${JWT_SECRET}
   cors:
-    allowed-origins: https://elekeza.app,https://www.elekeza.app,https://staging.elekeza.app
-
-mpesa:
-  sandbox: false
+    allowed-origins: ${ALLOWED_ORIGINS} # Better to set this as a variable in Railway
 
 logging:
   level:
     root: INFO
-    com.elekeza: INFO
-    org.springframework: WARNw
+    org.springframework.security: DEBUG # Temporary: helps see why OAuth fails
