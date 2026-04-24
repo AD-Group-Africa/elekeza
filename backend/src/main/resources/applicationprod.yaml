@@ -11,6 +11,17 @@ spring:
     hikari:
       maximum-pool-size: 20
 
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_CLIENT_ID}
+            client-secret: ${GOOGLE_CLIENT_SECRET}
+            scope:
+              - email
+              - profile
+
 app:
   cors:
     allowed-origins: https://elekeza.app,https://www.elekeza.app,https://staging.elekeza.app
