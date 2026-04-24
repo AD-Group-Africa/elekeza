@@ -1,4 +1,4 @@
-﻿package com.elekeza.backend.config
+package com.elekeza.backend.config
 
 import com.elekeza.backend.auth.JwtAuthFilter
 import com.elekeza.backend.auth.OAuth2SuccessHandler
@@ -34,7 +34,7 @@ class SecurityConfig(
             "/api/auth/login", "/api/auth/register",
             "/api/auth/forgot-password", "/api/auth/reset-password",
             "/api/waitlist", "/api/waitlist/count",
-            "/actuator/health", "/oauth2/**", "/login/oauth2/**"
+            "/actuator/health", "/oauth2/**", "/login/oauth2/**", // Added missing comma here
             "/error"
         )
     }
@@ -44,6 +44,8 @@ class SecurityConfig(
         http
             .cors { it.configurationSource(corsConfigurationSource()) }
             .csrf { it.disable() }
+            // Note: OAuth2 login usually requires a session to store the state. 
+            // If you face state errors, consider moving back to DEFAULT for oauth2 specifically.
             .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
             .authorizeHttpRequests { auth ->
                 auth.requestMatchers(*PUBLIC_ENDPOINTS).permitAll()
@@ -54,21 +56,23 @@ class SecurityConfig(
             }
             .oauth2Login { it.successHandler(oauth2SuccessHandler) }
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter::class.java)
+        
         return http.build()
     }
 
     @Bean
     fun corsConfigurationSource(): CorsConfigurationSource {
         val origins = allowedOriginsRaw.split(",").map { it.trim() }.filter { it.isNotBlank() }
-        val config  = CorsConfiguration()
-        config.allowedOrigins    = origins
-        config.allowedMethods    = listOf("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
-        config.allowedHeaders    = listOf("Authorization", "Content-Type", "X-Internal-Secret", "X-Request-ID")
-        config.exposedHeaders    = listOf("X-Request-ID")
-        config.allowCredentials  = true
-        config.maxAge            = 86400L
+        val config = CorsConfiguration()
+        config.allowedOrigins = origins
+        config.allowedMethods = listOf("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
+        config.allowedHeaders = listOf("Authorization", "Content-Type", "X-Internal-Secret", "X-Request-ID")
+        config.exposedHeaders = listOf("X-Request-ID")
+        config.allowCredentials = true
+        config.maxAge = 86400L
         val source = UrlBasedCorsConfigurationSource()
-        source.registerCorsConfiguration("/api/**", config)
+        // Registering for both /api/** and /login/** helps with OAuth flows
+        source.registerCorsConfiguration("/**", config) 
         return source
     }
 
