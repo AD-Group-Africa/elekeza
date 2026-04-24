@@ -35,6 +35,7 @@ class SecurityConfig(
             "/api/auth/forgot-password", "/api/auth/reset-password",
             "/api/waitlist", "/api/waitlist/count",
             "/actuator/health", "/oauth2/**", "/login/oauth2/**"
+            "/error"
         )
     }
 
