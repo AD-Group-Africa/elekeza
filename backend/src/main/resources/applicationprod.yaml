@@ -1,20 +1,14 @@
 spring:
   jpa:
     show-sql: false
-HEAD
-
-
-
-  datasource:
-    url: jdbc:postgresql://${DB_HOST}:${DB_PORT:5433}/${accessibledocs}
-
     hibernate:
-      ddl-auto: update # Ensure this is what you want for prod
+      ddl-auto: update
+
   datasource:
-    url: postgresql://postgres.ptrwshzwyaxmjxqpcuus:[2634Hp$$HM22]@aws-1-eu-central-1.pooler.supabase.com:6543/postgres
+    # Combined your Supabase info into a clean JDBC URL
+    url: jdbc:postgresql://aws-1-eu-central-1.pooler.supabase.com:6543/postgres
     username: ${DB_USER}
     password: ${DB_PASSWORD}
- 98fe2eb9cd69ea07f4781e17e13bddd66a1f8aa1
     hikari:
       maximum-pool-size: 20
 
@@ -27,12 +21,13 @@ HEAD
             client-secret: ${GOOGLE_CLIENT_SECRET}
 
 app:
+  frontend-url: ${FRONTEND_URL}
   auth:
     token-secret: ${JWT_SECRET}
   cors:
-    allowed-origins: ${ALLOWED_ORIGINS} # Better to set this as a variable in Railway
+    allowed-origins: ${ALLOWED_ORIGINS}
 
 logging:
   level:
     root: INFO
-    org.springframework.security: DEBUG # Temporary: helps see why OAuth fails
+    org.springframework.security: DEBUG
