@@ -12,7 +12,7 @@ spring:
 
   # Use local Postgres for dev — no Supabase required
   datasource:
-    url: jdbc:postgresql://localhost:5432/${DB_NAME:elekeza_db}
+    url: jdbc:postgresql://localhost:5433/${DB_NAME:accessibledocs}
 
 app:
   cors:

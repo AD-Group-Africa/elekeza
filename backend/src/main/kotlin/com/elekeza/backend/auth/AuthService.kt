@@ -35,21 +35,18 @@ class AuthService(
             throw ResponseStatusException(HttpStatus.CONFLICT, "Email already registered")
         }
 
-        // Use the standard User entity constructor
         val user = User(
             name = req.name.trim(),
             email = emailClean,
             password = passwordEncoder.encode(req.password),
-            // Convert the string to the Enum type safely
             role = try {
-                // Use .toString() to ensure we have a String object for uppercase()
-                val roleStr = req.role?.toString()?.uppercase() ?: "STUDENT"
-                UserRole.valueOf(roleStr)
+                // Use req.role directly if it's a String
+                val roleName = req.role?.uppercase() ?: "STUDENT"
+                UserRole.valueOf(roleName)
             } catch (e: Exception) {
-                UserRole.STUDENT // Fallback to STUDENT since LEARNER doesn't exist
+                UserRole.STUDENT
             }
         )
-
         return userRepository.save(user)
     }
 

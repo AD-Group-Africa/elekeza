@@ -1,14 +1,14 @@
 jwt:
-  secret: "replace_with_a_long_random_string_minimum_32_chars_x"
+  # This is a 64-character string (512 bits) required for HS512
+  secret: "411032cf05a610f46c6f76f7c5e2634b3e512c85e33d02f5a6b7d8c9e0f1a2b3"
   expiration: 900000
   refresh-expiration: 604800000
 
 security:
   jwt:
-    secret: "replace_with_a_long_random_string_minimum_32_chars_x"
+    secret: "411032cf05a610f46c6f76f7c5e2634b3e512c85e33d02f5a6b7d8c9e0f1a2b3"
     cookie-name: elewa_access
     refresh-cookie-name: elewa_refresh
-
 ai:
   client:
     type: mock
@@ -23,7 +23,7 @@ spring:
     password: "2634Hp$$"
   jpa:
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: update
     show-sql: true
   flyway:
     enabled: false
