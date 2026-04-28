@@ -1,7 +1,7 @@
 package com.elekeza.backend.config
 
 import com.elekeza.backend.auth.JwtAuthFilter
-import com.elekeza.backend.auth.OAuth2SuccessHandler
+import com.elekeza.backend.security.OAuth2SuccessHandler
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
