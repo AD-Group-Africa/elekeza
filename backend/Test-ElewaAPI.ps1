@@ -75,7 +75,7 @@ if ($conn.TcpTestSucceeded) {
 WH "2. Auth -- Register"
 $ts   = Get-Date -Format "HHmmss"
 $email = "demo_$ts@elekeza.test"
-$user  = @{ email=$email; password="Demo1234!"; name="Demo User $ts"; fullName="Demo User $ts" }
+$user  = @{ email=$email; password="Demo1234!"; name="Demo User $ts" }
 $reg   = Call POST "/auth/register" $user -UseToken $false
 if (-not (IsErr $reg)) {
     $lid = if ($reg.learnerId) { $reg.learnerId } elseif ($reg.user) { $reg.user.id } else { $null }
@@ -84,9 +84,11 @@ if (-not (IsErr $reg)) {
     WF "Register failed: status=$($reg._status)"
 }
 
+Start-Sleep -Seconds 2
+
 # 3. Login
 WH "3. Auth -- Login"
-$login = Call POST "/auth/login" @{ email=$email; password="Demo1234!" } -UseToken $false
+$login = Call POST "/auth/login" @{ username=$email; password="Demo1234!" } -UseToken $false
 if (-not (IsErr $login)) {
     if ($login.token) { $script:TOKEN = $login.token }
     elseif ($login.accessToken) { $script:TOKEN = $login.accessToken }

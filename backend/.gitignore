@@ -41,5 +41,5 @@ out/
 
 .gradle/
 build/
-spring.log
-spring-err.log
+# Local logs
+*.log

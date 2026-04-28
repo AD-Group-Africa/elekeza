@@ -15,10 +15,19 @@ spring:
   jpa:
     hibernate:
       ddl-auto: update
-    show-sql: false
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
+    show-sql: true
+    open-in-view: false
+
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_CLIENT_ID:442000591516-2c4fkqj14727fjooo1vtjue768ociucd.apps.googleusercontent.com}
+            client-secret: ${GOOGLE_CLIENT_SECRET:placeholder-secret}
+            scope:
+              - email
+              - profile
 
   flyway:
     enabled: true
@@ -27,38 +36,36 @@ spring:
     validate-on-migrate: true
 
   mail:
-    host: ${MAIL_HOST:smtp.gmail.com}
+    host: ${harryevansmuturi83@gmail.com}
     port: ${MAIL_PORT:587}
-    username: ${MAIL_USERNAME}
-    password: ${MAIL_PASSWORD}
+    username: ${MAIL_USERNAME:harryevansmuturi83@gmail.com}
+    password: ${MAIL_PASSWORD:your-app-password}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
 
-  security:
-    oauth2:
-      client:
-        registration:
-          google:
-            client-id: ${GOOGLE_CLIENT_ID}
-            client-secret: ${GOOGLE_CLIENT_SECRET}
-            scope: openid,email,profile
-
-# ── JWT Config (Matches @Value("${jwt.secret}")) ──────────────────────────────
 jwt:
-  secret: "elekeza-mastercard-demo-secret-key-2026-secure"
-  cookie-name: ${SECURITY_JWT_COOKIE_NAME:elekeza_access}
-  refresh-cookie-name: ${SECURITY_JWT_REFRESH_COOKIE_NAME:elekeza_refresh}
-  access-token-expiry-ms: 900000
-  refresh-token-expiry-ms: 604800000
+  secret: "411032cf05a610f46c6f76f7c5e2634b3e512c85e33d02f5a6b7d8c9e0f1a2b3"
+  expiration: 900000
+  refresh-expiration: 604800000
 
-# ── Other Services ────────────────────────────────────────────────────────────
-ai-service:
-  url: ${AI_SERVICE_URL:http://localhost:8000}
-  internal-secret: ${INTERNAL_AI_SECRET}
+ai:
+  base-url: ${AI_SERVICE_URL:http://localhost:8000}
+  internal-secret: ${AI_INTERNAL_SECRET:your-ai-secret-key-here}
 
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health, info
+fastapi:
+  base-url: ${FASTAPI_URL:http://localhost:8000}
+  internal-secret: ${FASTAPI_INTERNAL_SECRET:your-super-secret-key-here}
+
+mpesa:
+  consumer-key: ${MPESA_CONSUMER_KEY:your_key_here}
+  consumer-secret: ${MPESA_CONSUMER_SECRET:your_secret_here}
+  pass-key: ${MPESA_PASS_KEY:your_passkey_here}
+  short-code: ${MPESA_SHORT_CODE:174379}
+  callback-url: ${MPESA_CALLBACK_URL:https://yourdomain.com/callback}
 
 app:
   cors:
@@ -70,17 +77,3 @@ logging:
   level:
     root: INFO
     com.elekeza: DEBUG
-
-fastapi:
-  base-url: ${FASTAPI_URL:http://localhost:8000}
-  internal-secret: ${FASTAPI_INTERNAL_SECRET:your-super-secret-key-here}
-
-ai:
-  internal-secret: ${AI_INTERNAL_SECRET:your-ai-secret-key-here}
-
-mpesa:
-  consumer-key: ${MPESA_CONSUMER_KEY:your_key_here}
-  consumer-secret: ${MPESA_CONSUMER_SECRET:your_secret_here}
-  pass-key: ${MPESA_PASS_KEY:your_passkey_here}
-  short-code: ${MPESA_SHORT_CODE:174379}
-  callback-url: ${MPESA_CALLBACK_URL:https://yourdomain.com/callback}

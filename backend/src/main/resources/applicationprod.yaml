@@ -6,8 +6,10 @@ spring:
   jpa:
     show-sql: false
 
+
+
   datasource:
-    url: jdbc:postgresql://${DB_HOST}:${DB_PORT:5432}/${DB_NAME}
+    url: jdbc:postgresql://${DB_HOST}:${DB_PORT:5433}/${accessibledocs}
     hikari:
       maximum-pool-size: 20
 
