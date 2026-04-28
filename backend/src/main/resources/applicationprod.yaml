@@ -5,7 +5,6 @@ spring:
       ddl-auto: update
 
   datasource:
-    # Combined your Supabase info into a clean JDBC URL
     url: jdbc:postgresql://aws-1-eu-central-1.pooler.supabase.com:6543/postgres
     username: ${DB_USER}
     password: ${DB_PASSWORD}
