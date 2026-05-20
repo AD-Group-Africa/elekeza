@@ -24,7 +24,12 @@
     environment:
       SPRING_PROFILES_ACTIVE: docker
       DB_PASSWORD: ${DB_PASSWORD:-password}
-      INTERNAL_SECRET: ${INTERNAL_SECRET:-change-me-shared-secret}
+      DB_USERNAME: ${DB_USERNAME:-postgres}
+      DB_NAME: ${DB_NAME:-accessibledocs}
+      AI_SERVICE_URL: http://ai-service:8000
+      AI_INTERNAL_SECRET: ${INTERNAL_SECRET:-change-me-shared-secret}
+      CORS_ALLOWED_ORIGINS: http://localhost:3000,http://frontend:3000
+      JWT_SECRET: ${JWT_SECRET:-change-me-32-char-minimum-secret-key}
     depends_on:
       postgres:
         condition: service_healthy
@@ -43,6 +48,8 @@
       AI_PROVIDER: groq
       AI_API_KEY: ${GROQ_API_KEY}
       INTERNAL_SECRET: ${INTERNAL_SECRET:-change-me-shared-secret}
+      LANGFUSE_HOST: http://langfuse:3000
+      TESSERACT_CMD:  # empty for Docker auto-detect
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 10s

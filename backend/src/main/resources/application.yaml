@@ -3,28 +3,34 @@ spring:
     name: elekeza-backend
 
   datasource:
-    url: jdbc:postgresql://aws-1-eu-central-1.pooler.supabase.com:6543/postgres?sslmode=require
-    username: "postgres.ptrwshzwyaxmjxqpcuus"
-    password: "2634Hp$$HM22"
+    url: ${DB_URL}
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
     hikari:
       maximum-pool-size: 10
       minimum-idle: 2
       connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
 
   jpa:
     hibernate:
-      ddl-auto: update
-    show-sql: true
+      # NEVER use 'update' in production — use validate + Flyway
+      ddl-auto: validate
+    show-sql: false
     open-in-view: false
+    properties:
+      hibernate:
+        format_sql: false
 
   security:
     oauth2:
       client:
         registration:
           google:
-            client-id: ${GOOGLE_CLIENT_ID:442000591516-2c4fkqj14727fjooo1vtjue768ociucd.apps.googleusercontent.com}
-            client-secret: ${GOOGLE_CLIENT_SECRET:placeholder-secret}
+            client-id: ${GOOGLE_CLIENT_ID}
+            client-secret: ${GOOGLE_CLIENT_SECRET}
             scope:
               - email
               - profile
@@ -36,10 +42,10 @@ spring:
     validate-on-migrate: true
 
   mail:
-    host: ${harryevansmuturi83@gmail.com}
+    host: ${MAIL_HOST:smtp.gmail.com}
     port: ${MAIL_PORT:587}
-    username: ${MAIL_USERNAME:harryevansmuturi83@gmail.com}
-    password: ${MAIL_PASSWORD:your-app-password}
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
     properties:
       mail:
         smtp:
@@ -48,32 +54,41 @@ spring:
             enable: true
 
 jwt:
-  secret: "411032cf05a610f46c6f76f7c5e2634b3e512c85e33d02f5a6b7d8c9e0f1a2b3"
-  expiration: 900000
-  refresh-expiration: 604800000
+  secret: ${JWT_SECRET}
+  expiration: 900000        # 15 minutes
+  refresh-expiration: 604800000  # 7 days
 
+# Single AI service config (removed duplicate fastapi.* block)
 ai:
-  base-url: ${AI_SERVICE_URL:http://localhost:8000}
-  internal-secret: ${AI_INTERNAL_SECRET:your-ai-secret-key-here}
-
-fastapi:
-  base-url: ${FASTAPI_URL:http://localhost:8000}
-  internal-secret: ${FASTAPI_INTERNAL_SECRET:your-super-secret-key-here}
+  base-url: ${AI_SERVICE_URL}
+  internal-secret: ${AI_INTERNAL_SECRET}
 
 mpesa:
-  consumer-key: ${MPESA_CONSUMER_KEY:your_key_here}
-  consumer-secret: ${MPESA_CONSUMER_SECRET:your_secret_here}
-  pass-key: ${MPESA_PASS_KEY:your_passkey_here}
+  consumer-key: ${MPESA_CONSUMER_KEY:placeholder}
+  consumer-secret: ${MPESA_CONSUMER_SECRET:placeholder}
+  pass-key: ${MPESA_PASS_KEY:placeholder}
   short-code: ${MPESA_SHORT_CODE:174379}
-  callback-url: ${MPESA_CALLBACK_URL:https://yourdomain.com/callback}
+  callback-url: ${MPESA_CALLBACK_URL}
 
 app:
   cors:
-    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000}
-  frontend-url: ${FRONTEND_URL:http://localhost:3000}
+    allowed-origins: ${CORS_ALLOWED_ORIGINS}
+  frontend-url: ${FRONTEND_URL}
   upload-dir: uploads
+
+# Actuator — health only, no sensitive exposure
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: never
 
 logging:
   level:
     root: INFO
-    com.elekeza: DEBUG
+    com.elekeza: INFO
+  pattern:
+    console: '{"time":"%d{ISO8601}","level":"%p","logger":"%logger{36}","msg":"%m"}%n'

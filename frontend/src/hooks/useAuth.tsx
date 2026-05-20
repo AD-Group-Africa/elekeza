@@ -24,12 +24,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const mapAuthResponseToUser = (data: AuthResponse): User => ({
     id: data.learnerId,
     email: data.email,
-    fullName: data.fullName || '',
+    name: data.name || '',
     onboardingComplete: data.onboardingComplete,
     role: 'Student',
     cognitiveProfiles: data.cognitiveProfiles && data.cognitiveProfiles.length > 0
-      ? data.cognitiveProfiles
-      : readCognitiveProfiles(data.learnerId),
+        ? data.cognitiveProfiles
+        : readCognitiveProfiles(data.learnerId),
   })
 
   const checkAuth = useCallback(async () => {
@@ -69,7 +69,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const demoUser: User = {
         id: `demo-${demoAccount.role.toLowerCase().replace(/\s+/g, '-')}`,
         email: demoAccount.email,
-        fullName: demoAccount.role,
+        name: demoAccount.role,  // Changed from fullName
         onboardingComplete: true,
         role: demoAccount.role,
       }

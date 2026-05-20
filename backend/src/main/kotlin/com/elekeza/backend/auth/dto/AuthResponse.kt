@@ -1,9 +1,12 @@
 package com.elekeza.backend.auth.dto
 
-// Ensure this import matches the class name in AuthDTO.kt exactly
-import com.elekeza.backend.auth.dto.UserDto
+import java.util.UUID
 
 data class AuthResponse(
-    val user: UserDto,
-    val learnerId: Any
+    val learnerId: UUID,
+    val email: String,
+    val name: String? = null,
+    val onboardingComplete: Boolean = false,
+    val message: String? = null,
+    val cognitiveProfiles: List<String>? = null
 )

@@ -29,7 +29,7 @@ class ContentService(
     private val restTemplate:           RestTemplate,
     private val circuitBreakerRegistry: CircuitBreakerRegistry,
     private val auditLogService:        AuditLogService,
-    @Value("\${ai.service.url:http://localhost:8000}") private val aiServiceUrl: String,
+    @Value("\${ai.base-url:http://localhost:8000}") private val aiServiceUrl: String,
     @Value("\${ai.internal-secret}") private val internalSecret: String
 ) {
     private val log = LoggerFactory.getLogger(ContentService::class.java)
@@ -71,6 +71,100 @@ class ContentService(
         processWithAI(content.id, filePath.toString(), sneType ?: "NONE")
         return content
     }
+
+    // Add this method to ContentService.kt
+// Place it after the existing upload() method
+
+    /**
+     * FIX: Text upload from frontend — accepts plain text string instead of MultipartFile.
+     * The frontend sends { text, title, language, sneType } as JSON.
+     * We save the text directly to the Content entity and trigger AI processing.
+     *
+     * No file is written to disk for text uploads — text is stored in the DB directly.
+     * This is simpler, safer (no disk management), and works correctly on Render's ephemeral filesystem.
+     */
+    fun uploadText(userId: Long, text: String, title: String, sneType: String?): Content {
+        if (text.isBlank()) throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Text cannot be empty")
+        if (text.length > 50_000) throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Text too long. Maximum 50,000 characters.")
+
+        val content = contentRepository.save(Content(
+            userId           = userId,
+            title            = title.ifBlank { "Untitled — ${LocalDateTime.now()}" },
+            originalFilename = null,
+            filePath         = null,   // No file for text uploads
+            rawText          = text,   // Store text directly
+            sneType          = sneType,
+            status           = ContentStatus.UPLOADING
+        ))
+
+        auditLogService.log(
+            action   = "CONTENT_TEXT_UPLOAD",
+            category = "CONTENT",
+            userId   = userId,
+            detail   = "contentId=${content.id} chars=${text.length} sneType=$sneType"
+        )
+
+        processTextWithAI(content.id, text, sneType ?: "NONE")
+        return content
+    }
+
+    @Async
+    @Transactional
+    fun processTextWithAI(contentId: Long, text: String, sneType: String) {
+        log.info("AI text processing started: contentId={} sneType={}", contentId, sneType)
+        contentRepository.updateStatus(contentId, ContentStatus.PROCESSING)
+
+        val circuit = circuitBreakerRegistry.get("ai-service")
+        try {
+            @Suppress("UNCHECKED_CAST")
+            val result = circuit.execute(
+                call = {
+                    RetryUtil.withRetry(maxAttempts = 2, initialDelayMs = 1000,
+                        retryOn = { e -> e is ResourceAccessException }) {
+                        val headers = HttpHeaders().apply {
+                            contentType = MediaType.APPLICATION_JSON
+                            set("X-Internal-Secret", internalSecret)
+                        }
+                        // Send text directly — AI service doesn't need a file path
+                        val response = restTemplate.postForEntity(
+                            "$aiServiceUrl/ai/simplify/text",
+                            HttpEntity(mapOf(
+                                "learner_context" to mapOf(
+                                    "learner_id"       to contentId.toString(),
+                                    "cognitive_profiles" to listOf(sneType.lowercase().takeIf { it != "none" } ?: "dyslexia"),
+                                    "language_level"   to 2,
+                                    "content_difficulty" to 2,
+                                    "pathway_stage"    to "Foundation"
+                                ),
+                                "raw_text" to text
+                            ), headers),
+                            Map::class.java
+                        )
+                        response.body ?: throw IllegalStateException("AI service returned empty response")
+                    }
+                },
+                fallback = null
+            ) as Map<String, Any>
+
+            val simplified = result["simplified_text"] as? String
+                ?: (result["sections"] as? List<*>)?.joinToString("\n") { it.toString() }
+                ?: ""
+            val wordCount = simplified.split("\\s+".toRegex()).filter { it.isNotBlank() }.size
+
+            contentRepository.updateSimplified(contentId, simplified, wordCount, ContentStatus.READY)
+            auditLogService.log("CONTENT_TEXT_PROCESSED", "CONTENT", detail = "contentId=$contentId words=$wordCount")
+
+        } catch (e: CircuitOpenException) {
+            log.warn("AI circuit OPEN — fast-failing contentId={}", contentId)
+            contentRepository.updateStatus(contentId, ContentStatus.FAILED)
+        } catch (e: Exception) {
+            log.error("AI text processing failed: contentId={}", contentId, e)
+            contentRepository.updateStatus(contentId, ContentStatus.FAILED)
+        }
+    }
+
+// NOTE: Also update Content entity to add rawText field if not present:
+// @Column(columnDefinition = "TEXT") var rawText: String? = null
 
     @Async
     @Transactional

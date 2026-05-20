@@ -5,7 +5,6 @@ import com.elekeza.backend.auth.dto.ForgotPasswordRequest
 import com.elekeza.backend.auth.dto.LoginRequest
 import com.elekeza.backend.auth.dto.RegisterRequest
 import com.elekeza.backend.auth.dto.ResetPasswordRequest
-import com.elekeza.backend.auth.dto.toDto
 import jakarta.servlet.http.Cookie
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
@@ -94,6 +93,12 @@ class AuthController(
         res.addCookie(buildCookie(refreshCookieName, "", 0))
     }
 
-    private fun buildCookie(name: String, value: String, maxAge: Int): Cookie =
-        Cookie(name, value).apply { isHttpOnly = true; secure = true; path = "/"; this.maxAge = maxAge }
-}
+    private fun buildCookie(name: String, value: String, maxAge: Int): Cookie {
+        val isProduction = System.getenv("SPRING_PROFILES_ACTIVE")?.contains("prod") == true
+        return Cookie(name, value).apply {
+            isHttpOnly = true
+            secure = isProduction  // true only in production (HTTPS)
+            path = "/"
+            this.maxAge = maxAge
+        }
+    }

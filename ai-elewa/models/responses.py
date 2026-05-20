@@ -75,3 +75,12 @@ class AdaptiveResponse(BaseModel):
 class WrongAnswerFlowResponse(BaseModel):
     re_explanation: str
     reattempt_question: str
+
+
+# ---------------------------------------------------------------------------
+# Process endpoint response — backend compatibility
+# ---------------------------------------------------------------------------
+
+class ProcessResponse(BaseModel):
+    simplified_text: str
+    word_count: int

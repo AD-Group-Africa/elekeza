@@ -12,7 +12,7 @@ import org.springframework.web.server.ResponseStatusException
 @RestController
 @RequestMapping("/api/quiz")
 class QuizController(
-    private val quizService:    QuizService,
+    private val quizService: QuizService,
     private val quizRepository: QuizRepository,
     private val userRepository: UserRepository
 ) {
@@ -20,25 +20,47 @@ class QuizController(
         userRepository.findByEmail(principal.username)?.id
             ?: throw ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not found")
 
-    @PostMapping("/generate/{contentId}")
-    fun generate(@AuthenticationPrincipal p: UserDetails, @PathVariable contentId: Long): ResponseEntity<QuizDto> {
-        val userId = resolveUserId(p)
-        val quiz   = quizService.generateQuiz(contentId, userId)
-        return ResponseEntity.status(201).body(
-            QuizDto(quizId = quiz.quizId, lessonId = quiz.lessonId, questions = quiz.questions)
-        )
+    // GET /api/quiz/{lessonId}/start — Start or resume a quiz
+    @GetMapping("/{lessonId}/start")
+    fun startQuiz(
+        @AuthenticationPrincipal principal: UserDetails,
+        @PathVariable lessonId: Long
+    ): ResponseEntity<QuizDto> {
+        val userId = resolveUserId(principal)
+        val quiz = quizService.getOrCreateQuiz(lessonId, userId)
+        return ResponseEntity.ok(QuizDto(
+            quizId = quiz.quizId,
+            lessonId = quiz.lessonId,
+            questions = quiz.questions
+        ))
     }
 
-    @GetMapping("/{quizId}")
-    fun getQuiz(@AuthenticationPrincipal p: UserDetails, @PathVariable quizId: Long): ResponseEntity<QuizDto> {
-        val quiz      = quizRepository.findById(quizId).orElseThrow { ResponseStatusException(HttpStatus.NOT_FOUND, "Quiz not found") }
-        val questions = emptyList<QuizQuestionDto>()
-        return ResponseEntity.ok(QuizDto(quizId = quiz.id, lessonId = quiz.contentId, questions = questions))
+    // POST /api/quiz/{quizId}/answer — Submit an answer
+    @PostMapping("/{quizId}/answer")
+    fun submitAnswer(
+        @AuthenticationPrincipal principal: UserDetails,
+        @PathVariable quizId: Long,
+        @RequestBody submission: AnswerSubmission
+    ): ResponseEntity<AnswerResult> {
+        val question = questionRepository.findById(submission.questionId).orElseThrow {
+            ResponseStatusException(HttpStatus.NOT_FOUND, "Question not found")
+        }
+        val isCorrect = question.correctOption.equals(submission.selectedOption.trim(), ignoreCase = true)
+        return ResponseEntity.ok(AnswerResult(
+            correct = isCorrect,
+            correctOption = question.correctOption,
+            explanation = question.explanation
+        ))
     }
 
-    @PostMapping("/{quizId}/submit")
-    fun submit(@AuthenticationPrincipal p: UserDetails, @PathVariable quizId: Long, @RequestBody submission: AnswerSubmission): ResponseEntity<QuizResult> {
-        val userId = resolveUserId(p)
-        return ResponseEntity.ok(quizService.submitQuiz(quizId, userId, submission))
+    // GET /api/quiz/{quizId}/complete — Finalise quiz
+    @GetMapping("/{quizId}/complete")
+    fun completeQuiz(
+        @AuthenticationPrincipal principal: UserDetails,
+        @PathVariable quizId: Long
+    ): ResponseEntity<QuizResult> {
+        val userId = resolveUserId(principal)
+        val result = quizService.completeQuiz(quizId, userId)
+        return ResponseEntity.ok(result)
     }
 }

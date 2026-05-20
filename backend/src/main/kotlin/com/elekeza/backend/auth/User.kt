@@ -57,4 +57,11 @@ class User(
     fun preUpdate() {
         updatedAt = LocalDateTime.now()
     }
+
+    fun toDto() = com.elekeza.backend.auth.dto.UserDto(
+        id = id,
+        email = email,
+        name = name,
+        role = role.name
+    )
 }

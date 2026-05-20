@@ -33,3 +33,8 @@ bootrun-check*.log
 
 # Corrupted paths
 ersthrillerparkDesktopELEWA
+
+.gradle/
+build/
+*.jar
+.DS_Store

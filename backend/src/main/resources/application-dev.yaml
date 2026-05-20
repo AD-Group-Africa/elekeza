@@ -1,50 +1,34 @@
-jwt:
-  # This is a 64-character string (512 bits) required for HS512
-  secret: "411032cf05a610f46c6f76f7c5e2634b3e512c85e33d02f5a6b7d8c9e0f1a2b3"
-  expiration: 900000
-  refresh-expiration: 604800000
-
-security:
-  jwt:
-    secret: "411032cf05a610f46c6f76f7c5e2634b3e512c85e33d02f5a6b7d8c9e0f1a2b3"
-    cookie-name: elewa_access
-    refresh-cookie-name: elewa_refresh
-ai:
-  client:
-    type: mock
-  internal-secret: "dev-internal-secret"
-  service:
-    url: "http://localhost:8000"
+# application-dev.yaml
+# This file is safe to commit — it contains NO secrets.
+# Run with: SPRING_PROFILES_ACTIVE=dev ./gradlew bootRun
 
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5433/accessibledocs
+    url: jdbc:postgresql://localhost:5432/elekeza_dev
     username: postgres
-    password: "2634Hp$$"
+    password: postgres
+
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: update   # OK locally — not in prod
     show-sql: true
+
   flyway:
-    enabled: false
-  mail:
-    host: smtp.gmail.com
-    port: 587
-    username: dev@elekeza.app
-    password: dev-password
-  security:
-    oauth2:
-      client:
-        registration:
-          google:
-            client-id: dev-client-id
-            client-secret: dev-client-secret
+    enabled: false       # Let Hibernate manage schema locally
+
+jwt:
+  secret: dev-only-secret-do-not-use-in-production-ever
+
+ai:
+  base-url: http://localhost:8000
+  internal-secret: dev-ai-secret
 
 app:
   cors:
-    allowed-origins: "http://localhost:3000"
-  frontend-url: "http://localhost:3000"
-fastapi:
-  base-url: "http://localhost:8000"
+    allowed-origins: http://localhost:3000
+  frontend-url: http://localhost:3000
 
-  internal-secret: "dev-internal-secret"
+logging:
+  level:
+    root: DEBUG
+    com.elekeza: DEBUG
