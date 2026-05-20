@@ -14,6 +14,9 @@ from ai_client import init_ai_clients
 from security import InternalAuthMiddleware
 from endpoints.simplify import router as simplify_router
 from endpoints.quiz import router as quiz_router
+from endpoints.process import router as process_router
+# ...
+app.include_router(process_router)
 from models.errors import ErrorResponse
 
 logger = logging.getLogger(__name__)
@@ -40,6 +43,7 @@ app = FastAPI(
 app.add_middleware(InternalAuthMiddleware)
 app.include_router(simplify_router)
 app.include_router(quiz_router)
+app.include_router(process_router)
 
 
 # ---------------------------------------------------------------------------
@@ -89,4 +93,5 @@ async def global_exception_handler(request: Request, exc: Exception):
 
 @app.get("/health")
 async def health():
+    return {"status": "ok"}async def health():
     return {"status": "ok"}

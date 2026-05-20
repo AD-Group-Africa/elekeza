@@ -9,7 +9,7 @@ export type CognitiveProfile =
 export interface User {
   id: string;
   email: string;
-  fullName: string;
+  name: string;  // Backend uses 'name', not 'fullName'
   onboardingComplete?: boolean;
   role: 'Student' | 'Teacher' | 'School Admin' | 'Guardian';
   cognitiveProfiles?: CognitiveProfile[];
@@ -18,7 +18,7 @@ export interface User {
 export interface AuthResponse {
   learnerId: string;
   email: string;
-  fullName?: string | null;
+  name?: string | null;  // Changed from fullName
   onboardingComplete: boolean;
   message: string;
   cognitiveProfiles?: CognitiveProfile[];

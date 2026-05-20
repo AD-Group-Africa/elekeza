@@ -1,14 +1,25 @@
 spring:
   datasource:
-    url:      jdbc:postgresql://postgres:5433/accessibledocs
-    username: ${SPRING_DATASOURCE_USERNAME}
-    password: ${SPRING_DATASOURCE_PASSWORD}
+    url: jdbc:postgresql://postgres:5432/accessibledocs
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:password}
+    driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
       ddl-auto: validate
+    show-sql: false
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
 
-fastapi:
-  base-url: ${FASTAPI_BASE_URL:http://accessible-docs:8000}
+ai:
+  base-url: ${AI_SERVICE_URL:http://ai-service:8000}
+  internal-secret: ${AI_INTERNAL_SECRET}
+
+app:
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000,http://frontend:3000}
+  frontend-url: ${FRONTEND_URL:http://frontend:3000}
+
+jwt:
+  secret: ${JWT_SECRET:change-me-32-char-minimum-secret-key}

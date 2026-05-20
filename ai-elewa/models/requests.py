@@ -67,3 +67,13 @@ class WrongAnswerFlowRequest(BaseModel):
     learner_context: LearnerContext
     question: str
     section_content: str
+
+
+class ProcessRequest(BaseModel):
+    file_path: str
+    sne_type: str = "NONE"
+
+
+class ProcessResponse(BaseModel):
+    simplified_text: str
+    word_count: int

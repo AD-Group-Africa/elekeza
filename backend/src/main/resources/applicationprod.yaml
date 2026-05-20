@@ -1,38 +1,50 @@
 spring:
-  jpa:
-    show-sql: false
-HEAD
-
-
-
   datasource:
-    url: jdbc:postgresql://${DB_HOST}:${DB_PORT:5433}/${accessibledocs}
-
-    hibernate:
-      ddl-auto: update # Ensure this is what you want for prod
-  datasource:
-    url: postgresql://postgres.ptrwshzwyaxmjxqpcuus:[2634Hp$$HM22]@aws-1-eu-central-1.pooler.supabase.com:6543/postgres
-    username: ${DB_USER}
+    url: jdbc:postgresql://${DB_HOST}:${DB_PORT:5432}/${DB_NAME}
+    username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
- 98fe2eb9cd69ea07f4781e17e13bddd66a1f8aa1
+    driver-class-name: org.postgresql.Driver
     hikari:
       maximum-pool-size: 20
+      minimum-idle: 5
+      connection-timeout: 30000
+      max-lifetime: 1800000
 
-  security:
-    oauth2:
-      client:
-        registration:
-          google:
-            client-id: ${GOOGLE_CLIENT_ID}
-            client-secret: ${GOOGLE_CLIENT_SECRET}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    open-in-view: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        jdbc:
+          lob:
+            non_contextual_creation: true
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: false
+    validate-on-migrate: true
+
+jwt:
+  secret: ${JWT_SECRET}
+  expiration: 900000
+  refresh-expiration: 604800000
+
+ai:
+  base-url: ${AI_SERVICE_URL}
+  internal-secret: ${AI_INTERNAL_SECRET}
 
 app:
-  auth:
-    token-secret: ${JWT_SECRET}
   cors:
-    allowed-origins: ${ALLOWED_ORIGINS} # Better to set this as a variable in Railway
+    allowed-origins: ${CORS_ALLOWED_ORIGINS}
+  frontend-url: ${FRONTEND_URL}
+  upload-dir: /tmp/uploads
 
 logging:
   level:
     root: INFO
-    org.springframework.security: DEBUG # Temporary: helps see why OAuth fails
+    com.elekeza: INFO
+    org.springframework: WARN

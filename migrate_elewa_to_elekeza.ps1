@@ -67,11 +67,11 @@ foreach ($file in $allFiles) {
 
 # Step 3: Rename the main application file
 Write-Host ""
-Write-Host "[3/6] Renaming ElewaApplication.kt to ElekzaApplication.kt" -ForegroundColor Yellow
+Write-Host "[3/6] Renaming ElewaApplication.kt to ElekezaApplication.kt" -ForegroundColor Yellow
 
 $oldAppFile = Get-ChildItem -Path $projectRoot -Recurse -Filter "ElewaApplication.kt" | Select-Object -First 1
 if ($oldAppFile) {
-    Rename-Item -Path $oldAppFile.FullName -NewName "ElekzaApplication.kt" -Force
+    Rename-Item -Path $oldAppFile.FullName -NewName "ElekezaApplication.kt" -Force
     Write-Host "  Renamed: $($oldAppFile.FullName)" -ForegroundColor Green
 } else {
     Write-Host "  ElewaApplication.kt not found (may already be renamed)" -ForegroundColor DarkGray
@@ -128,7 +128,7 @@ Write-Host "========================================" -ForegroundColor Cyan
 Write-Host ""
 Write-Host "STEP A - Fix Flyway V7 conflict (CRITICAL - app will not start):" -ForegroundColor Yellow
 Write-Host "  Run this command:" -ForegroundColor White
-Write-Host "  Rename-Item 'backend\src\main\resources\db\migration\V7__quiz_tables.sql' 'V13__quiz_tables.sql'" -ForegroundColor White
+Write-Host "  Rename-Item 'backend\src\main\resources\db\migration\V7__quiz_tables.sql' 'V14__quiz_tables.sql'" -ForegroundColor White
 Write-Host ""
 Write-Host "STEP B - Delete stale legacy packages:" -ForegroundColor Yellow
 Write-Host "  Remove-Item -Recurse backend\src\main\kotlin\com\elekeza\backend\service\" -ForegroundColor White

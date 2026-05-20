@@ -1523,7 +1523,8 @@ class SecurityConfig(
             "/api/auth/login", "/api/auth/register",
             "/api/auth/forgot-password", "/api/auth/reset-password",
             "/api/waitlist", "/api/waitlist/count",
-            "/actuator/health", "/oauth2/**", "/login/oauth2/**"
+            "/actuator/health", "/oauth2/**", "/login/oauth2/**", // Added missing comma here
+            "/error"
         )
     }
 
@@ -1532,6 +1533,8 @@ class SecurityConfig(
         http
             .cors { it.configurationSource(corsConfigurationSource()) }
             .csrf { it.disable() }
+            // Note: OAuth2 login usually requires a session to store the state. 
+            // If you face state errors, consider moving back to DEFAULT for oauth2 specifically.
             .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
             .authorizeHttpRequests { auth ->
                 auth.requestMatchers(*PUBLIC_ENDPOINTS).permitAll()
@@ -1542,21 +1545,23 @@ class SecurityConfig(
             }
             .oauth2Login { it.successHandler(oauth2SuccessHandler) }
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter::class.java)
+        
         return http.build()
     }
 
     @Bean
     fun corsConfigurationSource(): CorsConfigurationSource {
         val origins = allowedOriginsRaw.split(",").map { it.trim() }.filter { it.isNotBlank() }
-        val config  = CorsConfiguration()
-        config.allowedOrigins    = origins
-        config.allowedMethods    = listOf("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
-        config.allowedHeaders    = listOf("Authorization", "Content-Type", "X-Internal-Secret", "X-Request-ID")
-        config.exposedHeaders    = listOf("X-Request-ID")
-        config.allowCredentials  = true
-        config.maxAge            = 86400L
+        val config = CorsConfiguration()
+        config.allowedOrigins = origins
+        config.allowedMethods = listOf("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
+        config.allowedHeaders = listOf("Authorization", "Content-Type", "X-Internal-Secret", "X-Request-ID")
+        config.exposedHeaders = listOf("X-Request-ID")
+        config.allowCredentials = true
+        config.maxAge = 86400L
         val source = UrlBasedCorsConfigurationSource()
-        source.registerCorsConfiguration("/api/**", config)
+        // Registering for both /api/** and /login/** helps with OAuth flows
+        source.registerCorsConfiguration("/**", config) 
         return source
     }
 
@@ -3711,8 +3716,12 @@ class JwtAuthFilter(
 </file>
 
 <file path="src/main/kotlin/com/elekeza/backend/security/OAuth2SuccessHandler.kt">
-package com.elekeza.backend.auth
+package com.elekeza.backend.security
 
+// FIX: Added 's' to model and repository
+import com.elekeza.backend.models.User           
+import com.elekeza.backend.repositories.UserRepository 
+import com.elekeza.backend.auth.JwtUtil
 import jakarta.servlet.http.Cookie
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
@@ -3726,7 +3735,7 @@ import org.springframework.stereotype.Component
 class OAuth2SuccessHandler(
     private val jwtUtil: JwtUtil,
     private val userRepository: UserRepository,
-    @Value("\${app.frontend-url:http://localhost:3000}") private val frontendUrl: String
+    @Value("\${app.frontend-url}") private val frontendUrl: String
 ) : AuthenticationSuccessHandler {
 
     override fun onAuthenticationSuccess(
@@ -3735,20 +3744,25 @@ class OAuth2SuccessHandler(
         authentication: Authentication
     ) {
         val oauthUser = authentication.principal as OAuth2User
-        val email = oauthUser.getAttribute<String>("email") ?: run {
-            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Email not provided")
-            return
-        }
+        val email = oauthUser.getAttribute<String>("email") ?: throw IllegalStateException("Email not found")
+
         val user = userRepository.findByEmail(email) ?: run {
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "User not registered")
-            return
+            // FIX: Ensure you match your User entity's constructor exactly
+            val newUser = User().apply {
+                this.email = email
+                this.fullName = oauthUser.getAttribute<String>("name") ?: "Google User"
+                this.enabled = true
+            }
+            userRepository.save(newUser)
         }
+
         val token = jwtUtil.generateAccessToken(user.id.toString(), user.email)
+
         val cookie = Cookie("elekeza_access", token).apply {
             isHttpOnly = true
-            secure     = request.isSecure
-            path       = "/"
-            maxAge     = 86400
+            secure = true 
+            path = "/"
+            maxAge = 86400
         }
         response.addCookie(cookie)
         response.sendRedirect("$frontendUrl/dashboard")

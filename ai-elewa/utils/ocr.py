@@ -135,3 +135,97 @@ def _run_tesseract(image_path: str) -> str:
             message=f"Tesseract failed to process image: {str(e)}",
             stage="ocr",
         ))
+
+async def extract_text_from_file(file_path: str) -> str:
+    """Extract text from PDF, DOCX, or TXT file."""
+    import asyncio
+    from pathlib import Path
+
+    path = Path(file_path)
+    if not path.exists():
+        raise AIServiceError(ErrorResponse(
+            error_code=ERROR_OCR_FAILED,
+            message=f"File not found: {file_path}",
+            stage="process",
+        ))
+
+    ext = path.suffix.lower()
+
+    try:
+        if ext == '.pdf':
+            return await asyncio.to_thread(_extract_pdf, path)
+        elif ext in ['.docx', '.doc']:
+            return await asyncio.to_thread(_extract_docx, path)
+        elif ext == '.txt':
+            return await asyncio.to_thread(_extract_txt, path)
+        else:
+            # Fallback: try to read as text
+            return await asyncio.to_thread(_extract_txt, path)
+    except Exception as e:
+        raise AIServiceError(ErrorResponse(
+            error_code=ERROR_OCR_FAILED,
+            message=f"Failed to extract text from {path.name}: {str(e)}",
+            stage="process",
+        ))
+
+def _extract_pdf(path: Path) -> str:
+    import PyPDF2
+    text_parts = []
+    with open(path, 'rb') as f:
+        reader = PyPDF2.PdfReader(f)
+        for page in reader.pages:
+            text = page.extract_text()
+            if text:
+                text_parts.append(text)
+    return '\n\n'.join(text_parts)
+
+def _extract_docx(path: Path) -> str:
+    from docx import Document
+    doc = Document(path)
+    return '\n\n'.join(paragraph.text for paragraph in doc.paragraphs if paragraph.text.strip())
+
+def _extract_txt(path: Path) -> str:
+    return path.read_text(encoding='utf-8', errors='ignore')
+
+
+def extract_text_from_file(file_path: str) -> str:
+    """
+    Extract plain text from PDF, DOCX, or TXT files.
+    Called by /process endpoint when backend sends a file path.
+
+    FIX: This function was referenced in process.py but never implemented in ocr.py,
+    causing a NameError on every file-based upload request.
+    """
+    path = Path(file_path)
+
+    if not path.exists():
+        raise FileNotFoundError(f"File not found: {file_path}")
+
+    suffix = path.suffix.lower()
+
+    if suffix == ".txt":
+        return path.read_text(encoding="utf-8", errors="replace").strip()
+
+    elif suffix == ".pdf":
+        try:
+            import pdfplumber
+            with pdfplumber.open(file_path) as pdf:
+                return "\n".join(
+                    page.extract_text() or "" for page in pdf.pages
+                ).strip()
+        except ImportError:
+            # Fallback to PyPDF2 if pdfplumber not installed
+            import PyPDF2
+            with open(file_path, "rb") as f:
+                reader = PyPDF2.PdfReader(f)
+                return "\n".join(
+                    page.extract_text() or "" for page in reader.pages
+                ).strip()
+
+    elif suffix in (".docx", ".doc"):
+        from docx import Document
+        doc = Document(file_path)
+        return "\n".join(para.text for para in doc.paragraphs if para.text.strip()).strip()
+
+    else:
+        raise ValueError(f"Unsupported file type: {suffix}. Supported: .txt, .pdf, .docx")

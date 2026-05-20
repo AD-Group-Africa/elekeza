@@ -1,112 +1,152 @@
-import axios from 'axios'
+// src/lib/api.ts
+// Single source of truth for all backend API calls.
+// NEVER hardcode localhost here — always use the env var.
 
-// Use Next.js rewrite proxy to avoid browser CORS issues in dev.
-const api = axios.create({
-  baseURL: '/',
-  withCredentials: true, // Important for cookies
-})
+const BASE_URL =
+    process.env.NEXT_PUBLIC_API_URL ||
+    (typeof window === "undefined"
+        ? "http://localhost:8080/api/v1"   // SSR fallback (dev only)
+        : "");
 
-// No token handling needed - cookies are HttpOnly and sent automatically
-
-export const authAPI = {
-  login: async (email: string, password: string) => {
-    const res = await api.post('/api/auth/login', { email, password })
-    // No token returned - cookies set by server
-    return res.data
-  },
-
-  register: async (email: string, password: string, fullName: string, cognitiveProfiles?: string[]) => {
-    const res = await api.post('/api/auth/register', { email, password, fullName, cognitiveProfiles })
-    return res.data
-  },
-
-  logout: async () => {
-    const res = await api.post('/api/auth/logout')
-    return res.data
-  },
-
-  refresh: async () => {
-    const res = await api.post('/api/auth/refresh')
-    return res.data
-  },
+if (!BASE_URL && process.env.NODE_ENV === "production") {
+  console.error(
+      "[elekeza] NEXT_PUBLIC_API_URL is not set. All API calls will fail."
+  );
 }
 
-export const onboardingAPI = {
-  profile: async (data: { preferredLanguage: string; ageGroup: string; learningGoal: string; cognitiveProfiles?: string[] }) => {
-    const res = await api.post('/api/onboarding/profile', data)
-    return res.data
-  },
+// --------------------------------------------------------------------------
+// Core fetch wrapper — handles auth header, JSON parsing, and error shape
+// --------------------------------------------------------------------------
 
-  placement: async (data: { score: number; totalQuestions: number }) => {
-    const res = await api.post('/api/onboarding/placement', data)
-    return res.data
-  },
-
-  complete: async () => {
-    const res = await api.post('/api/onboarding/complete')
-    return res.data
-  },
-
-  guardianLink: async (data: { fullName: string; relationship: string; phone?: string; email?: string }) => {
-    const res = await api.post('/api/onboarding/guardian-link', data)
-    return res.data
-  },
+export interface ApiError {
+  status: number;
+  message: string;
+  code?: string;
 }
 
-export const contentAPI = {
-  uploadText: async (data: { text: string; subject?: string }) => {
-    const res = await api.post('/api/content/upload/text', data)
-    return res.data
-  },
+async function request<T>(
+    path: string,
+    options: RequestInit = {}
+): Promise<T> {
+  const token =
+      typeof localStorage !== "undefined" ? localStorage.getItem("token") : null;
 
-  getLesson: async (lessonId: string) => {
-    const res = await api.get(`/api/content/lessons/${lessonId}`)
-    return res.data
-  },
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+    ...(options.headers as Record<string, string>),
+  };
 
-  updateSectionProgress: async (lessonId: string, sectionId: string, data: { additionalSeconds: number }) => {
-    const res = await api.patch(`/api/content/lessons/${lessonId}/sections/${sectionId}/progress`, data)
-    return res.data
-  },
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
 
-  tapTerm: async (lessonId: string, data: { termId: string }) => {
-    const res = await api.post(`/api/content/lessons/${lessonId}/term-tap`, data)
-    return res.data
-  },
+  const res = await fetch(`${BASE_URL}${path}`, { ...options, headers });
 
-  history: async () => {
-    const res = await api.get('/api/content/history')
-    return res.data
-  },
+  if (res.status === 401) {
+    // Token expired — redirect to login
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("token");
+      window.location.href = "/login";
+    }
+    throw { status: 401, message: "Session expired" } as ApiError;
+  }
+
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw {
+      status: res.status,
+      message: body.message ?? "An unexpected error occurred",
+      code: body.code,
+    } as ApiError;
+  }
+
+  // 204 No Content
+  if (res.status === 204) return undefined as unknown as T;
+
+  return res.json() as Promise<T>;
 }
 
-export const quizAPI = {
-  start: async (lessonId: string) => {
-    const res = await api.get(`/api/quiz/${lessonId}/start`)
-    return res.data
-  },
+// --------------------------------------------------------------------------
+// Auth
+// --------------------------------------------------------------------------
 
-  answer: async (quizId: string, data: { questionId: string; selectedOptionId: string; latencyMs: number }) => {
-    const res = await api.post(`/api/quiz/${quizId}/answer`, data)
-    return res.data
-  },
+export const auth = {
+  register: (data: { email: string; password: string; name: string }) =>
+      request<{ token: string; learnerId: string }>("/auth/register", {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
 
-  complete: async (quizId: string) => {
-    const res = await api.get(`/api/quiz/${quizId}/complete`)
-    return res.data
-  },
+  login: (data: { username: string; password: string }) =>
+      request<{ token: string; accessToken?: string }>("/auth/login", {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
 
-  review: async (quizId: string) => {
-    const res = await api.get(`/api/quiz/${quizId}/review`)
-    return res.data
-  },
-}
+  logout: () => request("/auth/logout", { method: "POST" }),
 
-export const progressAPI = {
-  dashboard: async () => {
-    const res = await api.get('/api/progress/dashboard')
-    return res.data
-  },
-}
+  refresh: () => request<{ token: string }>("/auth/refresh", { method: "POST" }),
+};
 
+// --------------------------------------------------------------------------
+// Onboarding
+// --------------------------------------------------------------------------
 
+export const onboarding = {
+  saveProfile: (data: { preferredLanguage: string; ageGroup: string }) =>
+      request("/onboarding/profile", { method: "POST", body: JSON.stringify(data) }),
+
+  savePlacement: (data: { score: number; totalQuestions: number }) =>
+      request("/onboarding/placement", { method: "POST", body: JSON.stringify(data) }),
+
+  complete: () => request("/onboarding/complete", { method: "POST" }),
+};
+
+// --------------------------------------------------------------------------
+// Dashboard / Progress
+// --------------------------------------------------------------------------
+
+export const progress = {
+  dashboard: () => request("/progress/dashboard"),
+  uiConfig: () => request("/ui/config"),
+};
+
+// --------------------------------------------------------------------------
+// Content / Lessons
+// --------------------------------------------------------------------------
+
+export const content = {
+  uploadText: (data: { text: string; language: string; title: string }) =>
+      request<{ lessonId: string }>("/content/upload/text", {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
+
+  getLesson: (id: string) => request(`/content/lesson/${id}`),
+  getHistory: () => request("/content/history"),
+};
+
+// --------------------------------------------------------------------------
+// Quiz
+// --------------------------------------------------------------------------
+
+export const quiz = {
+  generate: (lessonId: string) =>
+      request(`/quiz/generate/${lessonId}`, { method: "POST" }),
+
+  submit: (quizId: string, answers: Record<string, string>) =>
+      request(`/quiz/submit/${quizId}`, {
+        method: "POST",
+        body: JSON.stringify({ answers }),
+      }),
+
+  review: (quizId: string) => request(`/quiz/review/${quizId}`),
+};
+
+// --------------------------------------------------------------------------
+// Health (for demo status page)
+// --------------------------------------------------------------------------
+
+export const system = {
+  health: () => request("/system/health"),
+};
