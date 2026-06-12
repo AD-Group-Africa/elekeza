@@ -1,8 +1,7 @@
 package com.elekeza.backend.security
 
-// FIX: Added 's' to model and repository
-import com.elekeza.backend.models.User           
-import com.elekeza.backend.repositories.UserRepository 
+import com.elekeza.backend.auth.User
+import com.elekeza.backend.auth.UserRepository
 import com.elekeza.backend.auth.JwtUtil
 import jakarta.servlet.http.Cookie
 import jakarta.servlet.http.HttpServletRequest
@@ -29,11 +28,13 @@ class OAuth2SuccessHandler(
         val email = oauthUser.getAttribute<String>("email") ?: throw IllegalStateException("Email not found")
 
         val user = userRepository.findByEmail(email) ?: run {
-            // FIX: Ensure you match your User entity's constructor exactly
-            val newUser = User().apply {
-                this.email = email
-                this.fullName = oauthUser.getAttribute<String>("name") ?: "Google User"
-                this.enabled = true
+            // CORRECTED: Matches your User.kt constructor (name, email, password)
+            val newUser = User(
+                name = oauthUser.getAttribute<String>("name") ?: "Google User",
+                email = email,
+                password = "" // OAuth users don't have a local password
+            ).apply {
+                onboardingComplete = false
             }
             userRepository.save(newUser)
         }
