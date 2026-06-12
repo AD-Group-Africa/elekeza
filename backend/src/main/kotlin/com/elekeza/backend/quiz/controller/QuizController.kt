@@ -38,29 +38,47 @@ class QuizController(
     // POST /api/quiz/{quizId}/answer — Submit an answer
     @PostMapping("/{quizId}/answer")
     fun submitAnswer(
-        @AuthenticationPrincipal principal: UserDetails,
         @PathVariable quizId: Long,
-        @RequestBody submission: AnswerSubmission
-    ): ResponseEntity<AnswerResult> {
-        val question = questionRepository.findById(submission.questionId).orElseThrow {
-            ResponseStatusException(HttpStatus.NOT_FOUND, "Question not found")
-        }
-        val isCorrect = question.correctOption.equals(submission.selectedOption.trim(), ignoreCase = true)
-        return ResponseEntity.ok(AnswerResult(
-            correct = isCorrect,
-            correctOption = question.correctOption,
-            explanation = question.explanation
-        ))
+        @RequestBody request: AnswerRequest,
+        @AuthenticationPrincipal user: User,
+    ): ResponseEntity<AnswerResultResponse> {
+        val result = quizService.scoreAnswer(quizId, request.questionId, request.answer)
+
+        // NEW: Get adaptive directive
+        val adaptive = adaptiveService.getAdaptiveDirective(
+            userId = user.id,
+            isCorrect = result.isCorrect,
+            latencyMs = request.latencyMs,
+            currentDifficulty = quizService.getCurrentDifficulty(quizId),
+            lessonId = quizService.getLessonIdForQuiz(quizId),
+        )
+
+        // Update quiz session difficulty
+        quizService.updateDifficulty(quizId, adaptive.adjustedDifficulty)
+
+        return ResponseEntity.ok(
+            AnswerResultResponse(
+                correct = result.isCorrect,
+                correctOption = result.correctOption,
+                explanation = result.explanation,
+                adaptiveDirective = adaptive.directive,
+                adaptiveMessage = adaptive.message,
+                nextDifficultyLevel = adaptive.adjustedDifficulty,
+            )
+        )
     }
 
-    // GET /api/quiz/{quizId}/complete — Finalise quiz
-    @GetMapping("/{quizId}/complete")
-    fun completeQuiz(
-        @AuthenticationPrincipal principal: UserDetails,
-        @PathVariable quizId: Long
-    ): ResponseEntity<QuizResult> {
-        val userId = resolveUserId(principal)
-        val result = quizService.completeQuiz(quizId, userId)
-        return ResponseEntity.ok(result)
-    }
-}
+    data class AnswerRequest(
+        val questionId: Long,
+        val answer: String,
+        val latencyMs: Long,  // NEW: frontend must send this
+    )
+
+    data class AnswerResultResponse(
+        val correct: Boolean,
+        val correctOption: String?,
+        val explanation: String?,
+        val adaptiveDirective: String?,
+        val adaptiveMessage: String?,
+        val nextDifficultyLevel: Int?,
+    )

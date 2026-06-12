@@ -95,3 +95,7 @@ async def global_exception_handler(request: Request, exc: Exception):
 async def health():
     return {"status": "ok"}async def health():
     return {"status": "ok"}
+
+
+# ADD THIS with the other router includes:
+app.include_router(adaptive.router, prefix="/ai", tags=["adaptive"])
