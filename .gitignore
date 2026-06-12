@@ -51,3 +51,36 @@ __pycache__/
 .gradle/
 *.class
 *.jar
+# Build artifacts
+build/
+dist/
+.gradle/
+node_modules/
+.next/
+out/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*~
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+env/
+
+# Logs
+*.log
+
+# Repomix
+repomix-*
+*_full_structure.txt
+project_structure.txt
+
+# Environment (keep .env.example only)
+.env
+.env.local
+.env.backup
