@@ -1,68 +1,182 @@
-﻿services:
+﻿version: "3.9"
+
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "50m"
+    max-file: "3"
+
+services:
   postgres:
     image: postgres:16-alpine
-    container_name: elewa-postgres
+    restart: unless-stopped
     environment:
-      POSTGRES_DB: accessibledocs
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-password}
-    ports:
-      - "5433:5432"
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "127.0.0.1:5432:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 5s
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 10s
       timeout: 5s
       retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: "2"
+          memory: 4G
+        reservations:
+          memory: 1G
+    logging: *default-logging
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: redis-server --maxmemory 256mb --maxmemory-policy allkeys-lru --requirepass ${REDIS_PASSWORD}
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "--no-auth-warning", "-a", "${REDIS_PASSWORD}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 512M
+    logging: *default-logging
 
   backend:
-    build: ./backend
-    container_name: elewa-backend
-    ports:
-      - "8080:8080"
+    image: ${BACKEND_IMAGE:-registry.gitlab.com/ad-group-africa-group/ad-group-africa-project/backend}:${IMAGE_TAG:-latest}
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: unless-stopped
     environment:
       SPRING_PROFILES_ACTIVE: docker
-      DB_PASSWORD: ${DB_PASSWORD:-password}
-      DB_USERNAME: ${DB_USERNAME:-postgres}
-      DB_NAME: ${DB_NAME:-accessibledocs}
+      DB_URL: jdbc:postgresql://postgres:5432/${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
       AI_SERVICE_URL: http://ai-service:8000
-      AI_INTERNAL_SECRET: ${INTERNAL_SECRET:-change-me-shared-secret}
-      CORS_ALLOWED_ORIGINS: http://localhost:3000,http://frontend:3000
-      JWT_SECRET: ${JWT_SECRET:-change-me-32-char-minimum-secret-key}
+      AI_INTERNAL_SECRET: ${AI_INTERNAL_SECRET}
+      REDIS_HOST: redis
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      R2_ENDPOINT: ${R2_ENDPOINT}
+      R2_ACCESS_KEY: ${R2_ACCESS_KEY}
+      R2_SECRET_KEY: ${R2_SECRET_KEY}
+      R2_BUCKET: elekeza-uploads
+      MAIL_HOST: ${MAIL_HOST}
+      MAIL_PORT: ${MAIL_PORT}
+      MAIL_USERNAME: ${MAIL_USERNAME}
+      MAIL_PASSWORD: ${MAIL_PASSWORD}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+      MPESA_CALLBACK_URL: ${MPESA_CALLBACK_URL}
+      FRONTEND_URL: ${FRONTEND_URL}
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS}
+      SENTRY_DSN: ${SENTRY_DSN_BACKEND}
     depends_on:
       postgres:
         condition: service_healthy
+      redis:
+        condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    deploy:
+      resources:
+        limits:
+          cpus: "2"
+          memory: 2G
+        reservations:
+          memory: 512M
+    logging: *default-logging
 
   ai-service:
-    build: ./ai-elewa
-    container_name: elewa-ai
-    ports:
-      - "8000:8000"
+    image: ${AI_IMAGE:-registry.gitlab.com/ad-group-africa-group/ad-group-africa-project/ai}:${IMAGE_TAG:-latest}
+    build:
+      context: ./ai-elewa
+      dockerfile: Dockerfile
+    restart: unless-stopped
     environment:
-      AI_PROVIDER: groq
-      AI_API_KEY: ${GROQ_API_KEY}
-      INTERNAL_SECRET: ${INTERNAL_SECRET:-change-me-shared-secret}
-      LANGFUSE_HOST: http://langfuse:3000
-      TESSERACT_CMD:  # empty for Docker auto-detect
+      AI_PROVIDER: ${AI_PROVIDER}
+      AI_API_KEY: ${AI_API_KEY}
+      AI_INTERNAL_KEY: ${AI_INTERNAL_SECRET}
+      LANGFUSE_SECRET_KEY: ${LANGFUSE_SECRET_KEY}
+      LANGFUSE_PUBLIC_KEY: ${LANGFUSE_PUBLIC_KEY}
+      LANGFUSE_HOST: ${LANGFUSE_HOST}
+      SENTRY_DSN: ${SENTRY_DSN_AI}
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
-      interval: 10s
-      timeout: 5s
+      interval: 30s
+      timeout: 10s
       retries: 3
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          cpus: "2"
+          memory: 1.5G
+        reservations:
+          memory: 256M
+    logging: *default-logging
 
   frontend:
-    build: ./frontend
-    container_name: elewa-frontend
-    ports:
-      - "3000:3000"
+    image: ${FRONTEND_IMAGE:-registry.gitlab.com/ad-group-africa-group/ad-group-africa-project/frontend}:${IMAGE_TAG:-latest}
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+        NEXT_PUBLIC_SENTRY_DSN: ${NEXT_PUBLIC_SENTRY_DSN}
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
     depends_on:
       - backend
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          cpus: "1"
+          memory: 1G
+    logging: *default-logging
+
+  nginx:
+    image: nginx:1.27-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./infrastructure/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - certbot_data:/var/www/certbot:ro
+    depends_on:
+      - frontend
+      - backend
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 256M
+    logging: *default-logging
 
 volumes:
   postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  certbot_data:
+    driver: local
