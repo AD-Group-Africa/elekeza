@@ -2,17 +2,27 @@
 
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { api } from '@/lib/api';
 
 export default function StudentHome() {
   const router = useRouter();
-  const [progress, setProgress] = useState<any>(null);
+  const [lastLesson, setLastLesson] = useState<any>(null);
 
   useEffect(() => {
-    const saved = localStorage.getItem('elekeza-progress');
-    if (saved) setProgress(JSON.parse(saved));
+    api.get('/api/progress/dashboard')
+      .then((res) => {
+        if (res.data?.lastLesson) setLastLesson(res.data.lastLesson);
+      })
+      .catch(() => {});
   }, []);
 
-  const openLesson = () => router.push('/lesson/demo-lesson');
+  const openLesson = () => {
+    if (lastLesson?.id) {
+      router.push(`/lesson/${lastLesson.id}`);
+    } else {
+      router.push('/dashboard/history');
+    }
+  };
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-blue-900 via-white to-indigo-500 flex flex-col items-center justify-center p-4">
@@ -25,9 +35,8 @@ export default function StudentHome() {
         >
           📖 Continue Learning
         </button>
-        <p className="mt-4 text-gray-600 text-lg">The Water Cycle</p>
-        {progress?.['demo-lesson'] && (
-          <p className="mt-2 text-green-600 font-semibold">✅ Completed – Score: {progress['demo-lesson'].score}%</p>
+        {lastLesson && (
+          <p className="mt-4 text-gray-600 text-lg">{lastLesson.title}</p>
         )}
         <button
           onClick={() => router.push('/dashboard/history')}

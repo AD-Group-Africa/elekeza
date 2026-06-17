@@ -9,7 +9,7 @@ plugins {
 group = "com.elekeza"
 version = "0.0.1-SNAPSHOT"
 
-// Use the JDK already installed on the machine — no toolchain auto-download needed
+// Use the JDK already installed on the machine â€” no toolchain auto-download needed
 java {
 	sourceCompatibility = JavaVersion.VERSION_17
 	targetCompatibility = JavaVersion.VERSION_17
@@ -28,7 +28,7 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-oauth2-client")
 	implementation("org.springframework.boot:spring-boot-starter-actuator")
 	implementation("org.springframework.boot:spring-boot-starter-mail")
-	implementation("org.springframework.boot:spring-boot-starter-webflux")  // WebClient → FastAPI
+	implementation("org.springframework.boot:spring-boot-starter-webflux")  // WebClient â†’ FastAPI
 	implementation("com.github.vladimir-bukhtoyarov:bucket4j-core:8.0.1")
 	implementation("net.logstash.logback:logstash-logback-encoder:7.4")
 
@@ -43,6 +43,7 @@ dependencies {
 	implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor")
 
 	runtimeOnly("org.postgresql:postgresql")
+    runtimeOnly("com.h2database:h2")
 
 	implementation("io.jsonwebtoken:jjwt-api:0.12.5")
 	runtimeOnly("io.jsonwebtoken:jjwt-impl:0.12.5")
@@ -66,3 +67,4 @@ tasks.withType<Test> {
 springBoot {
     mainClass.set("com.elekeza.backend.ElekezaApplicationKt")
 }
+
