@@ -55,7 +55,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const data: AuthResponse = res.data
       setUser(mapAuthResponseToUser(data))
     } catch {
-      setUser({ id: 'demo-student', email: 'student@elekeza.org', name: 'Demo Learner', onboardingComplete: true, role: 'Student' })
+      setUser(null)
     } finally {
       setLoading(false)
     }
@@ -123,7 +123,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch {
       // Ignore errors – token might already be expired.
     } finally {
-      setUser({ id: 'demo-student', email: 'student@elekeza.org', name: 'Demo Learner', onboardingComplete: true, role: 'Student' })
+      setUser(null)
     }
   }
 

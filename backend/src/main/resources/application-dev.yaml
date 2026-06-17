@@ -22,3 +22,15 @@ jwt:
 ai:
   base-url: http://localhost:8000
   internal-secret: dev-internal-secret
+
+app:
+  frontend-url: http://localhost:3000
+  cors:
+    allowed-origins: http://localhost:3000
+
+mpesa:
+  consumer-key: dev-key
+  consumer-secret: dev-secret
+  pass-key: dev-pass
+  short-code: 174379
+  callback-url: http://localhost:8080/mpesa/callback

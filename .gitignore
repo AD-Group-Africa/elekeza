@@ -1,86 +1,51 @@
-﻿# IDE
-.idea/
-*.iml
-
-# Build artifacts
-backend/build/
-backend/.gradle/
-backend/.gradle-user-home/
-
-# Python
-__pycache__/
-*.pyc
-*.pyo
-ai-elewa/__pycache__/
-Accessible-docs/chroma_db/
-Accessible-docs/temp_uploads/
-
-# Env files - NEVER commit these
-.env
-.env.local
-.env.production
-
-# Node
+﻿# Dependencies
 node_modules/
-frontend/.next/
+.pnp
+.pnp.js
 
-# Logs
-*.log
-spring*.log
-backend-errors.log
-startup.log
-bootrun-check*.log
-
-# Corrupted paths
-ersthrillerparkDesktopELEWA
-
-.gradle/
-build/
-*.jar
-.DS_Storenode_modules/
+# Build outputs
 .next/
 out/
-build/
 dist/
-*.log
-.env
-.env.local
-__pycache__/
-*.pyc
-.idea/
-.gradle/
+build/
 *.class
 *.jar
-# Build artifacts
-build/
-dist/
-.gradle/
-node_modules/
-.next/
-out/
+*.war
+*.nar
 
 # IDE
 .idea/
 .vscode/
 *.swp
-*~
+*.swo
+
+# Environment
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.log
+
+# OS
+Thumbs.db
+.DS_Store
 
 # Python
 __pycache__/
-*.pyc
-*.pyo
-.venv/
-env/
+*.py[cod]
+*$py.class
+venv/
+*.egg-info/
 
-# Logs
-*.log
+# Gradle
+.gradle/
+!gradle/wrapper/gradle-wrapper.jar
 
-# Repomix
-repomix-*
-*_full_structure.txt
-project_structure.txt
+# Misc
+*.zip
+backend-fresh/
 
-# Environment (keep .env.example only)
-.env
-.env.local
-.env.backup
+*.zip
+
+*.zip
