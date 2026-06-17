@@ -64,7 +64,7 @@ class QuizService(
         val score     = attempt?.score ?: 0.0
 
         val user     = userRepository.findById(userId).orElseThrow { ResponseStatusException(HttpStatus.NOT_FOUND, "User not found") }
-        val existing = progressRepository.findByUserAndContentId(user, quiz.contentId)
+        val existing = progressRepository.findByUserIdAndContentId(user, quiz.contentId)
         val progress = (existing ?: LessonProgress(user = user, contentId = quiz.contentId)).copy(
             quizScore   = score,
             completed   = true,

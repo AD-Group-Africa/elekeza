@@ -9,6 +9,12 @@ export type DemoRoleAccount = {
 
 const DEMO_ROLE_ACCOUNTS: DemoRoleAccount[] = [
   {
+    email: 'student@elekeza.org',
+    password: 'student@123',
+    role: 'Student',
+    homePath: '/student-home',
+  },
+  {
     email: 'admin@elekeza.org',
     password: 'admin@123',
     role: 'School Admin',
