@@ -28,7 +28,8 @@ export default function QuizReviewPage() {
 
   async function fetchReview() {
     try {
-      const data = await quizAPI.review(quizId)
+      const res = await quizAPI.review(quizId)
+      const data = res.data
       setReview(data)
     } catch {
       setError('Failed to load quiz review')

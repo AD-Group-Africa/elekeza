@@ -1,152 +1,53 @@
-// src/lib/api.ts
-// Single source of truth for all backend API calls.
-// NEVER hardcode localhost here — always use the env var.
+import axios from 'axios'
 
-const BASE_URL =
-    process.env.NEXT_PUBLIC_API_URL ||
-    (typeof window === "undefined"
-        ? "http://localhost:8080/api/v1"   // SSR fallback (dev only)
-        : "");
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL || '/api'
 
-if (!BASE_URL && process.env.NODE_ENV === "production") {
-  console.error(
-      "[elekeza] NEXT_PUBLIC_API_URL is not set. All API calls will fail."
-  );
+export const api = axios.create({
+  baseURL: BASE_URL,
+  headers: { 'Content-Type': 'application/json' },
+  withCredentials: true,
+})
+
+export const authAPI = {
+  login: (email: string, password: string) => api.post('/auth/login', { email, password }),
+  register: (data: any) => api.post('/auth/register', data),
+  refresh: () => api.post('/auth/refresh'),
+  me: () => api.get('/auth/me'),
+    logout: () => api.post('/auth/logout'),
 }
 
-// --------------------------------------------------------------------------
-// Core fetch wrapper — handles auth header, JSON parsing, and error shape
-// --------------------------------------------------------------------------
-
-export interface ApiError {
-  status: number;
-  message: string;
-  code?: string;
+export const contentAPI = {
+  uploadText: (data: { text: string, title?: string, language?: string, subject?: string }) => api.post('/content/upload/text', data),
+  uploadFile: (formData: FormData) => api.post('/content/upload/file', formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
+  getContent: (id: string) => api.get(`/content/${id}`),
+  list: () => api.get('/content/list'),
+  history: () => api.get('/content/history'),
 }
 
-async function request<T>(
-    path: string,
-    options: RequestInit = {}
-): Promise<T> {
-  const token =
-      typeof localStorage !== "undefined" ? localStorage.getItem("token") : null;
-
-  const headers: Record<string, string> = {
-    "Content-Type": "application/json",
-    ...(options.headers as Record<string, string>),
-  };
-
-  if (token) {
-    headers["Authorization"] = `Bearer ${token}`;
-  }
-
-  const res = await fetch(`${BASE_URL}${path}`, { ...options, headers });
-
-  if (res.status === 401) {
-    // Token expired — redirect to login
-    if (typeof window !== "undefined") {
-      localStorage.removeItem("token");
-      window.location.href = "/login";
-    }
-    throw { status: 401, message: "Session expired" } as ApiError;
-  }
-
-  if (!res.ok) {
-    const body = await res.json().catch(() => ({}));
-    throw {
-      status: res.status,
-      message: body.message ?? "An unexpected error occurred",
-      code: body.code,
-    } as ApiError;
-  }
-
-  // 204 No Content
-  if (res.status === 204) return undefined as unknown as T;
-
-  return res.json() as Promise<T>;
+export const onboardingAPI = {
+  start: (learnerId: number, data: any) => api.post(`/onboarding/${learnerId}`, data),
+  getProfile: (learnerId: number) => api.get(`/onboarding/${learnerId}`),
+  updateProfile: (learnerId: number, data: any) => api.put(`/onboarding/${learnerId}`, data),
+  placement: (data: any) => api.post('/onboarding/placement', data),
+  profile: (data: any) => api.post('/onboarding/profile', data),
 }
 
-// --------------------------------------------------------------------------
-// Auth
-// --------------------------------------------------------------------------
+export const progressAPI = {
+  dashboard: (learnerId: number) => api.get(`/learner/dashboard?learnerId=${learnerId}`),
+  lessons: (learnerId: number) => api.get(`/learner/${learnerId}/lessons`),
+  quizResults: (learnerId: number) => api.get(`/learner/${learnerId}/quiz-results`),
+}
 
-export const auth = {
-  register: (data: { email: string; password: string; name: string }) =>
-      request<{ token: string; learnerId: string }>("/auth/register", {
-        method: "POST",
-        body: JSON.stringify(data),
-      }),
+export const quizAPI = {
+  start: (lessonId: string) => api.post(`/quiz/${lessonId}/start`),
+  answer: (quizId: string, questionId: string, answer: string, latencyMs: number) =>
+    api.post(`/quiz/${quizId}/answer`, { questionId, answer, latencyMs }),
+  complete: (quizId: string) => api.post(`/quiz/${quizId}/complete`),
+  review: (quizId: string) => api.get(`/quiz/${quizId}/review`),
+}
 
-  login: (data: { username: string; password: string }) =>
-      request<{ token: string; accessToken?: string }>("/auth/login", {
-        method: "POST",
-        body: JSON.stringify(data),
-      }),
-
-  logout: () => request("/auth/logout", { method: "POST" }),
-
-  refresh: () => request<{ token: string }>("/auth/refresh", { method: "POST" }),
-};
-
-// --------------------------------------------------------------------------
-// Onboarding
-// --------------------------------------------------------------------------
-
-export const onboarding = {
-  saveProfile: (data: { preferredLanguage: string; ageGroup: string }) =>
-      request("/onboarding/profile", { method: "POST", body: JSON.stringify(data) }),
-
-  savePlacement: (data: { score: number; totalQuestions: number }) =>
-      request("/onboarding/placement", { method: "POST", body: JSON.stringify(data) }),
-
-  complete: () => request("/onboarding/complete", { method: "POST" }),
-};
-
-// --------------------------------------------------------------------------
-// Dashboard / Progress
-// --------------------------------------------------------------------------
-
-export const progress = {
-  dashboard: () => request("/progress/dashboard"),
-  uiConfig: () => request("/ui/config"),
-};
-
-// --------------------------------------------------------------------------
-// Content / Lessons
-// --------------------------------------------------------------------------
-
-export const content = {
-  uploadText: (data: { text: string; language: string; title: string }) =>
-      request<{ lessonId: string }>("/content/upload/text", {
-        method: "POST",
-        body: JSON.stringify(data),
-      }),
-
-  getLesson: (id: string) => request(`/content/lesson/${id}`),
-  getHistory: () => request("/content/history"),
-};
-
-// --------------------------------------------------------------------------
-// Quiz
-// --------------------------------------------------------------------------
-
-export const quiz = {
-  generate: (lessonId: string) =>
-      request(`/quiz/generate/${lessonId}`, { method: "POST" }),
-
-  submit: (quizId: string, answers: Record<string, string>) =>
-      request(`/quiz/submit/${quizId}`, {
-        method: "POST",
-        body: JSON.stringify({ answers }),
-      }),
-
-  review: (quizId: string) => request(`/quiz/review/${quizId}`),
-};
-
-// --------------------------------------------------------------------------
-// Health (for demo status page)
-// --------------------------------------------------------------------------
-
-export const system = {
-  health: () => request("/system/health"),
-};
+export const schoolAPI = {
+  register: (data: any) => api.post('/schools/register', data),
+  getStudents: (schoolId: number) => api.get(`/schools/${schoolId}/students`),
+  enrollStudent: (schoolId: number, data: any) => api.post(`/schools/${schoolId}/enroll`, data),
+}

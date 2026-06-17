@@ -21,9 +21,9 @@ export default function StudentProfilePage() {
 
   if (authLoading || !user) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-elekeza-deep-blue via-white to-elekeza-indigo">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-900 via-white to-indigo-500">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-elekeza-indigo mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-500 mx-auto mb-4"></div>
           <p className="text-gray-700">Loading...</p>
         </div>
       </div>
@@ -53,7 +53,7 @@ export default function StudentProfilePage() {
           <div className="mt-4 space-y-3">
             <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
               <p className="text-xs text-slate-500">Full Name</p>
-              <p className="text-sm font-semibold text-slate-900">{user.fullName || 'Not set'}</p>
+              <p className="text-sm font-semibold text-slate-900">{(user as any).fullName || 'Not set'}</p>
             </div>
             <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
               <p className="text-xs text-slate-500">Email</p>

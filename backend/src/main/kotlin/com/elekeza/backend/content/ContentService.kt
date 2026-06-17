@@ -92,7 +92,7 @@ class ContentService(
             title            = title.ifBlank { "Untitled — ${LocalDateTime.now()}" },
             originalFilename = null,
             filePath         = null,   // No file for text uploads
-            rawText          = text,   // Store text directly
+            text = text,   // Store text directly
             sneType          = sneType,
             status           = ContentStatus.UPLOADING
         ))

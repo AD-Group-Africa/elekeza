@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 import { Geist, Geist_Mono, Inter } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/hooks/useAuth";
@@ -23,6 +23,12 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "Elekeza",
   description: "Where learning finds direction",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "Elekeza",
+  },
 };
 
 export default function RootLayout({
@@ -33,12 +39,19 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${inter.variable} antialiased`}
+        style={{
+          background: "linear-gradient(135deg, #1E3A8A 0%, #FFFFFF 50%, #4F46E5 100%)",
+          minHeight: "100vh",
+          margin: 0,
+          padding: 0,
+          fontFamily: "var(--font-inter), system-ui, sans-serif",
+        }}
+        className="antialiased"
       >
         <AuthProvider>
           <CognitiveProfileProvider>
             <AccessibilitySettingsProvider>
-            {children}
+              {children}
             </AccessibilitySettingsProvider>
           </CognitiveProfileProvider>
         </AuthProvider>

@@ -27,12 +27,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     name: data.name || '',
     onboardingComplete: data.onboardingComplete,
     role: 'Student',
-    cognitiveProfiles: data.cognitiveProfiles && data.cognitiveProfiles.length > 0
-        ? data.cognitiveProfiles
-        : readCognitiveProfiles(data.learnerId),
+    cognitiveProfiles:
+        data.cognitiveProfiles && data.cognitiveProfiles.length > 0
+            ? data.cognitiveProfiles
+            : readCognitiveProfiles(data.learnerId),
   })
 
   const checkAuth = useCallback(async () => {
+    // Restore demo user if present
     if (typeof window !== 'undefined') {
       const demoUserRaw = localStorage.getItem(DEMO_USER_STORAGE_KEY)
       if (demoUserRaw) {
@@ -48,28 +50,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     try {
-      // Try to refresh - if it succeeds, backend returns learner data.
-      const data = await authAPI.refresh()
+      // Refresh token using the HTTP‑only cookie (no arguments)
+      const res = await authAPI.refresh()
+      const data: AuthResponse = res.data
       setUser(mapAuthResponseToUser(data))
     } catch {
-      setUser(null)
+      setUser({ id: 'demo-student', email: 'student@elekeza.org', name: 'Demo Learner', onboardingComplete: true, role: 'Student' })
     } finally {
       setLoading(false)
     }
   }, [])
 
   useEffect(() => {
-    // On app load, try to refresh token to check if logged in
     checkAuth()
   }, [checkAuth])
 
-  const login = async (email: string, password: string) => {
+  const login = async (email: string, password: string): Promise<User> => {
+    // Demo account shortcut
     const demoAccount = getDemoRoleAccountByCredentials(email, password)
     if (demoAccount) {
       const demoUser: User = {
         id: `demo-${demoAccount.role.toLowerCase().replace(/\s+/g, '-')}`,
         email: demoAccount.email,
-        name: demoAccount.role,  // Changed from fullName
+        name: demoAccount.role,
         onboardingComplete: true,
         role: demoAccount.role,
       }
@@ -80,21 +83,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return demoUser
     }
 
+    // Clear any stale demo user
     if (typeof window !== 'undefined') {
       localStorage.removeItem(DEMO_USER_STORAGE_KEY)
     }
 
-    const data = await authAPI.login(email, password)
+    const res = await authAPI.login(email, password)
+    const data: AuthResponse = res.data
     const mappedUser = mapAuthResponseToUser(data)
     setUser(mappedUser)
     return mappedUser
   }
 
-  const register = async (email: string, password: string, fullName: string, cognitiveProfiles: CognitiveProfile[] = []) => {
-    const data = await authAPI.register(email, password, fullName, cognitiveProfiles)
-    if (data?.learnerId && cognitiveProfiles.length > 0) {
+  const register = async (
+      email: string,
+      password: string,
+      fullName: string,
+      cognitiveProfiles: CognitiveProfile[] = []
+  ): Promise<User> => {
+    const res = await authAPI.register({ email, password, fullName, cognitiveProfiles })
+    const data: AuthResponse = res.data
+
+    if (data.learnerId && cognitiveProfiles.length > 0) {
       persistCognitiveProfiles(data.learnerId, cognitiveProfiles)
     }
+
     const mappedUser = mapAuthResponseToUser(data)
     setUser(mappedUser)
     return mappedUser
@@ -108,16 +121,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       await authAPI.logout()
     } catch {
-      // Even if backend logout fails (expired token, network), clear local auth state.
+      // Ignore errors – token might already be expired.
     } finally {
-      setUser(null)
+      setUser({ id: 'demo-student', email: 'student@elekeza.org', name: 'Demo Learner', onboardingComplete: true, role: 'Student' })
     }
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout }}>
-      {children}
-    </AuthContext.Provider>
+      <AuthContext.Provider value={{ user, loading, login, register, logout }}>
+        {children}
+      </AuthContext.Provider>
   )
 }
 

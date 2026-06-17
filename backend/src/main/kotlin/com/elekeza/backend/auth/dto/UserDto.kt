@@ -1,9 +1,7 @@
-package com.elekeza.backend.auth.dto
-
-import java.util.UUID
+﻿package com.elekeza.backend.auth.dto
 
 data class UserDto(
-    val id: UUID,
+    val id: Long,
     val email: String,
     val name: String,
     val role: String
@@ -11,7 +9,6 @@ data class UserDto(
     fun toAuthResponse() = AuthResponse(
         learnerId = id,
         email = email,
-        name = name,
-        role = role
+        name = name
     )
 }

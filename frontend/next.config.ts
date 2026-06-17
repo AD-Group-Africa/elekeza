@@ -1,20 +1,39 @@
-import type { NextConfig } from "next";
+﻿import withPWA from 'next-pwa';
 
-// IMPORTANT: NEXT_PUBLIC_API_URL must be set in Vercel environment variables.
-// Local dev: set in .env.local as NEXT_PUBLIC_API_URL=http://localhost:8080
-// Production: set in Vercel dashboard as NEXT_PUBLIC_API_URL=https://<render-domain>.onrender.com
-
-const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
-
-const nextConfig: NextConfig = {
-  async rewrites() {
+const nextConfig = {
+  rewrites: async () => {
     return [
       {
-        source: "/api/:path*",
-        destination: `${apiBaseUrl}/api/:path*`,
+        source: '/api/:path*',
+        destination: 'http://localhost:8080/api/:path*',
       },
     ];
   },
 };
 
-export default nextConfig;
+export default withPWA({
+  dest: 'public',
+  register: true,
+  skipWaiting: true,
+  disable: process.env.NODE_ENV === 'development',
+  runtimeCaching: [
+    {
+      urlPattern: /^\/api\/content\/.*/i,
+      handler: 'NetworkFirst',
+      options: {
+        cacheName: 'lesson-cache',
+        expiration: { maxEntries: 50, maxAgeSeconds: 60 * 60 * 24 * 7 },
+      },
+    },
+    {
+      urlPattern: /^\/api\/quiz\/.*\/start/i,
+      handler: 'NetworkFirst',
+      options: { cacheName: 'quiz-cache' },
+    },
+    {
+      urlPattern: /^\/api\/progress\/dashboard/i,
+      handler: 'NetworkFirst',
+      options: { cacheName: 'progress-cache' },
+    },
+  ],
+})(nextConfig);

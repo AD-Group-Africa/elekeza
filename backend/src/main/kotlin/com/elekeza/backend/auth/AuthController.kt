@@ -1,104 +1,59 @@
 ﻿package com.elekeza.backend.auth
 
-import com.elekeza.backend.auth.dto.AuthResponse
-import com.elekeza.backend.auth.dto.ForgotPasswordRequest
-import com.elekeza.backend.auth.dto.LoginRequest
-import com.elekeza.backend.auth.dto.RegisterRequest
-import com.elekeza.backend.auth.dto.ResetPasswordRequest
 import jakarta.servlet.http.Cookie
-import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import jakarta.validation.Valid
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.ResponseEntity
-import org.springframework.security.core.annotation.AuthenticationPrincipal
-import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.web.bind.annotation.*
+import com.elekeza.backend.auth.dto.*
 
 @RestController
 @RequestMapping("/api/auth")
 class AuthController(
     private val authService: AuthService,
-    private val userRepository: UserRepository,
-    private val jwtUtil: JwtUtil
+    private val jwtUtil: com.elekeza.backend.shared.security.JwtUtil
 ) {
-    @Value("\${security.jwt.cookie-name:elekeza_access}")
-    private lateinit var accessCookieName: String
-
-    @Value("\${security.jwt.refresh-cookie-name:elekeza_refresh}")
-    private lateinit var refreshCookieName: String
-
     @PostMapping("/register")
     fun register(@Valid @RequestBody req: RegisterRequest, res: HttpServletResponse): ResponseEntity<AuthResponse> {
-        val user: User = authService.register(req) // Explicitly type as User
+        val user = authService.register(req)
         val accessToken = jwtUtil.generateAccessToken(user.id.toString(), user.email)
         val refreshToken = jwtUtil.generateRefreshToken(user.id.toString())
         setAuthCookies(res, accessToken, refreshToken)
-        return ResponseEntity.status(201).body(AuthResponse(user = user.toDto(), learnerId = user.id))
+        return ResponseEntity.status(201).body(user.toDto().toAuthResponse())
     }
 
     @PostMapping("/login")
     fun login(@Valid @RequestBody req: LoginRequest, res: HttpServletResponse): ResponseEntity<AuthResponse> {
-        val user: User = authService.login(req) // Explicitly type as User
+        val user = authService.login(req)
         val accessToken = jwtUtil.generateAccessToken(user.id.toString(), user.email)
         val refreshToken = jwtUtil.generateRefreshToken(user.id.toString())
         setAuthCookies(res, accessToken, refreshToken)
-        return ResponseEntity.ok(AuthResponse(user = user.toDto(), learnerId = user.id))
+        return ResponseEntity.ok(user.toDto().toAuthResponse())
     }
 
     @PostMapping("/logout")
-    fun logout(res: HttpServletResponse): ResponseEntity<*> {
+    fun logout(res: HttpServletResponse): ResponseEntity<Map<String,String>> {
         clearAuthCookies(res)
-        return ResponseEntity.ok(mapOf("message" to "Logged out successfully"))
+        return ResponseEntity.ok(mapOf("message" to "Logged out"))
     }
 
-    @GetMapping("/me")
-    fun me(@AuthenticationPrincipal principal: UserDetails): ResponseEntity<*> {
-        val user = userRepository.findByEmail(principal.username)
-            ?: return ResponseEntity.notFound().build<Any>()
-        return ResponseEntity.ok(user.toDto())
-    }
-
-    @PostMapping("/forgot-password")
-    fun forgotPassword(@Valid @RequestBody req: ForgotPasswordRequest): ResponseEntity<*> {
-        authService.forgotPassword(req.email)
-        return ResponseEntity.ok(mapOf("message" to "If that email is registered, a reset link has been sent."))
-    }
-
-    @PostMapping("/reset-password")
-    fun resetPassword(@Valid @RequestBody req: ResetPasswordRequest): ResponseEntity<*> {
-        return ResponseEntity.ok(mapOf("message" to "Password updated successfully."))
-    }
-
-    @PostMapping("/refresh")
-    fun refresh(req: HttpServletRequest, res: HttpServletResponse): ResponseEntity<*> {
-        val refreshToken = req.cookies?.firstOrNull { it.name == refreshCookieName }?.value
-            ?: return ResponseEntity.status(401).body(mapOf("error" to "No refresh token"))
-        val parsed = jwtUtil.parse(refreshToken)
-            ?: return ResponseEntity.status(401).body(mapOf("error" to "Invalid refresh token"))
-        val user = userRepository.findByEmail(parsed.email ?: "")
-            ?: return ResponseEntity.status(401).body(mapOf("error" to "User not found"))
-        val newAccessToken = jwtUtil.generateAccessToken(user.id.toString(), user.email)
-        setAuthCookies(res, newAccessToken, refreshToken)
-        return ResponseEntity.ok(mapOf("message" to "Token refreshed"))
-    }
-
-    private fun setAuthCookies(res: HttpServletResponse, accessToken: String, refreshToken: String) {
-        res.addCookie(buildCookie(accessCookieName, accessToken, 900))
-        res.addCookie(buildCookie(refreshCookieName, refreshToken, 604800))
+    private fun setAuthCookies(res: HttpServletResponse, access: String, refresh: String) {
+        res.addCookie(buildCookie("elekeza_access", access, 900))
+        res.addCookie(buildCookie("elekeza_refresh", refresh, 604800))
     }
 
     private fun clearAuthCookies(res: HttpServletResponse) {
-        res.addCookie(buildCookie(accessCookieName, "", 0))
-        res.addCookie(buildCookie(refreshCookieName, "", 0))
+        res.addCookie(buildCookie("elekeza_access", "", 0))
+        res.addCookie(buildCookie("elekeza_refresh", "", 0))
     }
 
     private fun buildCookie(name: String, value: String, maxAge: Int): Cookie {
         val isProduction = System.getenv("SPRING_PROFILES_ACTIVE")?.contains("prod") == true
         return Cookie(name, value).apply {
             isHttpOnly = true
-            secure = isProduction  // true only in production (HTTPS)
+            secure = isProduction
             path = "/"
             this.maxAge = maxAge
         }
     }
+}

@@ -1,4 +1,4 @@
-﻿package com.elekeza.backend.auth
+package com.elekeza.backend.auth
 
 import jakarta.persistence.*
 import java.time.LocalDateTime
