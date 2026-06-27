@@ -1,4 +1,4 @@
-﻿spring:
+spring:
   datasource:
     url: jdbc:h2:mem:elekeza;DB_CLOSE_DELAY=-1;MODE=PostgreSQL
     username: sa
@@ -10,9 +10,19 @@
       path: /h2-console
   jpa:
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: update
+    defer-datasource-initialization: true
   flyway:
     enabled: false
+  sql:
+    init:
+      mode: never
+      
+  mail:
+    host: localhost
+    port: 1025
+    username: unused
+    password: unused
 
 jwt:
   secret: dev-secret-at-least-32-characters-long!!
@@ -33,4 +43,9 @@ mpesa:
   consumer-secret: dev-secret
   pass-key: dev-pass
   short-code: 174379
-  callback-url: http://localhost:8080/mpesa/callback
+  callback-url: http://localhost:9090/mpesa/callback
+
+management:
+  health:
+    mail:
+      enabled: false

@@ -1,104 +1,71 @@
-'use client'
+﻿'use client';
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { useAuth } from '@/hooks/useAuth'
-import PageShell from '@/components/ui/PageShell'
-import StatusBanner from '@/components/ui/StatusBanner'
-import { getHomePathForRole } from '@/lib/roleAuth'
-import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline'
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/hooks/useAuth';
+import Image from 'next/image';
 
 export default function LoginPage() {
-  const router = useRouter()
-  const { login } = useAuth()
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState('');
+  const { login } = useAuth();
+  const router = useRouter();
 
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [showPassword, setShowPassword] = useState(false)
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
-  const canLogin = Boolean(email.trim() && password.trim() && !loading)
-
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-    setError('')
-
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     try {
-      const loggedInUser = await login(email, password)
-      router.push(getHomePathForRole(loggedInUser.role))
+      const user = await login(email, password);
+      // Redirect based on role
+      if (user.role === 'TEACHER' || user.role === 'School Admin') {
+        router.push('/teacher');
+      } else if (user.role === 'GUARDIAN') {
+        router.push('/guardian');
+      } else {
+        router.push('/student-home');
+      }
     } catch {
-      setError('Login failed. Please check your credentials.')
-    } finally {
-      setLoading(false)
+      setError('Invalid email or password.');
     }
-  }
+  };
 
   return (
-    <PageShell withSidebar={false}>
-      <form
-        onSubmit={handleLogin}
-        className="mx-auto w-full max-w-md rounded-2xl border border-slate-200 bg-white p-10 shadow-xl"
-      >
-        <div className="mb-8 text-center">
-          <h1 className="text-3xl font-bold text-slate-900">Welcome Back</h1>
-          <p className="mt-2 text-sm text-slate-600">Continue your focused learning.</p>
+    <main className="min-h-screen flex flex-col items-center justify-center p-4">
+      <div className="card bg-white rounded-2xl shadow-xl p-8 w-full max-w-md">
+        <div className="flex justify-center mb-6">
+          <Image src="/Elekeza Logo.png" alt="Elekeza Logo" width={180} height={60} priority />
         </div>
-
-        {error && (
-          <div className="mb-4">
-            <StatusBanner tone="error">{error}</StatusBanner>
+        <h2 className="text-xl font-semibold text-gray-700 text-center mb-6">Welcome Back</h2>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+            <input type="email" value={email} onChange={e => setEmail(e.target.value)}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+              placeholder="Enter your email" required />
           </div>
-        )}
-
-        <label className="mb-2 block text-sm font-semibold text-slate-700">Email</label>
-        <input
-          type="email"
-          placeholder="Enter your email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className="mb-4 w-full rounded-lg border border-slate-300 p-3 text-slate-800 outline-none transition focus:border-slate-500 focus:ring-2 focus:ring-slate-200"
-          required
-        />
-
-        <label className="mb-2 block text-sm font-semibold text-slate-700">Password</label>
-        <div className="relative mb-6">
-          <input
-            type={showPassword ? 'text' : 'password'}
-            placeholder="Enter your password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="w-full rounded-lg border border-slate-300 p-3 pr-11 text-slate-800 outline-none transition focus:border-slate-500 focus:ring-2 focus:ring-slate-200"
-            required
-          />
-          <button
-            type="button"
-            onClick={() => setShowPassword((prev) => !prev)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 transition hover:text-slate-700"
-            aria-label={showPassword ? 'Hide password' : 'Show password'}
-          >
-            {showPassword ? <EyeSlashIcon className="h-5 w-5" /> : <EyeIcon className="h-5 w-5" />}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+            <div className="relative">
+              <input type={showPassword ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 pr-12"
+                placeholder="Enter your password" required />
+              <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500">
+                {showPassword ? '🙈' : '👁️'}
+              </button>
+            </div>
+          </div>
+          {error && <p className="text-red-500 text-sm">{error}</p>}
+          <button type="submit" className="w-full text-white font-semibold py-3 rounded-lg shadow-md transition"
+            style={{ background: 'linear-gradient(90deg, #3B6DE5 0%, #8B45F5 100%)' }}>
+            Login
           </button>
-        </div>
-
-        <button
-          type="submit"
-          disabled={!canLogin}
-          className="w-full rounded-lg bg-slate-900 py-3 font-semibold text-white transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          {loading ? 'Signing in...' : 'Login'}
-        </button>
-
-        <p className="mt-6 text-center text-sm text-slate-600">
-          Don&apos;t have an account?{' '}
-          <a
-            href="/register"
-            className="font-semibold text-slate-900 hover:underline"
-          >
-            Register
-          </a>
+        </form>
+        <p className="mt-6 text-center text-sm text-gray-600">
+          Don&apos;t have an account? <a href="/register" className="text-purple-600 hover:underline">Register</a>
         </p>
-      </form>
-    </PageShell>
-  )
+      </div>
+      <p className="mt-8 text-gray-300 text-xs">&copy; {new Date().getFullYear()} Elekeza. All rights reserved.</p>
+    </main>
+  );
 }

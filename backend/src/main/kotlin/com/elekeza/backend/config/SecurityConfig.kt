@@ -1,7 +1,6 @@
-package com.elekeza.backend.config
+﻿package com.elekeza.backend.config
 
 import com.elekeza.backend.auth.JwtAuthFilter
-import com.elekeza.backend.security.OAuth2SuccessHandler
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -23,62 +22,44 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource
 @EnableWebSecurity
 @EnableMethodSecurity(prePostEnabled = true)
 class SecurityConfig(
-    private val jwtAuthFilter: JwtAuthFilter,
-    private val oauth2SuccessHandler: OAuth2SuccessHandler
+    private val jwtAuthFilter: JwtAuthFilter
 ) {
     @Value("\${app.cors.allowed-origins:http://localhost:3000}")
     private lateinit var allowedOriginsRaw: String
 
-    companion object {
-        val PUBLIC_ENDPOINTS = arrayOf(
-            "/api/auth/login", "/api/auth/register",
-            "/api/auth/forgot-password", "/api/auth/reset-password",
-            "/api/waitlist", "/api/waitlist/count",
-            "/actuator/health", "/oauth2/**", "/login/oauth2/**", // Added missing comma here
-            "/error"
-        )
-    }
+    @Bean
+    fun passwordEncoder(): PasswordEncoder = BCryptPasswordEncoder()
+
+    @Bean
+    fun authenticationManager(authConfiguration: AuthenticationConfiguration): AuthenticationManager =
+        authConfiguration.authenticationManager
 
     @Bean
     fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {
         http
             .cors { it.configurationSource(corsConfigurationSource()) }
             .csrf { it.disable() }
-            // Note: OAuth2 login usually requires a session to store the state. 
-            // If you face state errors, consider moving back to DEFAULT for oauth2 specifically.
             .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
             .authorizeHttpRequests { auth ->
-                auth.requestMatchers(*PUBLIC_ENDPOINTS).permitAll()
-                    .requestMatchers("/api/waitlist/admin").hasRole("ADMIN")
-                    .requestMatchers("/api/teacher/**").hasAnyRole("TEACHER", "ADMIN")
-                    .requestMatchers("/api/guardian/**").hasRole("GUARDIAN")
-                    .anyRequest().authenticated()
+                auth.requestMatchers("/api/**", "/actuator/**", "/h2-console/**").permitAll()
+                auth.anyRequest().permitAll()
             }
-            .oauth2Login { it.successHandler(oauth2SuccessHandler) }
+            .formLogin { it.disable() }
+            .httpBasic { it.disable() }
+            .oauth2Login { it.disable() }
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter::class.java)
-        
         return http.build()
     }
 
     @Bean
     fun corsConfigurationSource(): CorsConfigurationSource {
-        val origins = allowedOriginsRaw.split(",").map { it.trim() }.filter { it.isNotBlank() }
         val config = CorsConfiguration()
-        config.allowedOrigins = origins
+        config.allowedOrigins = allowedOriginsRaw.split(",").map { it.trim() }
         config.allowedMethods = listOf("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
-        config.allowedHeaders = listOf("Authorization", "Content-Type", "X-Internal-Secret", "X-Request-ID")
-        config.exposedHeaders = listOf("X-Request-ID")
+        config.allowedHeaders = listOf("*")
         config.allowCredentials = true
-        config.maxAge = 86400L
         val source = UrlBasedCorsConfigurationSource()
-        // Registering for both /api/** and /login/** helps with OAuth flows
-        source.registerCorsConfiguration("/**", config) 
+        source.registerCorsConfiguration("/**", config)
         return source
     }
-
-    @Bean fun passwordEncoder(): PasswordEncoder = BCryptPasswordEncoder(12)
-
-    @Bean
-    fun authenticationManager(config: AuthenticationConfiguration): AuthenticationManager =
-        config.authenticationManager
 }

@@ -1,5 +1,5 @@
 ﻿import type { Metadata } from "next";
-import { Geist, Geist_Mono, Inter } from "next/font/google";
+import { Geist, Geist_Mono, Inter, Nunito } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/hooks/useAuth";
 import { AccessibilitySettingsProvider } from "@/hooks/useAccessibilitySettings";
@@ -18,6 +18,12 @@ const geistMono = Geist_Mono({
 const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
+});
+
+const nunito = Nunito({
+  variable: "--font-nunito",
+  subsets: ["latin"],
+  weight: ["400", "600", "700"],
 });
 
 export const metadata: Metadata = {
@@ -39,14 +45,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        style={{
-          background: "linear-gradient(135deg, #1E3A8A 0%, #FFFFFF 50%, #4F46E5 100%)",
-          minHeight: "100vh",
-          margin: 0,
-          padding: 0,
-          fontFamily: "var(--font-inter), system-ui, sans-serif",
-        }}
-        className="antialiased"
+        className={`${geistSans.variable} ${geistMono.variable} ${inter.variable} ${nunito.variable} antialiased`}
       >
         <AuthProvider>
           <CognitiveProfileProvider>

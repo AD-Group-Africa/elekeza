@@ -11,11 +11,12 @@ export interface User {
   email: string;
   name: string;  // Backend uses 'name', not 'fullName'
   onboardingComplete?: boolean;
-  role: 'Student' | 'Teacher' | 'School Admin' | 'Guardian';
+  role: string;
   cognitiveProfiles?: CognitiveProfile[];
 }
 
 export interface AuthResponse {
+  role?: string;
   learnerId: string;
   email: string;
   name?: string | null;  // Changed from fullName
