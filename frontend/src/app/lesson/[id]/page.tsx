@@ -2,39 +2,49 @@
 
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
-import { api } from '@/lib/api';
+import LessonLoading from '@/components/ui/LessonLoading';
+import SidebarLayout from '@/components/layout/SidebarLayout';
 
 export default function LessonPage() {
   const { id } = useParams<{ id: string }>();
   const [lesson, setLesson] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    api.get(`/api/content/lessons/${id}`)
-      .then((res) => setLesson(res.data))
-      .catch(() => setLesson(null));
+    setTimeout(() => {
+      setLesson({
+        title: 'The Water Cycle',
+        sections: [
+          { heading: 'What is the Water Cycle?', body: 'Water moves around the Earth...' },
+          { heading: 'Evaporation', body: 'The sun heats water...' },
+        ],
+      });
+      setLoading(false);
+    }, 2000);
   }, [id]);
 
-  if (!lesson) return <div className="p-6">Loading lesson...</div>;
+  if (loading) return <LessonLoading />;
 
   return (
-    <main className="min-h-screen bg-white p-6 max-w-2xl mx-auto">
-      <h1 className="text-3xl font-bold text-blue-900 mb-6">{lesson.title}</h1>
-      {lesson.simplifiedLesson?.sections?.map((section: any, i: number) => (
+    <SidebarLayout>
+      <h1 className="text-3xl font-bold text-blue-900 mb-6">{lesson?.title}</h1>
+      {lesson?.sections?.map((s: any, i: number) => (
         <div key={i} className="bg-blue-50 rounded-2xl p-6 shadow mb-6">
-          <h2 className="text-xl font-semibold text-blue-900 mb-2">{section.heading}</h2>
-          <p className="text-lg leading-relaxed text-gray-800">{section.body}</p>
+          <h2 className="text-xl font-semibold text-blue-900 mb-2">{s.heading}</h2>
+          <p className="text-lg leading-relaxed text-gray-800">{s.body}</p>
           <button
-            onClick={() => {
-              const utterance = new SpeechSynthesisUtterance(section.body);
-              utterance.rate = 0.85;
-              speechSynthesis.speak(utterance);
-            }}
-            className="mt-4 text-indigo-500 underline font-medium"
+            onClick={() => speechSynthesis.speak(new SpeechSynthesisUtterance(s.body))}
+            className="mt-4 inline-flex items-center gap-2 px-4 py-2 border border-purple-500 text-purple-600 rounded-full hover:bg-purple-50 transition"
           >
-            🔊 Listen
+            <span className="text-lg">🔊</span>
+            <span className="font-medium">Listen</span>
           </button>
         </div>
       ))}
-    </main>
+      <div className="flex justify-between mt-8">
+        <button className="btn-outline">← Previous Section</button>
+        <button className="btn-primary">Next Section →</button>
+      </div>
+    </SidebarLayout>
   );
 }

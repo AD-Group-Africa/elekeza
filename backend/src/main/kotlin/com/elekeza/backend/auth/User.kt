@@ -4,7 +4,7 @@ import jakarta.persistence.*
 import java.time.LocalDateTime
 
 enum class UserRole {
-    STUDENT, TEACHER, ADMIN
+    STUDENT, TEACHER, ADMIN, GUARDIAN
 }
 
 enum class SneType {
@@ -65,3 +65,4 @@ class User(
         role = role.name
     )
 }
+

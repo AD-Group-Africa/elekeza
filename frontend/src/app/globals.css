@@ -2,14 +2,54 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --spacing-sm: 0.75rem;
+  --spacing-md: 1.5rem;
+  --spacing-lg: 2rem;
+}
+
 body {
   margin: 0;
   padding: 0;
-  font-family: var(--font-inter), system-ui, -apple-system, sans-serif;
-  background-color: #f9fafb;
+  font-family: var(--font-nunito), var(--font-inter), system-ui, -apple-system, sans-serif;
+  background: radial-gradient(circle at 50% 30%, #8B45F5 0%, #3B6DE5 100%);
+  min-height: 100vh;
 }
 
+.card {
+  box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+  border-radius: 1rem;
+  padding: var(--spacing-md);
+  background: white;
+}
+
+.btn-primary {
+  background: linear-gradient(90deg, #3B6DE5 0%, #8B45F5 100%);
+  color: white;
+  font-weight: 600;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.75rem;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.2);
+  transition: all 0.2s;
+  border: none;
+  cursor: pointer;
+}
+.btn-primary:hover { opacity: 0.9; transform: translateY(-1px); }
+.btn-primary:active { transform: scale(0.98); }
+
+.btn-outline {
+  background: transparent;
+  color: #8B45F5;
+  border: 2px solid #8B45F5;
+  font-weight: 600;
+  padding: 0.6rem 1.5rem;
+  border-radius: 0.75rem;
+  transition: all 0.2s;
+  cursor: pointer;
+}
+.btn-outline:hover { background: #8B45F5; color: white; }
+
 *:focus-visible {
-  outline: 3px solid #4F46E5;
+  outline: 3px solid #8B45F5;
   outline-offset: 2px;
 }

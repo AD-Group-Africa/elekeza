@@ -1,132 +1,75 @@
-'use client'
+﻿'use client';
 
-import { useEffect } from 'react'
-import { useRouter } from 'next/navigation'
-import PageShell from '@/components/ui/PageShell'
-import { useAuth } from '@/hooks/useAuth'
-import { useAccessibilitySettings } from '@/hooks/useAccessibilitySettings'
-import { useCognitiveProfile } from '@/hooks/useCognitiveProfile'
+import { useAuth } from '@/hooks/useAuth';
+import SidebarLayout from '@/components/layout/SidebarLayout';
+import { useState } from 'react';
 
-export default function StudentProfilePage() {
-  const router = useRouter()
-  const { user, loading: authLoading } = useAuth()
-  const { settings, toggleSetting } = useAccessibilitySettings()
-  const { profiles } = useCognitiveProfile()
+export default function ProfilePage() {
+  const { user } = useAuth();
+  const [editing, setEditing] = useState(false);
+  const [name, setName] = useState(user?.name || '');
 
-  useEffect(() => {
-    if (!authLoading && !user) {
-      router.replace('/login')
-    }
-  }, [authLoading, user, router])
-
-  if (authLoading || !user) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-900 via-white to-indigo-500">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-500 mx-auto mb-4"></div>
-          <p className="text-gray-700">Loading...</p>
-        </div>
-      </div>
-    )
-  }
+  const handleSave = () => {
+    // Save to backend or localStorage
+    setEditing(false);
+  };
 
   return (
-    <PageShell
-      withSidebar
-      calmUI={settings.calmUI}
-      focusMode={settings.focusMode}
-      showAccessibilityToolbar
-      onCalmToggle={() => toggleSetting('calmUI')}
-      onFocusToggle={() => toggleSetting('focusMode')}
-    >
-      <section className="mb-6 rounded-3xl border border-slate-200 bg-gradient-to-r from-slate-900 via-slate-800 to-cyan-900 p-6 text-white shadow-md">
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-cyan-200">Student Profile</p>
-        <h1 className="mt-2 text-3xl font-bold">Your Account Profile</h1>
-        <p className="mt-2 max-w-3xl text-sm text-slate-200">
-          View your account details, onboarding status, and quick links to personalize your learning setup.
-        </p>
-      </section>
-
-      <div className="grid gap-6 lg:grid-cols-[2fr_1fr]">
-        <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-          <h2 className="text-lg font-semibold text-slate-900">Account Details</h2>
-          <div className="mt-4 space-y-3">
-            <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
-              <p className="text-xs text-slate-500">Full Name</p>
-              <p className="text-sm font-semibold text-slate-900">{(user as any).fullName || 'Not set'}</p>
-            </div>
-            <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
-              <p className="text-xs text-slate-500">Email</p>
-              <p className="text-sm font-semibold text-slate-900">{user.email}</p>
-            </div>
-            <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
-              <p className="text-xs text-slate-500">Role</p>
-              <p className="text-sm font-semibold text-slate-900">{user.role}</p>
-            </div>
-            <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
-              <p className="text-xs text-slate-500">Onboarding Status</p>
-              <p className="text-sm font-semibold text-slate-900">
-                {user.onboardingComplete ? 'Completed' : 'In progress'}
-              </p>
-            </div>
-            <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-3">
-              <p className="text-xs text-emerald-700">Profile Storage</p>
-              <p className="text-sm font-semibold text-emerald-900">
-                Disability profile is saved in the database for this user.
-              </p>
-              <p className="mt-2 text-xs text-emerald-700">Saved Profile</p>
-              {profiles.length > 0 ? (
-                <div className="mt-1 flex flex-wrap gap-2">
-                  {profiles.map((profile) => (
-                    <span
-                      key={profile}
-                      className="inline-flex items-center rounded-full border border-emerald-300 bg-white px-2 py-1 text-xs font-semibold text-emerald-900"
-                    >
-                      {profile}
-                    </span>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-sm font-semibold text-emerald-900">Not set</p>
-              )}
-            </div>
-          </div>
-        </section>
-
-        <aside className="space-y-4">
-          <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <h3 className="text-base font-semibold text-slate-900">Quick Actions</h3>
-            <div className="mt-3 space-y-2">
-              <button
-                onClick={() => router.push('/dashboard/settings')}
-                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700 hover:border-slate-400"
-              >
-                Open Settings
-              </button>
-              <button
-                onClick={() => router.push('/dashboard/history')}
-                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700 hover:border-slate-400"
-              >
-                View History
-              </button>
-              <button
-                onClick={() => router.push('/upload')}
-                className="w-full rounded-lg bg-slate-900 px-3 py-2 text-sm font-semibold text-white hover:bg-slate-700"
-              >
-                Upload Learning Content
-              </button>
-            </div>
-          </section>
-
-          <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <h3 className="text-base font-semibold text-slate-900">Profile Editing</h3>
-            <p className="mt-2 text-sm text-slate-600">
-              Direct profile editing will be enabled once backend profile update endpoints are confirmed.
-            </p>
-          </section>
-        </aside>
+    <SidebarLayout>
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-white">Your Account Profile</h1>
       </div>
-    </PageShell>
-  )
-}
 
+      <div className="card bg-white rounded-2xl p-6 max-w-2xl">
+        <h2 className="text-xl font-semibold text-blue-900 mb-4">Account Details</h2>
+
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Full Name</label>
+            {editing ? (
+              <div className="flex gap-2 mt-1">
+                <input
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+                />
+                <button onClick={handleSave} className="btn-primary py-2 px-4">Save</button>
+                <button onClick={() => setEditing(false)} className="btn-outline py-2 px-4">Cancel</button>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2 mt-1">
+                <span className="text-gray-800">{name || 'Not set'}</span>
+                <button
+                  onClick={() => setEditing(true)}
+                  className="text-purple-600 text-sm hover:underline"
+                >
+                  {name ? 'Edit' : '+ Add Full Name'}
+                </button>
+              </div>
+            )}
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Email</label>
+            <p className="text-gray-800 mt-1">{user?.email || 'Not set'}</p>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Role</label>
+            <p className="text-gray-800 mt-1">{user?.role || 'Student'}</p>
+          </div>
+        </div>
+
+        <div className="mt-6 border-t pt-4">
+          <h3 className="font-semibold text-blue-900 mb-2">Quick Actions</h3>
+          <div className="flex gap-2 flex-wrap">
+            <button className="btn-primary">Upload Learning Content</button>
+            <button className="btn-outline">View History</button>
+            <button className="btn-outline">Open Settings</button>
+          </div>
+        </div>
+      </div>
+    </SidebarLayout>
+  );
+}
