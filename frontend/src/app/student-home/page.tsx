@@ -1,41 +1,45 @@
 ﻿'use client';
 
-import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import SidebarLayout from '@/components/layout/SidebarLayout';
+import { api } from '@/lib/api';
 
 export default function StudentHome() {
   const router = useRouter();
-  const [progress, setProgress] = useState<any>(null);
+  const [lessons, setLessons] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const saved = localStorage.getItem('elekeza-progress');
-    if (saved) setProgress(JSON.parse(saved));
+    api.get('/learner/dashboard')          // or /progress/dashboard
+      .then(res => {
+        if (res.data?.lessons?.length) {
+          setLessons(res.data.lessons);
+        }
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
   }, []);
 
-  const openLesson = () => router.push('/lesson/demo-lesson');
+  // Demo lesson always available as fallback
+  const demoLesson = { id: 1, title: 'The Water Cycle' };
+  const displayLessons = lessons.length > 0 ? lessons : [demoLesson];
+
+  if (loading) return <SidebarLayout><div className="text-white">Loading...</div></SidebarLayout>;
 
   return (
     <SidebarLayout>
-      <div className="flex flex-col items-center justify-center min-h-[80vh]">
-        <div className="card bg-white rounded-2xl shadow-xl p-8 max-w-md w-full text-center">
-          <h1 className="text-3xl font-bold text-blue-900 mb-6">Welcome, Learner</h1>
-          <button onClick={openLesson} className="btn-primary text-2xl py-6 px-12 w-full">
-            📖 Continue Learning
-          </button>
-          <p className="mt-4 text-gray-600 text-lg">The Water Cycle</p>
-          {progress?.['demo-lesson'] && (
-            <p className="mt-2 text-green-600 font-semibold">
-              ✅ Completed – Score: {progress['demo-lesson'].score}%
-            </p>
-          )}
-          <button
-            onClick={() => router.push('/dashboard/history')}
-            className="mt-8 text-purple-600 underline text-sm"
-          >
-            View past lessons
-          </button>
-        </div>
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-white">Welcome, Learner</h1>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {displayLessons.map((lesson: any) => (
+          <div key={lesson.id} className="card cursor-pointer hover:shadow-xl transition"
+               onClick={() => router.push(`/lesson/${lesson.id}`)}>
+            <h2 className="text-xl font-semibold text-blue-900 mb-2">{lesson.title}</h2>
+            <p className="text-gray-600">Tap to start reading</p>
+          </div>
+        ))}
       </div>
     </SidebarLayout>
   );

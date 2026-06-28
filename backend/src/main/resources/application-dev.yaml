@@ -1,3 +1,5 @@
+﻿# DEV PROFILE — activated with SPRING_PROFILES_ACTIVE=dev
+
 spring:
   datasource:
     url: jdbc:h2:mem:elekeza;DB_CLOSE_DELAY=-1;MODE=PostgreSQL
@@ -12,12 +14,16 @@ spring:
     hibernate:
       ddl-auto: update
     defer-datasource-initialization: true
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
   flyway:
     enabled: false
-  sql:
-    init:
-      mode: never
-      
+  security:
+    oauth2:
+      client:
+        enabled: false
   mail:
     host: localhost
     port: 1025
@@ -30,8 +36,11 @@ jwt:
   refresh-expiration: 604800000
 
 ai:
+  client:
+    type: mock
   base-url: http://localhost:8000
-  internal-secret: dev-internal-secret
+  internal-secret: dev-internal-secret-change-in-prod
+  timeout-seconds: 60
 
 app:
   frontend-url: http://localhost:3000
@@ -49,3 +58,8 @@ management:
   health:
     mail:
       enabled: false
+
+logging:
+  level:
+    root: INFO
+    com.elekeza: DEBUG
