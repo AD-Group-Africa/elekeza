@@ -1,53 +1,122 @@
-import axios from 'axios'
+import axios, { AxiosInstance } from 'axios'
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL || '/api'
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? '/api'
 
-export const api = axios.create({
-  baseURL: BASE_URL,
-  headers: { 'Content-Type': 'application/json' },
-  withCredentials: true,
+export const api: AxiosInstance = axios.create({
+  baseURL:         BASE_URL,
+  headers:         { 'Content-Type': 'application/json' },
+  withCredentials: true,   // send HttpOnly cookies (refresh token)
 })
 
+// Attach in-memory access token on every request if present
+api.interceptors.request.use(config => {
+  const token = typeof window !== 'undefined'
+    ? sessionStorage.getItem('elekeza_access')
+    : null
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`
+  }
+  return config
+})
+
+// On 401: attempt token refresh, then retry original request once
+api.interceptors.response.use(
+  res => res,
+  async error => {
+    const original = error.config
+    if (error.response?.status === 401 && !original._retried) {
+      original._retried = true
+      try {
+        const refreshRes = await axios.post(`${BASE_URL}/auth/refresh`, {}, { withCredentials: true })
+        const token = refreshRes.data?.accessToken
+        if (token) sessionStorage.setItem('elekeza_access', token)
+        return api(original)
+      } catch {
+        sessionStorage.removeItem('elekeza_access')
+      }
+    }
+    return Promise.reject(error)
+  }
+)
+
+// ── Auth ──────────────────────────────────────────────────────────────────────
+
 export const authAPI = {
-  login: (email: string, password: string) => api.post('/auth/login', { email, password }),
-  register: (data: any) => api.post('/auth/register', data),
-  refresh: () => api.post('/auth/refresh'),
-  me: () => api.get('/auth/me'),
-    logout: () => api.post('/auth/logout'),
+  login:    (email: string, password: string) => api.post('/auth/login', { email, password }),
+  register: (data: Record<string, unknown>)   => api.post('/auth/register', data),
+  refresh:  ()                                => api.post('/auth/refresh'),
+  me:       ()                                => api.get('/auth/me'),
+  logout:   ()                                => api.post('/auth/logout'),
 }
+
+// ── Content ───────────────────────────────────────────────────────────────────
 
 export const contentAPI = {
-  uploadText: (data: { text: string, title?: string, language?: string, subject?: string }) => api.post('/content/upload/text', data),
-  uploadFile: (formData: FormData) => api.post('/content/upload/file', formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
-  getContent: (id: string) => api.get(`/content/${id}`),
+  uploadText: (data: { text: string; title?: string; language?: string; sneType?: string }) =>
+    api.post('/content/upload/text', data),
+
+  uploadFile: (formData: FormData) =>
+    api.post('/content/upload/file', formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
+
+  getLesson: (id: string | number) => api.get(`/content/lessons/${id}`),
+
+  // Poll processing status
+  getStatus: (id: string | number) => api.get(`/content/status/${id}`),
+
   list: () => api.get('/content/list'),
-  history: () => api.get('/content/history'),
+
+  // Legacy alias — kept for backward compatibility with existing pages
+  getContent: (id: string | number) => api.get(`/content/lessons/${id}`),
+  history:    ()                     => api.get('/content/list'),
 }
+
+// ── Onboarding ────────────────────────────────────────────────────────────────
 
 export const onboardingAPI = {
-  start: (learnerId: number, data: any) => api.post(`/onboarding/${learnerId}`, data),
-  getProfile: (learnerId: number) => api.get(`/onboarding/${learnerId}`),
-  updateProfile: (learnerId: number, data: any) => api.put(`/onboarding/${learnerId}`, data),
-  placement: (data: any) => api.post('/onboarding/placement', data),
-  profile: (data: any) => api.post('/onboarding/profile', data),
+  profile:  (data: unknown) => api.post('/onboarding/profile', data),
+  placement:(data: unknown) => api.post('/onboarding/placement', data),
+  guardian: (data: unknown) => api.post('/onboarding/guardian-link', data),
+  getStatus:(learnerId: number) => api.get(`/onboarding/${learnerId}`),
 }
 
-export const progressAPI = {
-  dashboard: (learnerId: number) => api.get(`/learner/dashboard?learnerId=${learnerId}`),
-  lessons: (learnerId: number) => api.get(`/learner/${learnerId}/lessons`),
-  quizResults: (learnerId: number) => api.get(`/learner/${learnerId}/quiz-results`),
-}
+// ── Quiz ──────────────────────────────────────────────────────────────────────
 
 export const quizAPI = {
-  start: (lessonId: string) => api.post(`/quiz/${lessonId}/start`),
-  answer: (quizId: string, questionId: string, answer: string, latencyMs: number) =>
-    api.post(`/quiz/${quizId}/answer`, { questionId, answer, latencyMs }),
-  complete: (quizId: string) => api.post(`/quiz/${quizId}/complete`),
-  review: (quizId: string) => api.get(`/quiz/${quizId}/review`),
+  start: (lessonId: string | number) =>
+    api.post(`/quiz/${lessonId}/start`),
+
+  answer: (quizId: string | number, questionId: string | number, selectedOption: string, latencyMs: number) =>
+    api.post(`/quiz/${quizId}/answer`, { questionId, selectedOption, latencyMs }),
+
+  complete: (quizId: string | number, correctCount: number) =>
+    api.post(`/quiz/${quizId}/complete`, { correctCount }),
+
+  review: (quizId: string | number) =>
+    api.get(`/quiz/${quizId}/review`),
 }
 
-export const schoolAPI = {
-  register: (data: any) => api.post('/schools/register', data),
-  getStudents: (schoolId: number) => api.get(`/schools/${schoolId}/students`),
-  enrollStudent: (schoolId: number, data: any) => api.post(`/schools/${schoolId}/enroll`, data),
+// ── Progress / Dashboard ──────────────────────────────────────────────────────
+
+export const progressAPI = {
+  dashboard: (userId: number) => api.get(`/learner/dashboard?userId=${userId}`),
+  lessons:   (userId: number) => api.get(`/learner/${userId}/lessons`),
+}
+
+// ── Teacher ───────────────────────────────────────────────────────────────────
+
+export const teacherAPI = {
+  getStudents:      ()                                  => api.get('/teacher/students'),
+  createStudent:    (data: unknown)                     => api.post('/teacher/student', data),
+  assignContent:    (data: { contentId: number; studentIds: number[] }) =>
+                                                           api.post('/teacher/content/assign', data),
+  getProgress:      (studentId: number)                 => api.get(`/teacher/student/${studentId}/progress`),
+  listContent:      ()                                  => api.get('/content/list'),
+}
+
+// ── Guardian ──────────────────────────────────────────────────────────────────
+// Note: api baseURL already includes /api — do NOT prefix with /api here
+
+export const guardianAPI = {
+  getWards:    ()                     => api.get('/guardian/wards'),
+  getProgress: (wardId: number)       => api.get(`/guardian/wards/${wardId}/progress`),
 }

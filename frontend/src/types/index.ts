@@ -17,6 +17,7 @@ export interface User {
 
 export interface AuthResponse {
   role?: string;
+  accessToken?: string;
   learnerId: string;
   email: string;
   name?: string | null;  // Changed from fullName
@@ -171,3 +172,4 @@ export interface Document {
   fileType?: string;
   status?: 'Processed' | 'In Review';
 }
+

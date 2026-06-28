@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
@@ -69,7 +69,7 @@ export default function QuizPage() {
       setQuizCompleted(true);
 
       if (isOnline) {
-        await quizAPI.complete(lessonId);
+        const correctCount = questions.filter(q => answers[q.id] === q.correctOptionId).length; await quizAPI.complete(lessonId, correctCount);
       } else {
         queueAnswer(lessonId, 'complete', '');
       }
@@ -102,3 +102,4 @@ export default function QuizPage() {
     </div>
   );
 }
+

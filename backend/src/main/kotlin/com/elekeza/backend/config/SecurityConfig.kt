@@ -1,9 +1,10 @@
-﻿package com.elekeza.backend.config
+package com.elekeza.backend.config
 
 import com.elekeza.backend.auth.JwtAuthFilter
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.http.HttpMethod
 import org.springframework.security.authentication.AuthenticationManager
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity
@@ -41,13 +42,43 @@ class SecurityConfig(
             .csrf { it.disable() }
             .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
             .authorizeHttpRequests { auth ->
-                auth.requestMatchers("/api/**", "/actuator/**", "/h2-console/**").permitAll()
-                auth.anyRequest().permitAll()
+
+                // ── Public routes — no JWT required ───────────────────────
+                auth.requestMatchers(
+                    "/api/auth/login",
+                    "/api/auth/register",
+                    "/api/auth/refresh",
+                    "/api/waitlist/**",
+                    "/actuator/health"
+                ).permitAll()
+
+                // Preflight requests
+                auth.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+
+                // ── Role-scoped routes ────────────────────────────────────
+                auth.requestMatchers("/api/admin/**").hasRole("ADMIN")
+                auth.requestMatchers("/api/teacher/**").hasAnyRole("TEACHER", "ADMIN")
+                auth.requestMatchers("/api/guardian/**").hasAnyRole("GUARDIAN", "ADMIN")
+                auth.requestMatchers("/api/admin/flags/**").hasRole("ADMIN")
+
+                // ── Authenticated routes (any valid role) ─────────────────
+                auth.requestMatchers(
+                    "/api/auth/me",
+                    "/api/auth/logout",
+                    "/api/content/**",
+                    "/api/quiz/**",
+                    "/api/learner/**",
+                    "/api/onboarding/**"
+                ).authenticated()
+
+                // Deny everything else by default
+                auth.anyRequest().denyAll()
             }
             .formLogin { it.disable() }
             .httpBasic { it.disable() }
             .oauth2Login { it.disable() }
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter::class.java)
+
         return http.build()
     }
 
@@ -57,6 +88,7 @@ class SecurityConfig(
         config.allowedOrigins = allowedOriginsRaw.split(",").map { it.trim() }
         config.allowedMethods = listOf("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
         config.allowedHeaders = listOf("*")
+        config.exposedHeaders = listOf("X-Access-Token")
         config.allowCredentials = true
         val source = UrlBasedCorsConfigurationSource()
         source.registerCorsConfiguration("/**", config)
