@@ -1,45 +1,28 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
-import { quizAPI } from '@/lib/api';
-import { useOfflineSync } from '@/hooks/useOfflineSync';
-
-interface Question {
-  id: string;
-  questionText: string;
-  options: string[];
-  correctOptionId?: string;
-}
+import { useParams, useRouter } from 'next/navigation';
+import SidebarLayout from '@/components/layout/SidebarLayout';
+import { api } from '@/lib/api';
 
 export default function QuizPage() {
   const { lessonId } = useParams<{ lessonId: string }>();
-  const [questions, setQuestions] = useState<Question[]>([]);
+  const router = useRouter();
+  const [questions, setQuestions] = useState<any[]>([]);
   const [currentIdx, setCurrentIdx] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
-  const [quizCompleted, setQuizCompleted] = useState(false);
   const [score, setScore] = useState<number | null>(null);
-  const { isOnline, queueAnswer } = useOfflineSync();
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
   useEffect(() => {
-    const fetchQuiz = async () => {
-      try {
-        const res = await quizAPI.start(lessonId);
-        const fetchedQuestions: Question[] = res.data.questions;
-        setQuestions(fetchedQuestions);
-        const { openDB } = await import('idb');
-        const db = await openDB('elekeza-offline', 1, {
-          upgrade(db) { db.createObjectStore('quiz-cache', { keyPath: 'lessonId' }); }
-        });
-        db.put('quiz-cache', { lessonId, questions: fetchedQuestions });
-      } catch (e) {
-        const { openDB } = await import('idb');
-        const db = await openDB('elekeza-offline', 1);
-        const cached = await db.get('quiz-cache', lessonId);
-        if (cached) setQuestions(cached.questions);
-      }
-    };
-    fetchQuiz();
+    if (!lessonId) return;
+    api.get(`/quiz/${lessonId}/start`)
+      .then(res => {
+        setQuestions(res.data.questions || []);
+      })
+      .catch(() => setError('Failed to load quiz. Is the backend running?'))
+      .finally(() => setLoading(false));
   }, [lessonId]);
 
   const handleAnswer = async (optionId: string) => {
@@ -47,59 +30,60 @@ export default function QuizPage() {
     const newAnswers = { ...answers, [question.id]: optionId };
     setAnswers(newAnswers);
 
-    if (isOnline) {
-      await quizAPI.answer(lessonId, question.id, optionId, 0);
-    } else {
-      queueAnswer(lessonId, question.id, optionId);
-    }
+    // Submit answer to backend
+    try {
+      await api.post(`/quiz/${lessonId}/answer`, {
+        questionId: question.id,
+        selectedOptionId: optionId,
+      });
+    } catch {}
 
     if (currentIdx + 1 < questions.length) {
       setCurrentIdx(currentIdx + 1);
     } else {
-      const canScoreLocally = questions.every(q => q.correctOptionId !== undefined);
-      if (canScoreLocally) {
-        let correct = 0;
-        questions.forEach(q => {
-          if (newAnswers[q.id] === q.correctOptionId) correct++;
-        });
+      // Quiz complete â€” calculate local score + fetch final from backend
+      try {
+        const res = await api.get(`/quiz/${lessonId}/complete`);
+        setScore(res.data.score || 0);
+      } catch {
+        const correct = questions.filter((q, i) => (newAnswers as any)[q.id] === q.correctOptionId).length;
         setScore(Math.round((correct / questions.length) * 100));
-      } else {
-        setScore(-1);
-      }
-      setQuizCompleted(true);
-
-      if (isOnline) {
-        const correctCount = questions.filter(q => answers[q.id] === q.correctOptionId).length; await quizAPI.complete(lessonId, correctCount);
-      } else {
-        queueAnswer(lessonId, 'complete', '');
       }
     }
   };
 
-  if (quizCompleted) {
+  if (loading) return <SidebarLayout><div className="text-white text-center mt-20">Loading quiz...</div></SidebarLayout>;
+  if (error) return <SidebarLayout><div className="card text-center mt-20 text-red-600">{error}</div></SidebarLayout>;
+  if (score !== null) {
     return (
-      <div className="p-6 text-center text-2xl">
-        {score !== null && score >= 0 ? `Your score: ${score}%` : 'Answers saved. They will sync when online.'}
-      </div>
+      <SidebarLayout>
+        <div className="card max-w-md mx-auto text-center">
+          <h2 className="text-2xl font-bold text-blue-900 mb-4">Quiz Complete!</h2>
+          <p className="text-4xl font-bold text-purple-600 mb-6">{score}%</p>
+          <button onClick={() => router.push('/dashboard')} className="btn-primary">View Progress</button>
+        </div>
+      </SidebarLayout>
     );
   }
 
-  if (!questions.length) return <div>Loading quiz...</div>;
-
   const q = questions[currentIdx];
   return (
-    <div className="p-4">
-      <p className="text-xl mb-4">{q.questionText}</p>
-      {q.options.map((opt: string, idx: number) => (
-        <button
-          key={idx}
-          onClick={() => handleAnswer(String(idx))}
-          className="block w-full text-left p-3 border rounded mb-2"
-        >
-          {opt}
-        </button>
-      ))}
-    </div>
+    <SidebarLayout>
+      <div className="card max-w-2xl mx-auto">
+        <h2 className="text-lg font-semibold text-blue-900 mb-4">Question {currentIdx + 1} of {questions.length}</h2>
+        <p className="text-xl mb-6">{q.questionText}</p>
+        <div className="space-y-3">
+          {q.options.map((opt: string, idx: number) => (
+            <button
+              key={idx}
+              onClick={() => handleAnswer(String.fromCharCode(65 + idx))}
+              className="block w-full text-left p-4 border border-gray-200 rounded-xl hover:bg-blue-50 transition"
+            >
+              {String.fromCharCode(65 + idx)}. {opt}
+            </button>
+          ))}
+        </div>
+      </div>
+    </SidebarLayout>
   );
 }
-

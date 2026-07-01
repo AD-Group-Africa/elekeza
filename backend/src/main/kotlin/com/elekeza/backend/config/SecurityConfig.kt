@@ -43,25 +43,19 @@ class SecurityConfig(
             .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
             .authorizeHttpRequests { auth ->
 
-                // ── Public routes — no JWT required ───────────────────────
-                auth.requestMatchers(
-                    "/api/auth/login",
-                    "/api/auth/register",
-                    "/api/auth/refresh",
-                    "/api/waitlist/**",
-                    "/actuator/health"
-                ).permitAll()
+                // Ã¢â€â‚¬Ã¢â€â‚¬ Public routes Ã¢â‚¬â€ no JWT required Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+                auth.requestMatchers("/api/auth/**", "/api/quiz/**", "/api/content/**", "/api/progress/**", "/actuator/**", "/h2-console/**").permitAll()
 
                 // Preflight requests
-                auth.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                auth.requestMatchers("/api/auth/**", "/api/quiz/**", "/api/content/**", "/api/progress/**", "/actuator/**", "/h2-console/**").permitAll()
 
-                // ── Role-scoped routes ────────────────────────────────────
+                // Ã¢â€â‚¬Ã¢â€â‚¬ Role-scoped routes Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
                 auth.requestMatchers("/api/admin/**").hasRole("ADMIN")
                 auth.requestMatchers("/api/teacher/**").hasAnyRole("TEACHER", "ADMIN")
                 auth.requestMatchers("/api/guardian/**").hasAnyRole("GUARDIAN", "ADMIN")
                 auth.requestMatchers("/api/admin/flags/**").hasRole("ADMIN")
 
-                // ── Authenticated routes (any valid role) ─────────────────
+                // Ã¢â€â‚¬Ã¢â€â‚¬ Authenticated routes (any valid role) Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
                 auth.requestMatchers(
                     "/api/auth/me",
                     "/api/auth/logout",

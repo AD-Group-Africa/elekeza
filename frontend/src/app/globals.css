@@ -53,3 +53,10 @@ body {
   outline: 3px solid #8B45F5;
   outline-offset: 2px;
 }
+body.dyslexia-font {
+  font-family: 'Atkinson Hyperlegible', 'OpenDyslexic', sans-serif !important;
+}
+body.reduced-motion * {
+  animation-duration: 0.001ms !important;
+  transition-duration: 0.001ms !important;
+}
