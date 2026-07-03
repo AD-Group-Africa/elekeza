@@ -49,3 +49,6 @@ backend-fresh/
 *.zip
 
 *.zip
+
+.env
+*.env
