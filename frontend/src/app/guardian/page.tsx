@@ -10,19 +10,25 @@ interface Ward {
   lastQuizScore: number | null;
 }
 
-export default function GuardianPage() {
+export default function ParentDashboard() {
   const [wards, setWards] = useState<Ward[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
   useEffect(() => {
-    api.get('/api/guardian/wards')
+    api.get('/guardian/wards')
       .then(res => setWards(res.data))
-      .catch(() => {});
+      .catch(() => setError('No linked children found. Ensure the backend is running and you are logged in as a guardian.'))
+      .finally(() => setLoading(false));
   }, []);
+
+  if (loading) return <SidebarLayout><div className="text-white text-center mt-20">Loading...</div></SidebarLayout>;
+  if (error) return <SidebarLayout><div className="card text-center mt-20 text-red-600">{error}</div></SidebarLayout>;
 
   return (
     <SidebarLayout>
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-white">Guardian Dashboard</h1>
+        <h1 className="text-3xl font-bold text-white">Your Children</h1>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {wards.length === 0 ? (

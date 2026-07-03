@@ -20,7 +20,9 @@ class DataInitializer(
     private val contentRepo: ContentRepository,
     private val quizRepo: QuizRepository,
     private val questionRepo: QuizQuestionRepository,
-    private val attemptRepo: QuizAttemptRepository
+    private val attemptRepo: QuizAttemptRepository,
+    private val learnerRepo: LearnerRepository,
+    private val guardianRepo: GuardianRepository
 ) : CommandLineRunner {
 
     private val log = LoggerFactory.getLogger(DataInitializer::class.java)
@@ -31,20 +33,40 @@ class DataInitializer(
 
         val teacher = createUserIfAbsent("teacher@elekeza.app", "teacher123", "Alice Mwalimu", UserRole.TEACHER)
         val student = createUserIfAbsent("student@elekeza.app", "student123", "Juma Ali", UserRole.STUDENT)
-        createUserIfAbsent("parent@elekeza.app", "parent123", "Fatima Ali", UserRole.GUARDIAN)
+        val parent  = createUserIfAbsent("parent@elekeza.app",  "parent123",  "Fatima Ali", UserRole.GUARDIAN)
 
+        // Learner profile for student
         if (learnerProfileRepo.findByUserId(student.id) == null) {
             learnerProfileRepo.save(LearnerProfile(user = student, sneType = SneType.DYSLEXIA, preferences = emptyMap(), adaptationState = emptyMap()))
         }
 
-        if (contentRepo.count() == 0L) {
-            contentRepo.save(Content(userId = teacher.id, title = "The Water Cycle", status = ContentStatus.READY,
-                simplifiedText = """{"text":"Water moves around the Earth. The sun heats it and turns it into vapor. Vapor rises and makes clouds. When clouds get heavy, rain falls. The water flows back and the cycle repeats."}"""))
+        // Learner record required for Guardian FK
+        val learner = learnerRepo.findByEmail(student.email).orElseGet {
+            learnerRepo.save(Learner(email = student.email, cognitiveProfiles = emptyList()))
         }
 
-        // Seed quiz
-        val existingQuiz = quizRepo.findByContentId(1L)
-        if (existingQuiz == null) {
+        // Link guardian → learner
+        if (guardianRepo.findAllByEmail(parent.email).isEmpty()) {
+            guardianRepo.save(Guardian(
+                learner = learner,
+                fullName = parent.name,
+                relationship = "Mother",
+                phone = "+254712345678",
+                email = parent.email
+            ))
+            log.info("Linked guardian {} to learner {}", parent.email, student.email)
+        }
+
+        // Demo lesson
+        if (contentRepo.count() == 0L) {
+            contentRepo.save(Content(
+                userId = teacher.id, title = "The Water Cycle", status = ContentStatus.READY,
+                simplifiedText = """{"text":"Water moves around the Earth. The sun heats it and turns it into vapor. Vapor rises and makes clouds. When clouds get heavy, rain falls. The water flows back and the cycle repeats."}"""
+            ))
+        }
+
+        // Demo quiz for lesson 1
+        if (quizRepo.findByContentId(1L) == null) {
             val quiz = quizRepo.save(Quiz(contentId = 1L, userId = student.id))
             questionRepo.save(QuizQuestion(quizId = quiz.id, question = "What is the first step in the water cycle?", optionA = "Evaporation", optionB = "Condensation", optionC = "Precipitation", optionD = "Collection", correctOption = "A", explanation = "The sun heats water."))
             questionRepo.save(QuizQuestion(quizId = quiz.id, question = "What forms when vapor cools?", optionA = "Ice", optionB = "Clouds", optionC = "Rain", optionD = "Snow", correctOption = "B", explanation = "Vapor turns into tiny water drops."))
