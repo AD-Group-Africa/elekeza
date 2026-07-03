@@ -1,12 +1,10 @@
 ﻿'use client';
 
-import { useState } from 'react';
 import SidebarLayout from '@/components/layout/SidebarLayout';
+import { useAccessibilitySettings } from '@/hooks/useAccessibilitySettings';
 
 export default function SettingsPage() {
-  const [focusMode, setFocusMode] = useState(false);
-  const [calmUI, setCalmUI] = useState(false);
-  const [dyslexiaFont, setDyslexiaFont] = useState(false);
+  const { settings, toggleSetting, setSetting } = useAccessibilitySettings();
 
   return (
     <SidebarLayout>
@@ -14,59 +12,81 @@ export default function SettingsPage() {
         <h1 className="text-3xl font-bold text-white">Settings</h1>
       </div>
 
-      {/* Inner container with light background – the old calm look */}
       <div className="bg-gray-50 rounded-2xl p-6 space-y-8">
 
         {/* Display Modes */}
         <section>
           <h2 className="text-xl font-semibold text-blue-900 mb-3">Display Modes</h2>
-          <div className="flex gap-4">
-            <button
-              onClick={() => setCalmUI(!calmUI)}
-              className={`px-4 py-2 rounded-full text-sm font-medium transition ${calmUI ? 'bg-purple-100 text-purple-700' : 'bg-white border border-gray-300 text-gray-700'}`}
-            >
-              Calm UI
-            </button>
-            <button
-              onClick={() => setFocusMode(!focusMode)}
-              className={`px-4 py-2 rounded-full text-sm font-medium transition ${focusMode ? 'bg-purple-100 text-purple-700' : 'bg-white border border-gray-300 text-gray-700'}`}
-            >
-              Focus Mode
-            </button>
-          </div>
-        </section>
-
-        {/* Accessibility */}
-        <section>
-          <h2 className="text-xl font-semibold text-blue-900 mb-3">Accessibility</h2>
-          <div className="space-y-3">
-            <div className="flex items-center justify-between py-2">
-              <span className="text-gray-700">Dyslexia-friendly font</span>
+          {[
+            { label: 'Calm UI', key: 'calmUI' },
+            { label: 'Focus Mode', key: 'focusMode' },
+          ].map(({ label, key }) => (
+            <div key={key} className="flex items-center justify-between py-2">
+              <span className="text-gray-700">{label}</span>
               <button
-                onClick={() => setDyslexiaFont(!dyslexiaFont)}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition ${dyslexiaFont ? 'bg-purple-600' : 'bg-gray-300'}`}
+                onClick={() => toggleSetting(key as any)}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition ${(settings as any)[key] ? 'bg-purple-600' : 'bg-gray-300'}`}
               >
-                <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition ${dyslexiaFont ? 'translate-x-6' : 'translate-x-1'}`} />
+                <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition ${(settings as any)[key] ? 'translate-x-6' : 'translate-x-1'}`} />
               </button>
             </div>
-            <div className="flex items-center justify-between py-2">
-              <span className="text-gray-700">Reduced motion</span>
-              <button className="relative inline-flex h-6 w-11 items-center rounded-full transition bg-gray-300">
-                <span className="inline-block h-4 w-4 transform rounded-full bg-white transition translate-x-1" />
-              </button>
-            </div>
-          </div>
+          ))}
         </section>
 
-        {/* Profiles */}
+        {/* Cognitive & Accessibility */}
         <section>
-          <h2 className="text-xl font-semibold text-blue-900 mb-3">Profiles</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {['Easy Mode', 'Focus Mode', 'Guided Mode'].map(profile => (
-              <button key={profile} className="btn-outline w-full py-4 text-center">
-                {profile}
+          <h2 className="text-xl font-semibold text-blue-900 mb-3">Cognitive & Accessibility</h2>
+          {[
+            { label: 'Dyslexia Support', key: 'dyslexiaSupport' },
+            { label: 'ADHD Support', key: 'adhdSupport' },
+            { label: 'Autism Friendly', key: 'autismFriendly' },
+            { label: 'High Contrast', key: 'highContrast' },
+            { label: 'Simplified Language', key: 'simplifiedLanguage' },
+            { label: 'Reduced Motion', key: 'reducedMotion' },
+            { label: 'Large Text', key: 'largeText' },
+            { label: 'Text to Speech', key: 'textToSpeech' },
+            { label: 'Reading Guide', key: 'readingGuide' },
+            { label: 'Distraction‑Free Mode', key: 'distractionFreeMode' },
+          ].map(({ label, key }) => (
+            <div key={key} className="flex items-center justify-between py-2">
+              <span className="text-gray-700">{label}</span>
+              <button
+                onClick={() => toggleSetting(key as any)}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition ${(settings as any)[key] ? 'bg-purple-600' : 'bg-gray-300'}`}
+              >
+                <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition ${(settings as any)[key] ? 'translate-x-6' : 'translate-x-1'}`} />
               </button>
-            ))}
+            </div>
+          ))}
+        </section>
+
+        {/* Font & Size */}
+        <section>
+          <h2 className="text-xl font-semibold text-blue-900 mb-3">Display</h2>
+          <div className="flex items-center justify-between py-2">
+            <span className="text-gray-700">Font Family</span>
+            <select
+              value={settings.fontFamily}
+              onChange={(e) => setSetting('fontFamily', e.target.value as any)}
+              className="border border-gray-300 rounded-lg px-3 py-1 text-sm"
+            >
+              <option value="default">Default</option>
+              <option value="readableSans">Readable Sans</option>
+              <option value="dyslexiaFriendly">Dyslexia‑Friendly</option>
+              <option value="highClarity">High Clarity</option>
+            </select>
+          </div>
+          <div className="flex items-center justify-between py-2">
+            <span className="text-gray-700">Font Size</span>
+            <select
+              value={settings.fontSize}
+              onChange={(e) => setSetting('fontSize', e.target.value as any)}
+              className="border border-gray-300 rounded-lg px-3 py-1 text-sm"
+            >
+              <option value="sm">Small</option>
+              <option value="md">Medium</option>
+              <option value="lg">Large</option>
+            </select>
           </div>
         </section>
       </div>
