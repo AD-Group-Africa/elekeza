@@ -1,10 +1,12 @@
 ﻿package com.elekeza.backend.quiz.controller
 
+import com.elekeza.backend.auth.User
 import com.elekeza.backend.auth.UserRepository
 import com.elekeza.backend.learner.LessonProgress
 import com.elekeza.backend.learner.LessonProgressRepository
 import com.elekeza.backend.quiz.*
 import org.springframework.http.HttpStatus
+import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.server.ResponseStatusException
 
@@ -18,9 +20,16 @@ class QuizController(
     private val userRepo: UserRepository
 ) {
     @GetMapping("/{lessonId}/start")
-    fun startQuiz(@PathVariable lessonId: Long): Map<String, Any> {
-        val quiz = quizRepo.findByContentId(lessonId)
-            ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "No quiz for this lesson")
+    fun startQuiz(@PathVariable lessonId: Long, @AuthenticationPrincipal user: User): Map<String, Any> {
+        // Auto-create quiz if it doesn't exist
+        var quiz = quizRepo.findByContentId(lessonId)
+        if (quiz == null) {
+            // Create a default quiz for this lesson
+            quiz = quizRepo.save(Quiz(contentId = lessonId, userId = user.id))
+            // Seed two default questions
+            questionRepo.save(QuizQuestion(quizId = quiz.id, question = "What is the main idea of this lesson?", optionA = "Option A", optionB = "Option B", optionC = "Option C", optionD = "Option D", correctOption = "A", explanation = "Review the lesson content"))
+            questionRepo.save(QuizQuestion(quizId = quiz.id, question = "What is a key concept from this lesson?", optionA = "Option A", optionB = "Option B", optionC = "Option C", optionD = "Option D", correctOption = "B", explanation = "Check the lesson for details"))
+        }
         val questions = questionRepo.findByQuizId(quiz.id)
         if (questions.isEmpty()) throw ResponseStatusException(HttpStatus.NOT_FOUND, "No questions")
         return mapOf(
@@ -37,7 +46,7 @@ class QuizController(
     }
 
     @PostMapping("/{quizId}/answer")
-    fun submitAnswer(@PathVariable quizId: Long, @RequestBody req: Map<String, Any>): Map<String, Any> {
+    fun submitAnswer(@PathVariable quizId: Long, @RequestBody req: Map<String, Any>, @AuthenticationPrincipal user: User): Map<String, Any> {
         val questionId = (req["questionId"] as? Number)?.toLong()
             ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Missing questionId")
         val selected = req["selectedOptionId"] as? String
@@ -48,21 +57,20 @@ class QuizController(
         return mapOf("correct" to correct, "correctOption" to question.correctOption, "explanation" to (question.explanation ?: ""))
     }
 
-    @GetMapping("/{quizId}/complete")
-    fun completeQuiz(@PathVariable quizId: Long): Map<String, Any> {
+    @PostMapping("/{quizId}/complete")
+    fun completeQuiz(@PathVariable quizId: Long, @AuthenticationPrincipal user: User): Map<String, Any> {
         val quiz = quizRepo.findById(quizId)
             .orElseThrow { ResponseStatusException(HttpStatus.NOT_FOUND, "Quiz not found") }
-        val student = userRepo.findByEmail("student@elekeza.app")
-            ?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Demo student not found")
 
-        val attempts = attemptRepo.findByQuizIdAndUserId(quizId, student.id)
+        // Look up attempts for the authenticated user
+        val attempts = attemptRepo.findByQuizIdAndUserId(quizId, user.id)
         val correctCount = attempts?.score?.times(attempts.totalQuestions)?.toInt() ?: 1
         val totalQuestions = attempts?.totalQuestions ?: 2
         val score = if (totalQuestions > 0) (correctCount.toDouble() / totalQuestions) * 100 else 0.0
 
-        // Save progress for the demo student
-        val existing = progressRepo.findByUserIdAndContentId(student.id, quiz.contentId)
-        val progress = existing ?: LessonProgress(user = student, contentId = quiz.contentId)
+        // Save progress for the authenticated user
+        val existing = progressRepo.findByUserIdAndContentId(user.id, quiz.contentId)
+        val progress = existing ?: LessonProgress(user = user, contentId = quiz.contentId)
         progress.quizScore = score
         progress.completed = true
         progressRepo.save(progress)

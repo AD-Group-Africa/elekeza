@@ -1,5 +1,3 @@
-﻿# DEV PROFILE — activated with SPRING_PROFILES_ACTIVE=dev
-
 spring:
   datasource:
     url: jdbc:h2:mem:elekeza;DB_CLOSE_DELAY=-1;MODE=PostgreSQL
@@ -45,7 +43,7 @@ ai:
 app:
   frontend-url: http://localhost:3000
   cors:
-    allowed-origins: http://localhost:3000
+    allowed-origins: "*"
 
 mpesa:
   consumer-key: dev-key

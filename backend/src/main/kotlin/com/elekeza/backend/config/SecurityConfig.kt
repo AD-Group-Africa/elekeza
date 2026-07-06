@@ -25,7 +25,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource
 class SecurityConfig(
     private val jwtAuthFilter: JwtAuthFilter
 ) {
-    @Value("\${app.cors.allowed-origins:http://localhost:3000}")
+    @Value("\${app.cors.allowed-origins}")
     private lateinit var allowedOriginsRaw: String
 
     @Bean
@@ -42,47 +42,23 @@ class SecurityConfig(
             .csrf { it.disable() }
             .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
             .authorizeHttpRequests { auth ->
-
-                // Ã¢â€â‚¬Ã¢â€â‚¬ Public routes Ã¢â‚¬â€ no JWT required Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
-                auth.requestMatchers("/api/auth/**", "/api/quiz/**", "/api/content/**", "/api/progress/**", "/actuator/**", "/h2-console/**").permitAll()
-
-                // Preflight requests
-                auth.requestMatchers("/api/auth/**", "/api/quiz/**", "/api/content/**", "/api/progress/**", "/actuator/**", "/h2-console/**").permitAll()
-
-                // Ã¢â€â‚¬Ã¢â€â‚¬ Role-scoped routes Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
-                auth.requestMatchers("/api/admin/**").hasRole("ADMIN")
-                auth.requestMatchers("/api/teacher/**").hasAnyRole("TEACHER", "ADMIN")
-                auth.requestMatchers("/api/guardian/**").hasAnyRole("GUARDIAN", "ADMIN")
-                auth.requestMatchers("/api/admin/flags/**").hasRole("ADMIN")
-
-                // Ã¢â€â‚¬Ã¢â€â‚¬ Authenticated routes (any valid role) Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
-                auth.requestMatchers(
-                    "/api/auth/me",
-                    "/api/auth/logout",
-                    "/api/content/**",
-                    "/api/quiz/**",
-                    "/api/learner/**",
-                    "/api/onboarding/**"
-                ).authenticated()
-
-                // Deny everything else by default
-                auth.anyRequest().denyAll()
+                auth.requestMatchers("/api/auth/**", "/actuator/health", "/h2-console/**").permitAll()
+                auth.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                auth.anyRequest().authenticated()
             }
             .formLogin { it.disable() }
             .httpBasic { it.disable() }
             .oauth2Login { it.disable() }
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter::class.java)
-
         return http.build()
     }
 
     @Bean
     fun corsConfigurationSource(): CorsConfigurationSource {
         val config = CorsConfiguration()
-        config.allowedOrigins = allowedOriginsRaw.split(",").map { it.trim() }
+        config.allowedOriginPatterns = listOf("*")
         config.allowedMethods = listOf("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
         config.allowedHeaders = listOf("*")
-        config.exposedHeaders = listOf("X-Access-Token")
         config.allowCredentials = true
         val source = UrlBasedCorsConfigurationSource()
         source.registerCorsConfiguration("/**", config)
