@@ -1,38 +1,21 @@
--- V16__performance_indexes.sql
--- Performance indexes for high-frequency queries
--- Safe to run on existing data — IF NOT EXISTS prevents errors
+﻿-- V16: Performance indexes (fixed - removed non-existent quiz_sessions table)
 
--- Content queries by user (dashboard history, file list)
-CREATE INDEX IF NOT EXISTS idx_content_user_created
-    ON content(user_id, created_at DESC);
+-- Content indexes
+CREATE INDEX IF NOT EXISTS idx_content_user_status ON content(user_id, status);
 
--- Lesson progress queries (stats, streak calculation, recent activity)
-CREATE INDEX IF NOT EXISTS idx_lesson_progress_user_created
-    ON lesson_progress(user_id, created_at DESC);
+-- Quiz indexes
+CREATE INDEX IF NOT EXISTS idx_quiz_content ON quizzes(content_id);
+CREATE INDEX IF NOT EXISTS idx_quiz_question_quiz ON quiz_questions(quiz_id);
+CREATE INDEX IF NOT EXISTS idx_quiz_attempt_user_quiz ON quiz_attempts(user_id, quiz_id);
 
-CREATE INDEX IF NOT EXISTS idx_lesson_progress_user_completed
-    ON lesson_progress(user_id, completed);
+-- Lesson progress indexes
+CREATE INDEX IF NOT EXISTS idx_lesson_progress_user_content ON lesson_progress(user_id, content_id);
+CREATE INDEX IF NOT EXISTS idx_lesson_progress_user_completed ON lesson_progress(user_id, completed);
 
--- Quiz sessions by lesson (quiz start/resume)
-CREATE INDEX IF NOT EXISTS idx_quiz_sessions_lesson
-    ON quiz_sessions(lesson_id);
+-- User indexes
+CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
+CREATE INDEX IF NOT EXISTS idx_users_role ON users(role);
 
-CREATE INDEX IF NOT EXISTS idx_quiz_sessions_user
-    ON quiz_sessions(user_id);
-
--- Audit log queries (analytics, debugging)
-CREATE INDEX IF NOT EXISTS idx_audit_logs_user_created
-    ON audit_logs(user_id, created_at DESC);
-
-CREATE INDEX IF NOT EXISTS idx_audit_logs_action
-    ON audit_logs(action, created_at DESC);
-
--- Learner profile by user (UI config, onboarding check)
--- Note: LearnerProfile entity already has @Index annotation
--- This ensures the index exists even if Hibernate didn't create it
-CREATE INDEX IF NOT EXISTS idx_learner_profile_user
-    ON learner_profiles(user_id);
-
--- Guardians by learner
-CREATE INDEX IF NOT EXISTS idx_guardians_learner
-    ON guardians(learner_id);
+-- Guardian indexes
+CREATE INDEX IF NOT EXISTS idx_guardians_email ON guardians(email);
+CREATE INDEX IF NOT EXISTS idx_guardians_learner ON guardians(learner_id);
