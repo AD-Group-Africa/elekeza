@@ -47,7 +47,7 @@ class TeacherController(
             role = UserRole.STUDENT,
             institutionId = institutionId
         ))
-        val sneType = try { com.elekeza.backend.learner.SneType.valueOf(req.sneType) } catch (e: Exception) { com.elekeza.backend.learner.SneType.NONE }
+        val sneType = try { com.elekeza.backend.auth.SneType.valueOf(req.sneType) } catch (e: Exception) { com.elekeza.backend.auth.SneType.NONE }
         learnerProfileRepo.save(com.elekeza.backend.learner.LearnerProfile(
             user = student,
             sneType = sneType,
@@ -78,3 +78,4 @@ class TeacherController(
         return ResponseEntity.ok(mapOf("studentName" to student.name, "completedLessons" to completed, "averageScore" to (avgScore ?: 0.0)))
     }
 }
+
