@@ -1,10 +1,11 @@
-package com.elekeza.institution
+﻿package com.elekeza.backend.institution
 
-import com.elekeza.user.User
-import com.elekeza.user.UserRepository
-import com.elekeza.user.UserRole
-import com.elekeza.learner.LearnerProfile
-import com.elekeza.learner.LearnerProfileRepository
+import com.elekeza.backend.auth.User
+import com.elekeza.backend.auth.UserRepository
+import com.elekeza.backend.auth.UserRole
+import com.elekeza.backend.learner.LearnerProfile
+import com.elekeza.backend.learner.LearnerProfileRepository
+import com.elekeza.backend.auth.SneType
 import com.opencsv.CSVReader
 import org.slf4j.LoggerFactory
 import org.springframework.security.crypto.password.PasswordEncoder
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.multipart.MultipartFile
 import java.io.InputStreamReader
+import java.time.Instant
 import java.util.UUID
 
 @Service
@@ -40,7 +42,7 @@ class InstitutionService(
         val lastName: String,
         val classYear: String?,
         val age: Int?,
-        val sneType: String?,  // DYSLEXIA, ADHD, AUTISM, INTELLECTUAL_DISABILITY, DYSCALCULIA, NONE
+        val sneType: String?,
         val guardianPhone: String?,
         val guardianEmail: String?,
     )
@@ -68,7 +70,7 @@ class InstitutionService(
         val gradeLevel: String?,
         val lessonsCompleted: Int,
         val averageScore: Double?,
-        val lastActive: java.time.Instant?,
+        val lastActive: Instant?,
     )
 
     @Transactional
@@ -82,19 +84,16 @@ class InstitutionService(
             contactPhone = request.contactPhone,
         ))
 
-        // Create admin user
         val tempPassword = generateTempPassword()
         val admin = userRepo.save(User(
             email = request.adminEmail,
-            passwordHash = passwordEncoder.encode(tempPassword),
-            firstName = request.adminFirstName,
-            lastName = request.adminLastName,
+            password = passwordEncoder.encode(tempPassword),
+            name = "${request.adminFirstName} ${request.adminLastName}",
             role = UserRole.SCHOOL_ADMIN,
             institutionId = institution.id,
         ))
 
         log.info("Institution registered: name={}, admin={}", institution.name, admin.email)
-        // TODO: Send welcome email with temp password
         return institution
     }
 
@@ -106,13 +105,12 @@ class InstitutionService(
         val results = mutableListOf<ImportRowResult>()
         val reader = CSVReader(InputStreamReader(file.inputStream))
 
-        // Skip header row
         val rows = reader.readAll().drop(1)
         var succeeded = 0
         var failed = 0
 
         rows.forEachIndexed { index, columns ->
-            val rowNum = index + 2 // 1-indexed + header
+            val rowNum = index + 2
             try {
                 if (columns.size < 2) {
                     results.add(ImportRowResult(rowNum, "FAILED", error = "Missing required columns"))
@@ -125,7 +123,7 @@ class InstitutionService(
                     lastName = columns.getOrElse(1) { "" }.trim(),
                     classYear = columns.getOrNull(2)?.trim()?.takeIf { it.isNotBlank() },
                     age = columns.getOrNull(3)?.trim()?.toIntOrNull(),
-                    sneType = columns.getOrNull(4)?.trim()?.takeIf { it.isNotBlank() },
+                    sneType = columns.getOrNull(4)?.trim()?.takeIf { it.isNotBlank() } ?: "NONE",
                     guardianPhone = columns.getOrNull(5)?.trim()?.takeIf { it.isNotBlank() },
                     guardianEmail = columns.getOrNull(6)?.trim()?.takeIf { it.isNotBlank() },
                 )
@@ -136,37 +134,32 @@ class InstitutionService(
                     return@forEachIndexed
                 }
 
-                // Create student user
                 val studentEmail = generateStudentEmail(row.firstName, row.lastName, institutionId)
                 val tempPassword = generateTempPassword()
                 val student = userRepo.save(User(
                     email = studentEmail,
-                    passwordHash = passwordEncoder.encode(tempPassword),
-                    firstName = row.firstName,
-                    lastName = row.lastName,
-                    role = UserRole.LEARNER,
+                    password = passwordEncoder.encode(tempPassword),
+                    name = "${row.firstName} ${row.lastName}",
+                    role = UserRole.STUDENT,
                     institutionId = institutionId,
                 ))
 
-                // Create learner profile with SNE type
+                val sneTypeEnum = try { SneType.valueOf(row.sneType ?: "NONE") } catch (e: IllegalArgumentException) { SneType.NONE }
                 learnerProfileRepo.save(LearnerProfile(
-                    userId = student.id,
-                    gradeLevel = row.classYear,
-                    dateOfBirth = row.age?.let { java.time.LocalDate.now().minusYears(it.toLong()) },
-                    diagnosedConditions = row.sneType?.let { listOf(it) } ?: emptyList(),
-                    institutionId = institutionId,
+                    user = student,
+                    sneType = sneTypeEnum,
+                    preferences = emptyMap(),
+                    adaptationState = emptyMap()
                 ))
 
-                // Create guardian link if guardian info provided
                 if (row.guardianPhone != null || row.guardianEmail != null) {
                     val guardianEmail = row.guardianEmail ?: "guardian_${student.id}@placeholder.elekeza.app"
                     var guardian = userRepo.findByEmail(guardianEmail)
                     if (guardian == null) {
                         guardian = userRepo.save(User(
                             email = guardianEmail,
-                            passwordHash = passwordEncoder.encode(tempPassword),
-                            firstName = "Guardian of",
-                            lastName = row.firstName,
+                            password = passwordEncoder.encode(tempPassword),
+                            name = "Guardian of ${row.firstName}",
                             role = UserRole.GUARDIAN,
                             institutionId = institutionId,
                         ))
@@ -197,19 +190,19 @@ class InstitutionService(
     }
 
     fun getStudents(institutionId: Long): List<StudentSummary> {
-        val students = userRepo.findByInstitutionIdAndRole(institutionId, UserRole.LEARNER)
+        val students = userRepo.findByInstitutionIdAndRole(institutionId, UserRole.STUDENT)
         return students.map { student ->
             val profile = learnerProfileRepo.findByUserId(student.id)
             StudentSummary(
                 userId = student.id,
-                firstName = student.firstName,
-                lastName = student.lastName,
+                firstName = student.name.split(" ").firstOrNull() ?: student.name,
+                lastName = student.name.split(" ").getOrElse(1) { "" },
                 email = student.email,
-                sneType = profile?.diagnosedConditions?.firstOrNull(),
-                gradeLevel = profile?.gradeLevel,
-                lessonsCompleted = 0, // TODO: query from progress
-                averageScore = null,  // TODO: query from quiz results
-                lastActive = null,    // TODO: query from analytics
+                sneType = profile?.sneType?.name,
+                gradeLevel = null,
+                lessonsCompleted = 0,
+                averageScore = null,
+                lastActive = null,
             )
         }
     }
@@ -220,7 +213,7 @@ class InstitutionService(
         return "$base.s${institutionId}@elekeza.school"
     }
 
-    private fun generateTempPassword(): String {
-        return UUID.randomUUID().toString().take(12)
-    }
+    private fun generateTempPassword(): String = UUID.randomUUID().toString().take(12)
 }
+
+

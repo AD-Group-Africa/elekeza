@@ -1,13 +1,16 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import SidebarLayout from '@/components/layout/SidebarLayout';
 import { api } from '@/lib/api';
+import { useAuth } from '@/hooks/useAuth';
 
 export default function QuizPage() {
   const { lessonId } = useParams<{ lessonId: string }>();
   const router = useRouter();
+  const { user } = useAuth();
+  const [quizId, setQuizId] = useState<number | null>(null);
   const [questions, setQuestions] = useState<any[]>([]);
   const [currentIdx, setCurrentIdx] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
@@ -16,9 +19,16 @@ export default function QuizPage() {
   const [error, setError] = useState('');
 
   useEffect(() => {
+    if (user && user.role !== 'STUDENT' && user.role !== 'TEACHER') {
+      router.push('/guardian');
+    }
+  }, [user, router]);
+
+  useEffect(() => {
     if (!lessonId) return;
     api.get(`/quiz/${lessonId}/start`)
       .then(res => {
+        setQuizId(res.data.quizId);
         setQuestions(res.data.questions || []);
       })
       .catch(() => setError('Failed to load quiz. Is the backend running?'))
@@ -29,24 +39,15 @@ export default function QuizPage() {
     const question = questions[currentIdx];
     const newAnswers = { ...answers, [question.id]: optionId };
     setAnswers(newAnswers);
-
-    // Submit answer to backend
-    try {
-      await api.post(`/quiz/${lessonId}/answer`, {
-        questionId: question.id,
-        selectedOptionId: optionId,
-      });
-    } catch {}
-
+    try { await api.post(`/quiz/${quizId}/answer`, { questionId: question.id, selectedOptionId: optionId }); } catch {}
     if (currentIdx + 1 < questions.length) {
       setCurrentIdx(currentIdx + 1);
     } else {
-      // Quiz complete â€” calculate local score + fetch final from backend
       try {
-        const res = await api.get(`/quiz/${lessonId}/complete`);
+        const res = await api.post(`/quiz/${quizId}/complete`);
         setScore(res.data.score || 0);
       } catch {
-        const correct = questions.filter((q, i) => (newAnswers as any)[q.id] === q.correctOptionId).length;
+        const correct = questions.filter((q: any) => (answers as any)[q.id] === q.correctOptionId).length;
         setScore(Math.round((correct / questions.length) * 100));
       }
     }
@@ -74,11 +75,8 @@ export default function QuizPage() {
         <p className="text-xl mb-6">{q.questionText}</p>
         <div className="space-y-3">
           {q.options.map((opt: string, idx: number) => (
-            <button
-              key={idx}
-              onClick={() => handleAnswer(String.fromCharCode(65 + idx))}
-              className="block w-full text-left p-4 border border-gray-200 rounded-xl hover:bg-blue-50 transition"
-            >
+            <button key={idx} onClick={() => handleAnswer(String.fromCharCode(65 + idx))}
+              className="block w-full text-left p-4 border border-gray-200 rounded-xl hover:bg-blue-50 transition">
               {String.fromCharCode(65 + idx)}. {opt}
             </button>
           ))}

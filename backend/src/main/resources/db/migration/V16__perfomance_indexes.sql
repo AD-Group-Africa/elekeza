@@ -1,21 +1,27 @@
-﻿-- V16: Performance indexes (fixed - removed non-existent quiz_sessions table)
+-- V16: Performance indexes (fixed - removed non-existent quiz_sessions table)
 
--- Content indexes
-CREATE INDEX IF NOT EXISTS idx_content_user_status ON content(user_id, status);
+-- Content queries by user (dashboard history, file list)
+CREATE INDEX IF NOT EXISTS idx_content_user_created
+    ON content(user_id, created_at DESC);
 
--- Quiz indexes
-CREATE INDEX IF NOT EXISTS idx_quiz_content ON quizzes(content_id);
-CREATE INDEX IF NOT EXISTS idx_quiz_question_quiz ON quiz_questions(quiz_id);
-CREATE INDEX IF NOT EXISTS idx_quiz_attempt_user_quiz ON quiz_attempts(user_id, quiz_id);
+-- Lesson progress queries (stats, streak calculation, recent activity)
+CREATE INDEX IF NOT EXISTS idx_lesson_progress_user_created
+    ON lesson_progress(user_id, created_at DESC);
 
--- Lesson progress indexes
-CREATE INDEX IF NOT EXISTS idx_lesson_progress_user_content ON lesson_progress(user_id, content_id);
-CREATE INDEX IF NOT EXISTS idx_lesson_progress_user_completed ON lesson_progress(user_id, completed);
+CREATE INDEX IF NOT EXISTS idx_lesson_progress_user_completed
+    ON lesson_progress(user_id, completed);
 
--- User indexes
-CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
-CREATE INDEX IF NOT EXISTS idx_users_role ON users(role);
+-- Audit log queries (analytics, debugging)
+CREATE INDEX IF NOT EXISTS idx_audit_logs_user_created
+    ON audit_logs(user_id, created_at DESC);
 
--- Guardian indexes
-CREATE INDEX IF NOT EXISTS idx_guardians_email ON guardians(email);
-CREATE INDEX IF NOT EXISTS idx_guardians_learner ON guardians(learner_id);
+CREATE INDEX IF NOT EXISTS idx_audit_logs_action
+    ON audit_logs(action, created_at DESC);
+
+-- Learner profile by user (UI config, onboarding check)
+CREATE INDEX IF NOT EXISTS idx_learner_profile_user
+    ON learner_profiles(user_id);
+
+-- Guardians by learner
+CREATE INDEX IF NOT EXISTS idx_guardians_learner
+    ON guardians(learner_id);

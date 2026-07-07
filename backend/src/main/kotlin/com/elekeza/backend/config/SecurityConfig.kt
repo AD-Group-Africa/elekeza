@@ -1,4 +1,4 @@
-package com.elekeza.backend.config
+﻿package com.elekeza.backend.config
 
 import com.elekeza.backend.auth.JwtAuthFilter
 import org.springframework.beans.factory.annotation.Value
@@ -42,7 +42,7 @@ class SecurityConfig(
             .csrf { it.disable() }
             .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
             .authorizeHttpRequests { auth ->
-                auth.requestMatchers("/api/auth/**", "/actuator/health", "/h2-console/**").permitAll()
+                auth.requestMatchers("/api/auth/**", "/api/institutions/**", "/actuator/health", "/h2-console/**").permitAll()
                 auth.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 auth.anyRequest().authenticated()
             }
@@ -65,3 +65,4 @@ class SecurityConfig(
         return source
     }
 }
+
