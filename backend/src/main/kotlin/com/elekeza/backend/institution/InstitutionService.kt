@@ -5,7 +5,7 @@ import com.elekeza.backend.auth.UserRepository
 import com.elekeza.backend.auth.UserRole
 import com.elekeza.backend.learner.LearnerProfile
 import com.elekeza.backend.learner.LearnerProfileRepository
-import com.elekeza.backend.learner.SneType
+import com.elekeza.backend.auth.SneType
 import com.opencsv.CSVReader
 import org.slf4j.LoggerFactory
 import org.springframework.security.crypto.password.PasswordEncoder
@@ -144,7 +144,7 @@ class InstitutionService(
                     institutionId = institutionId,
                 ))
 
-                val sneTypeEnum = try { SneType.valueOf(row.sneType) } catch (e: IllegalArgumentException) { SneType.NONE }
+                val sneTypeEnum = try { SneType.valueOf(row.sneType ?: "NONE") } catch (e: IllegalArgumentException) { SneType.NONE }
                 learnerProfileRepo.save(LearnerProfile(
                     user = userRepo.findByEmail(studentEmail)!!,
                     sneType = sneTypeEnum,
@@ -210,3 +210,5 @@ class InstitutionService(
 
     private fun generateTempPassword(): String = UUID.randomUUID().toString().take(12)
 }
+
+
