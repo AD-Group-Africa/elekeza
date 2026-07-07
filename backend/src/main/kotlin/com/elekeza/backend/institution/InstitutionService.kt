@@ -5,7 +5,7 @@ import com.elekeza.backend.auth.UserRepository
 import com.elekeza.backend.auth.UserRole
 import com.elekeza.backend.learner.LearnerProfile
 import com.elekeza.backend.learner.LearnerProfileRepository
-import com.elekeza.backend.auth.SneType
+import com.elekeza.backend.learner.SneType
 import com.opencsv.CSVReader
 import org.slf4j.LoggerFactory
 import org.springframework.security.crypto.password.PasswordEncoder
@@ -58,6 +58,7 @@ class InstitutionService(
         val row: Int,
         val status: String,
         val email: String? = null,
+        val password: String? = null,          // NEW: return temp password
         val error: String? = null,
     )
 
@@ -85,7 +86,7 @@ class InstitutionService(
         ))
 
         val tempPassword = generateTempPassword()
-        val admin = userRepo.save(User(
+        userRepo.save(User(
             email = request.adminEmail,
             password = passwordEncoder.encode(tempPassword),
             name = "${request.adminFirstName} ${request.adminLastName}",
@@ -93,18 +94,17 @@ class InstitutionService(
             institutionId = institution.id,
         ))
 
-        log.info("Institution registered: name={}, admin={}", institution.name, admin.email)
+        log.info("Institution registered: name={}, admin={}", institution.name, request.adminEmail)
         return institution
     }
 
     @Transactional
     fun importStudentsFromCsv(institutionId: Long, file: MultipartFile): ImportResult {
-        val institution = institutionRepo.findById(institutionId)
+        institutionRepo.findById(institutionId)
             .orElseThrow { IllegalArgumentException("Institution not found") }
 
         val results = mutableListOf<ImportRowResult>()
         val reader = CSVReader(InputStreamReader(file.inputStream))
-
         val rows = reader.readAll().drop(1)
         var succeeded = 0
         var failed = 0
@@ -136,7 +136,7 @@ class InstitutionService(
 
                 val studentEmail = generateStudentEmail(row.firstName, row.lastName, institutionId)
                 val tempPassword = generateTempPassword()
-                val student = userRepo.save(User(
+                userRepo.save(User(
                     email = studentEmail,
                     password = passwordEncoder.encode(tempPassword),
                     name = "${row.firstName} ${row.lastName}",
@@ -144,33 +144,34 @@ class InstitutionService(
                     institutionId = institutionId,
                 ))
 
-                val sneTypeEnum = try { SneType.valueOf(row.sneType ?: "NONE") } catch (e: IllegalArgumentException) { SneType.NONE }
+                val sneTypeEnum = try { SneType.valueOf(row.sneType) } catch (e: IllegalArgumentException) { SneType.NONE }
                 learnerProfileRepo.save(LearnerProfile(
-                    user = student,
+                    user = userRepo.findByEmail(studentEmail)!!,
                     sneType = sneTypeEnum,
                     preferences = emptyMap(),
                     adaptationState = emptyMap()
                 ))
 
                 if (row.guardianPhone != null || row.guardianEmail != null) {
-                    val guardianEmail = row.guardianEmail ?: "guardian_${student.id}@placeholder.elekeza.app"
+                    val guardianEmail = row.guardianEmail ?: "guardian_${row.firstName.lowercase()}@placeholder.elekeza.app"
                     var guardian = userRepo.findByEmail(guardianEmail)
                     if (guardian == null) {
+                        val guardianPassword = generateTempPassword()
                         guardian = userRepo.save(User(
                             email = guardianEmail,
-                            password = passwordEncoder.encode(tempPassword),
+                            password = passwordEncoder.encode(guardianPassword),
                             name = "Guardian of ${row.firstName}",
                             role = UserRole.GUARDIAN,
                             institutionId = institutionId,
                         ))
                     }
                     guardianLinkRepo.save(GuardianLink(
-                        guardianId = guardian.id,
-                        learnerId = student.id,
+                        guardianId = guardian!!.id,
+                        learnerId = userRepo.findByEmail(studentEmail)!!.id,
                     ))
                 }
 
-                results.add(ImportRowResult(rowNum, "SUCCESS", email = studentEmail))
+                results.add(ImportRowResult(rowNum, "SUCCESS", email = studentEmail, password = tempPassword))
                 succeeded++
                 log.debug("Imported student: {} {}", row.firstName, row.lastName)
             } catch (e: Exception) {
@@ -181,12 +182,7 @@ class InstitutionService(
         }
 
         log.info("CSV import complete: {} succeeded, {} failed out of {}", succeeded, failed, rows.size)
-        return ImportResult(
-            total = rows.size,
-            succeeded = succeeded,
-            failed = failed,
-            rows = results,
-        )
+        return ImportResult(total = rows.size, succeeded = succeeded, failed = failed, rows = results)
     }
 
     fun getStudents(institutionId: Long): List<StudentSummary> {
@@ -208,12 +204,9 @@ class InstitutionService(
     }
 
     private fun generateStudentEmail(firstName: String, lastName: String, institutionId: Long): String {
-        val base = "${firstName.lowercase()}.${lastName.lowercase()}"
-            .replace(Regex("[^a-z.]"), "")
+        val base = "${firstName.lowercase()}.${lastName.lowercase()}".replace(Regex("[^a-z.]"), "")
         return "$base.s${institutionId}@elekeza.school"
     }
 
     private fun generateTempPassword(): String = UUID.randomUUID().toString().take(12)
 }
-
-
