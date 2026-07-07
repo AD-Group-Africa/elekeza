@@ -1,4 +1,4 @@
-plugins {
+﻿plugins {
 	id("org.springframework.boot") version "3.2.4"
 	id("io.spring.dependency-management") version "1.1.4"
 	kotlin("jvm") version "1.9.23"
@@ -9,7 +9,7 @@ plugins {
 group = "com.elekeza"
 version = "0.0.1-SNAPSHOT"
 
-// Use the JDK already installed on the machine Ã¢â‚¬â€ no toolchain auto-download needed
+// Use the JDK already installed on the machine ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â no toolchain auto-download needed
 java {
 	sourceCompatibility = JavaVersion.VERSION_17
 	targetCompatibility = JavaVersion.VERSION_17
@@ -20,6 +20,7 @@ repositories {
 }
 
 dependencies {
+    implementation("com.opencsv:opencsv:5.9")
 	implementation("io.hypersistence:hypersistence-utils-hibernate-63:3.7.3")
 	implementation("org.springframework.boot:spring-boot-starter-web")
 	implementation("org.springframework.boot:spring-boot-starter-security")
@@ -28,7 +29,7 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-oauth2-client")
 	implementation("org.springframework.boot:spring-boot-starter-actuator")
 	implementation("org.springframework.boot:spring-boot-starter-mail")
-	implementation("org.springframework.boot:spring-boot-starter-webflux")  // WebClient Ã¢â€ â€™ FastAPI
+	implementation("org.springframework.boot:spring-boot-starter-webflux")  // WebClient ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ FastAPI
 	implementation("com.github.vladimir-bukhtoyarov:bucket4j-core:8.0.1")
 	implementation("net.logstash.logback:logstash-logback-encoder:7.4")
 
@@ -68,5 +69,6 @@ tasks.withType<Test> {
 springBoot {
     mainClass.set("com.elekeza.backend.ElekezaApplicationKt")
 }
+
 
 

@@ -80,7 +80,8 @@ class DataInitializer(
     private fun createUserIfAbsent(email: String, rawPassword: String, fullName: String, role: UserRole): User {
         val existing = userRepository.findByEmail(email)
         if (existing != null) return existing
-        val user = User(email = email, name = fullName, password = passwordEncoder.encode(rawPassword), role = role, onboardingComplete = true)
+        val user = User(email = email, name = fullName, password = passwordEncoder.encode(rawPassword), role = role)
         return userRepository.save(user)
     }
 }
+

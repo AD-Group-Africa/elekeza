@@ -1,4 +1,4 @@
-package com.elekeza.institution
+﻿package com.elekeza.backend.institution
 
 import jakarta.persistence.*
 import java.time.Instant
@@ -23,17 +23,4 @@ data class Institution(
     val isActive: Boolean = true,
     val createdAt: Instant = Instant.now(),
     val updatedAt: Instant = Instant.now()
-)
-
-@Entity
-@Table(name = "guardian_links")
-data class GuardianLink(
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    val id: Long = 0,
-    val guardianId: Long,
-    val learnerId: Long,
-    val relationship: String = "PARENT",
-    val isActive: Boolean = true,
-    val createdAt: Instant = Instant.now()
 )

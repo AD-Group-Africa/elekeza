@@ -1,4 +1,4 @@
-package com.elekeza.backend.auth
+﻿package com.elekeza.backend.auth
 
 import com.elekeza.backend.auth.dto.LoginRequest
 import com.elekeza.backend.auth.dto.RegisterRequest
@@ -25,7 +25,7 @@ class AuthController(
     @Value("\${app.secure-cookies:false}") private val secureCookies: Boolean
 ) {
 
-    // ── Register ──────────────────────────────────────────────────────────────
+    // â”€â”€ Register â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     @PostMapping("/register")
     fun register(
@@ -36,7 +36,7 @@ class AuthController(
         return issueTokensAndRespond(user, response, HttpStatus.CREATED)
     }
 
-    // ── Login ─────────────────────────────────────────────────────────────────
+    // â”€â”€ Login â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     @PostMapping("/login")
     fun login(
@@ -47,7 +47,7 @@ class AuthController(
         return issueTokensAndRespond(user, response, HttpStatus.OK)
     }
 
-    // ── Refresh ───────────────────────────────────────────────────────────────
+    // â”€â”€ Refresh â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     // Reads refresh token from HttpOnly cookie OR Authorization header.
     // Issues a new access token (and rotates the refresh token).
 
@@ -79,7 +79,7 @@ class AuthController(
         return issueTokensAndRespond(user, response, HttpStatus.OK)
     }
 
-    // ── Me ────────────────────────────────────────────────────────────────────
+    // â”€â”€ Me â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     @GetMapping("/me")
     fun me(@AuthenticationPrincipal principal: User?): ResponseEntity<Map<String, Any>> {
@@ -88,7 +88,7 @@ class AuthController(
         return ResponseEntity.ok(buildAuthPayload(user))
     }
 
-    // ── Logout ────────────────────────────────────────────────────────────────
+    // â”€â”€ Logout â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     @PostMapping("/logout")
     fun logout(
@@ -111,7 +111,7 @@ class AuthController(
         return ResponseEntity.ok(mapOf("message" to "Logged out successfully"))
     }
 
-    // ── Shared helpers ────────────────────────────────────────────────────────
+    // â”€â”€ Shared helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     private fun issueTokensAndRespond(
         user: User,
@@ -142,7 +142,6 @@ class AuthController(
             put("email",             user.email)
             put("name",              user.name)
             put("role",              user.role.name)
-            put("onboardingComplete", user.onboardingComplete)
             accessToken?.let { put("accessToken", it) }
         }
 
@@ -152,7 +151,7 @@ class AuthController(
             secure     = secureCookies
             path       = "/api/auth"
             maxAge     = (refreshExpirationMs / 1000).toInt()
-            // SameSite=Strict — mitigates CSRF
+            // SameSite=Strict â€” mitigates CSRF
         }
         response.addCookie(cookie)
         // Also set header for clients that need it explicitly
@@ -185,3 +184,4 @@ class AuthController(
         return digest.joinToString("") { "%02x".format(it) }
     }
 }
+
