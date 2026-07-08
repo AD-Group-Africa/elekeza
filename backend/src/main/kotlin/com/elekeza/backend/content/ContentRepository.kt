@@ -1,4 +1,4 @@
-package com.elekeza.backend.content
+﻿package com.elekeza.backend.content
 
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
@@ -10,7 +10,7 @@ import org.springframework.stereotype.Repository
 import java.time.LocalDateTime
 
 @Repository
-interface ContentRepository : JpaRepository<Content, Long> {
+interface ContentRepository : JpaRepository<Content, Long> { fun findByInstitutionId(institutionId: Long): List<Content> : JpaRepository<Content, Long> {
 
     fun findByUserIdOrderByCreatedAtDesc(userId: Long, pageable: PageRequest): Page<Content>
 
