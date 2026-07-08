@@ -28,8 +28,8 @@ class InstitutionController(
     }
 
     @GetMapping("/{institutionId}/students")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SCHOOL_ADMIN')")\n    fun getStudents(@PathVariable institutionId: Long): ResponseEntity<List<InstitutionService.StudentSummary>> {
+    @PreAuthorize("hasAnyRole('ADMIN', 'SCHOOL_ADMIN')")
+    fun getStudents(@PathVariable institutionId: Long): ResponseEntity<List<InstitutionService.StudentSummary>> {
         return ResponseEntity.ok(institutionService.getStudents(institutionId))
     }
 }
-
