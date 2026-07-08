@@ -21,25 +21,27 @@ class QuizController(
 ) {
     @GetMapping("/{lessonId}/start")
     fun startQuiz(@PathVariable lessonId: Long, @AuthenticationPrincipal user: User): Map<String, Any> {
-        // Auto-create quiz if it doesn't exist
         var quiz = quizRepo.findByContentId(lessonId)
         if (quiz == null) {
-            // Create a default quiz for this lesson
             quiz = quizRepo.save(Quiz(contentId = lessonId, userId = user.id))
-            // Seed two default questions
             questionRepo.save(QuizQuestion(quizId = quiz.id, question = "What is the main idea of this lesson?", optionA = "Option A", optionB = "Option B", optionC = "Option C", optionD = "Option D", correctOption = "A", explanation = "Review the lesson content"))
             questionRepo.save(QuizQuestion(quizId = quiz.id, question = "What is a key concept from this lesson?", optionA = "Option A", optionB = "Option B", optionC = "Option C", optionD = "Option D", correctOption = "B", explanation = "Check the lesson for details"))
         }
         val questions = questionRepo.findByQuizId(quiz.id)
         if (questions.isEmpty()) throw ResponseStatusException(HttpStatus.NOT_FOUND, "No questions")
+
+        // Create a pending attempt
+        val attempt = attemptRepo.save(QuizAttempt(quizId = quiz.id, userId = user.id, totalQuestions = questions.size))
+
         return mapOf(
             "quizId" to quiz.id,
+            "attemptId" to attempt.id,
             "questions" to questions.map { q ->
                 mapOf(
                     "id" to q.id,
                     "questionText" to q.question,
-                    "options" to listOf(q.optionA, q.optionB, q.optionC, q.optionD),
-                    "correctOptionId" to q.correctOption
+                    "options" to listOf(q.optionA, q.optionB, q.optionC, q.optionD)
+                    // NEVER RETURN correctOption
                 )
             }
         )
@@ -58,23 +60,48 @@ class QuizController(
     }
 
     @PostMapping("/{quizId}/complete")
-    fun completeQuiz(@PathVariable quizId: Long, @AuthenticationPrincipal user: User): Map<String, Any> {
+    fun completeQuiz(@PathVariable quizId: Long, @RequestBody answers: List<AnswerSubmission>, @AuthenticationPrincipal user: User): Map<String, Any> {
         val quiz = quizRepo.findById(quizId)
             .orElseThrow { ResponseStatusException(HttpStatus.NOT_FOUND, "Quiz not found") }
+        val questions = questionRepo.findByQuizId(quizId)
 
-        // Look up attempts for the authenticated user
-        val attempts = attemptRepo.findByQuizIdAndUserId(quizId, user.id)
-        val correctCount = attempts?.score?.times(attempts.totalQuestions)?.toInt() ?: 1
-        val totalQuestions = attempts?.totalQuestions ?: 2
+        var correctCount = 0
+        val feedback = mutableListOf<QuizFeedbackItem>()
+
+        answers.forEach { submission ->
+            val question = questions.find { it.id == submission.questionId }
+            if (question != null) {
+                val isCorrect = submission.selectedOption == question.correctOption
+                if (isCorrect) correctCount++
+                feedback.add(QuizFeedbackItem(
+                    questionId = question.id,
+                    correct = isCorrect,
+                    correctOption = question.correctOption,
+                    explanation = question.explanation
+                ))
+            }
+        }
+
+        val totalQuestions = questions.size
         val score = if (totalQuestions > 0) (correctCount.toDouble() / totalQuestions) * 100 else 0.0
 
-        // Save progress for the authenticated user
-        val existing = progressRepo.findByUserIdAndContentId(user.id, quiz.contentId)
-        val progress = existing ?: LessonProgress(user = user, contentId = quiz.contentId)
-        progress.quizScore = score
-        progress.completed = true
-        progressRepo.save(progress)
+        // Update attempt
+        val attempt = attemptRepo.findByQuizIdAndUserId(quizId, user.id)
+        if (attempt != null) {
+            attemptRepo.save(attempt.copy(score = score, totalQuestions = totalQuestions, completed = true))
+        }
 
-        return mapOf("score" to score, "correctCount" to correctCount, "totalQuestions" to totalQuestions)
+        // Update lesson progress
+        val progress = progressRepo.findByUserIdAndContentId(user.id, quiz.contentId)
+            ?: LessonProgress(user = user, contentId = quiz.contentId)
+        val updated = progress.copy(quizScore = score, completed = true)
+        progressRepo.save(updated)
+
+        return mapOf(
+            "score" to score,
+            "correctCount" to correctCount,
+            "totalQuestions" to totalQuestions,
+            "feedback" to feedback.map { mapOf("questionId" to it.questionId, "correct" to it.correct, "correctOption" to it.correctOption, "explanation" to (it.explanation ?: "")) }
+        )
     }
 }
