@@ -42,7 +42,7 @@ class SecurityConfig(
             .csrf { it.disable() }
             .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
             .authorizeHttpRequests { auth ->
-                auth.requestMatchers("/api/auth/**", "/api/institutions/**", "/actuator/health", "/h2-console/**").permitAll()
+                auth.requestMatchers("/api/auth/**", "/api/institutions/register", "/actuator/health", "/h2-console/**").permitAll()
                 auth.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 auth.anyRequest().authenticated()
             }
@@ -56,7 +56,7 @@ class SecurityConfig(
     @Bean
     fun corsConfigurationSource(): CorsConfigurationSource {
         val config = CorsConfiguration()
-        config.allowedOriginPatterns = listOf("*")
+        config.allowedOriginPatterns = allowedOriginsRaw.split(",").map { it.trim() }
         config.allowedMethods = listOf("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
         config.allowedHeaders = listOf("*")
         config.allowCredentials = true
@@ -65,4 +65,7 @@ class SecurityConfig(
         return source
     }
 }
+
+
+
 

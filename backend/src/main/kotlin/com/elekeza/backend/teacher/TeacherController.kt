@@ -73,9 +73,16 @@ class TeacherController(
     @GetMapping("/student/{studentId}/progress")
     fun getStudentProgress(@AuthenticationPrincipal teacher: User, @PathVariable studentId: Long): ResponseEntity<Map<String, Any>> {
         val student = userRepo.findById(studentId).orElseThrow()
+        if (student.institutionId != teacher.institutionId) throw SecurityException("Cross-institution access denied")
+        val completed = lessonProgressRepo.countByUserIdAndCompleted(studentId, true)
+        val avgScore = lessonProgressRepo.avgQuizScore(studentId)
+        return ResponseEntity.ok(mapOf("studentName" to student.name, "completedLessons" to completed, "averageScore" to (avgScore ?: 0.0)))
+    } {
+        val student = userRepo.findById(studentId).orElseThrow()
         val completed = lessonProgressRepo.countByUserIdAndCompleted(studentId, true)
         val avgScore = lessonProgressRepo.avgQuizScore(studentId)
         return ResponseEntity.ok(mapOf("studentName" to student.name, "completedLessons" to completed, "averageScore" to (avgScore ?: 0.0)))
     }
 }
+
 

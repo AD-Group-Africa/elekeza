@@ -136,9 +136,7 @@ Week	Focus	Status
 Full documentation: see docs/ELEKEZA_COMPLETE_DOCS.md for the complete startup blueprint.
 
 Team (AD Group Africa)
-Sir – CTO, Architecture, DevOps, Security
-
-Harrison – Backend, Content Pipeline, Quiz Engine
+Harrison – Backend, Content Pipeline, Quiz Engine, CTO, Architecture, DevOps, Security
 
 Victor – Frontend, UI/UX, Accessibility
 
