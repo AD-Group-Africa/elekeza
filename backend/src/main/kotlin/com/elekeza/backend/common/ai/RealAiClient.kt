@@ -2,8 +2,6 @@
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.http.HttpStatusCode
@@ -14,13 +12,21 @@ import java.time.Duration
 
 @Service
 @ConditionalOnProperty(name = ["ai.client.type"], havingValue = "real", matchIfMissing = false)
-class RealAiClient @Autowired constructor(
-    @Qualifier("aiWebClient") private val webClient: WebClient,
+class RealAiClient(
     private val objectMapper: ObjectMapper,
+    @Value("\${ai.base-url:http://localhost:8000}") private val baseUrl: String,
+    @Value("\${ai.internal-secret:dev-secret}") private val internalSecret: String,
     @Value("\${ai.timeout-seconds:60}") private val timeoutSeconds: Long
 ) : AiClient {
 
     private val log = LoggerFactory.getLogger(javaClass)
+
+    private val webClient: WebClient by lazy {
+        WebClient.builder()
+            .baseUrl(baseUrl)
+            .defaultHeader("X-Internal-Key", internalSecret)
+            .build()
+    }
 
     override fun simplifyText(request: SimplifyTextRequest): LessonJSON =
         call("/ai/simplify/text", request, LessonJSON::class.java)
