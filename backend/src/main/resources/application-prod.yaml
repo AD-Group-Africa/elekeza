@@ -5,9 +5,9 @@
     password: ${DB_PASSWORD}
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: validate
   flyway:
-    enabled: false
+    enabled: true
   mail:
     host: smtp.gmail.com
     port: 587
