@@ -6,13 +6,17 @@
   jpa:
     hibernate:
       ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
   flyway:
-    enabled: true
+    enabled: false
 
 ai:
   client:
     type: real
   base-url: ${AI_SERVICE_URL}
+  internal-secret: ${AI_INTERNAL_SECRET}
   timeout-seconds: 120
 
 app:
@@ -21,7 +25,3 @@ app:
 
 jwt:
   secret: ${JWT_SECRET}
-
-ai:
-  internal-secret: ${AI_INTERNAL_SECRET}
-
