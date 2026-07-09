@@ -24,3 +24,15 @@ jwt:
 
 mpesa:
   callback-url: 
+
+# Disable mail health check (free tier blocks SMTP)
+spring:
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: placeholder@example.com
+    password: placeholder
+management:
+  health:
+    mail:
+      enabled: false
