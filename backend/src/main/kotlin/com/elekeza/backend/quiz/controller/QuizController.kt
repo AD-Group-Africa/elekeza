@@ -7,8 +7,10 @@ import com.elekeza.backend.learner.LessonProgressRepository
 import com.elekeza.backend.quiz.*
 import org.springframework.http.HttpStatus
 import org.springframework.security.core.annotation.AuthenticationPrincipal
+import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.server.ResponseStatusException
+import java.time.LocalDateTime
 
 @RestController
 @RequestMapping("/api/quiz")
@@ -60,6 +62,7 @@ class QuizController(
     }
 
     @PostMapping("/{quizId}/complete")
+    @Transactional
     fun completeQuiz(@PathVariable quizId: Long, @RequestBody answers: List<AnswerSubmission>, @AuthenticationPrincipal user: User): Map<String, Any> {
         val quiz = quizRepo.findById(quizId)
             .orElseThrow { ResponseStatusException(HttpStatus.NOT_FOUND, "Quiz not found") }
@@ -85,17 +88,30 @@ class QuizController(
         val totalQuestions = questions.size
         val score = if (totalQuestions > 0) (correctCount.toDouble() / totalQuestions) * 100 else 0.0
 
-        // Update attempt
-        val attempt = attemptRepo.findByQuizIdAndUserId(quizId, user.id)
-        if (attempt != null) {
-            attemptRepo.save(attempt.copy(score = score, totalQuestions = totalQuestions, completed = true))
+        // Update the latest attempt (handles multiple starts on same quiz)
+        val attempts = attemptRepo.findByQuizIdAndUserId(quizId, user.id)
+        val latest = attempts.maxByOrNull { it.createdAt }
+        if (latest != null) {
+            attemptRepo.save(latest.copy(score = score, totalQuestions = totalQuestions, completed = true, completedAt = LocalDateTime.now()))
         }
 
-        // Update lesson progress
-        val progress = progressRepo.findByUserIdAndContentId(user.id, quiz.contentId)
-            ?: LessonProgress(user = user, contentId = quiz.contentId)
-        val updated = progress.copy(quizScore = score, completed = true)
-        progressRepo.save(updated)
+        // Update lesson progress (mutate managed entity)
+        val managedUser = userRepo.findById(user.id).orElseThrow()
+        val existingProgress = progressRepo.findByUserIdAndContentId(user.id, quiz.contentId)
+        if (existingProgress != null) {
+            existingProgress.quizScore = score
+            existingProgress.completed = true
+            existingProgress.completedAt = LocalDateTime.now()
+            progressRepo.save(existingProgress)
+        } else {
+            progressRepo.save(LessonProgress(
+                user = managedUser,
+                contentId = quiz.contentId,
+                quizScore = score,
+                completed = true,
+                completedAt = LocalDateTime.now()
+            ))
+        }
 
         return mapOf(
             "score" to score,
@@ -105,3 +121,4 @@ class QuizController(
         )
     }
 }
+

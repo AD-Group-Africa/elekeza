@@ -67,7 +67,7 @@ interface QuizQuestionRepository : JpaRepository<QuizQuestion, Long> {
 
 @Repository
 interface QuizAttemptRepository : JpaRepository<QuizAttempt, Long> {
-    fun findByQuizIdAndUserId(quizId: Long, userId: Long): QuizAttempt?
+    fun findByQuizIdAndUserId(quizId: Long, userId: Long): List<QuizAttempt>
 }
 
 // ── DTOs ──────────────────────────────────────────────────────────────────────
@@ -111,3 +111,5 @@ data class QuizResult(
 
 // Legacy aliases (used by some older controller code)
 typealias QuizSubmission = AnswerSubmission
+
+
