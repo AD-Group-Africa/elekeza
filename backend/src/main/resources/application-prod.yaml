@@ -8,6 +8,16 @@
       ddl-auto: update
   flyway:
     enabled: false
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: placeholder@example.com
+    password: placeholder
+
+management:
+  health:
+    mail:
+      enabled: false
 
 ai:
   client-type: ${AI_CLIENT_TYPE}
@@ -21,18 +31,3 @@ app:
 
 jwt:
   secret: ${JWT_SECRET}
-
-mpesa:
-  callback-url: 
-
-# Disable mail health check (free tier blocks SMTP)
-spring:
-  mail:
-    host: smtp.gmail.com
-    port: 587
-    username: placeholder@example.com
-    password: placeholder
-management:
-  health:
-    mail:
-      enabled: false
