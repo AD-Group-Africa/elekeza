@@ -1,4 +1,4 @@
-import axios, { AxiosInstance } from 'axios'
+﻿import axios, { AxiosInstance } from 'axios'
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? '/api'
 
@@ -39,7 +39,7 @@ api.interceptors.response.use(
   }
 )
 
-// ── Auth ──────────────────────────────────────────────────────────────────────
+// â”€â”€ Auth â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export const authAPI = {
   login:    (email: string, password: string) => api.post('/auth/login', { email, password }),
@@ -49,7 +49,7 @@ export const authAPI = {
   logout:   ()                                => api.post('/auth/logout'),
 }
 
-// ── Content ───────────────────────────────────────────────────────────────────
+// â”€â”€ Content â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export const contentAPI = {
   uploadText: (data: { text: string; title?: string; language?: string; sneType?: string }) =>
@@ -65,12 +65,12 @@ export const contentAPI = {
 
   list: () => api.get('/content/list'),
 
-  // Legacy alias — kept for backward compatibility with existing pages
+  // Legacy alias â€” kept for backward compatibility with existing pages
   getContent: (id: string | number) => api.get(`/content/lessons/${id}`),
   history:    ()                     => api.get('/content/list'),
 }
 
-// ── Onboarding ────────────────────────────────────────────────────────────────
+// â”€â”€ Onboarding â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export const onboardingAPI = {
   profile:  (data: unknown) => api.post('/onboarding/profile', data),
@@ -79,7 +79,7 @@ export const onboardingAPI = {
   getStatus:(learnerId: number) => api.get(`/onboarding/${learnerId}`),
 }
 
-// ── Quiz ──────────────────────────────────────────────────────────────────────
+// â”€â”€ Quiz â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export const quizAPI = {
   start: (lessonId: string | number) =>
@@ -95,14 +95,14 @@ export const quizAPI = {
     api.get(`/quiz/${quizId}/review`),
 }
 
-// ── Progress / Dashboard ──────────────────────────────────────────────────────
+// â”€â”€ Progress / Dashboard â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export const progressAPI = {
   dashboard: (userId: number) => api.get(`/learner/dashboard?userId=${userId}`),
   lessons:   (userId: number) => api.get(`/learner/${userId}/lessons`),
 }
 
-// ── Teacher ───────────────────────────────────────────────────────────────────
+// â”€â”€ Teacher â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export const teacherAPI = {
   getStudents:      ()                                  => api.get('/teacher/students'),
@@ -113,10 +113,30 @@ export const teacherAPI = {
   listContent:      ()                                  => api.get('/content/list'),
 }
 
-// ── Guardian ──────────────────────────────────────────────────────────────────
-// Note: api baseURL already includes /api — do NOT prefix with /api here
+// â”€â”€ Guardian â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Note: api baseURL already includes /api â€” do NOT prefix with /api here
 
 export const guardianAPI = {
   getWards:    ()                     => api.get('/guardian/wards'),
   getProgress: (wardId: number)       => api.get(`/guardian/wards/${wardId}/progress`),
+}
+
+// Analytics
+export const analyticsAPI = {
+  teacher:   () => api.get('/analytics/teacher'),
+  student:   () => api.get('/analytics/student'),
+  guardian:  () => api.get('/analytics/guardian'),
+  admin:     () => api.get('/analytics/admin'),
+  dashboard: () => api.get('/analytics/dashboard'),
+}
+// Payments
+export const paymentsAPI = {
+  stkPush: (phone: string, amount: number, reference: string) => api.post('/payments/stkpush', { phone, amount, reference }),
+  revenue:  () => api.get('/payments/revenue'),
+  transactions: () => api.get('/payments/transactions'),
+}
+// Notifications
+export const notificationsAPI = {
+  sendSms: (recipients: string[], message: string) => api.post('/notifications/sms', { recipients, message }),
+  guardianNotification: (phone: string, childName: string, event: string) => api.post('/notifications/guardian', { phone, childName, event }),
 }

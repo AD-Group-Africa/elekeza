@@ -6,15 +6,15 @@ x-logging: &default-logging
     max-size: "50m"
     max-file: "3"
 
-services:
-  postgres:
-    image: postgres:16-alpine
-    restart: unless-stopped
-    environment:
-      POSTGRES_DB: ${DB_NAME}
-      POSTGRES_USER: ${DB_USER}
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
-    volumes:
+  services:
+    postgres:
+      image: postgres:16-alpine
+      restart: unless-stopped
+      environment:
+        POSTGRES_DB: ${DB_NAME}
+        POSTGRES_USER: ${DB_USER}
+        POSTGRES_PASSWORD: ${DB_PASSWORD}
+      volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
       - "127.0.0.1:5432:5432"

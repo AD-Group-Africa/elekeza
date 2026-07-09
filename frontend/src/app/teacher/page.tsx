@@ -1,137 +1,94 @@
 ﻿'use client';
-
 import { useEffect, useState } from 'react';
 import SidebarLayout from '@/components/layout/SidebarLayout';
 import { api } from '@/lib/api';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 
-interface Student {
-  id: string;
-  name: string;
-  email: string;
-  sneType: string;
+interface Analytics {
+  totalLearners: number; activeLearners: number; lessonsCreated: number; lessonsAssigned: number;
+  completionRate: number; averageScore: number; atRiskStudents: number;
+  weeklyActivity: { day: string; completed: number }[];
+  recentAssignments: { studentName: string; lessonId: number; score: number; completed: boolean; date: string }[];
 }
 
-interface Lesson {
-  id: number;
-  title: string;
-  status: string;
-}
+const COLORS = ['#3B6DE5', '#8B45F5', '#10B981', '#F59E0B', '#EF4444'];
 
 export default function TeacherDashboard() {
-  const [students, setStudents] = useState<Student[]>([]);
-  const [lessons, setLessons] = useState<Lesson[]>([]);
-  const [form, setForm] = useState({ email: '', fullName: '', password: '', sneType: 'DYSLEXIA' });
-  const [selectedStudentIds, setSelectedStudentIds] = useState<string[]>([]);
-  const [selectedLessonId, setSelectedLessonId] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [analytics, setAnalytics] = useState<Analytics | null>(null);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [tab, setTab] = useState<'students' | 'assign'>('students');
 
   useEffect(() => {
-    api.get('/teacher/students').then(res => setStudents(res.data)).catch(() => {});
-    api.get('/content/list').then(res => setLessons(res.data)).catch(() => {});
+    api.get('/analytics/teacher')
+      .then(res => setAnalytics(res.data))
+      .catch(() => setError('Failed to load dashboard'))
+      .finally(() => setLoading(false));
   }, []);
 
-  const handleCreate = async () => {
-    setError(''); setLoading(true);
-    try {
-      await api.post('/teacher/student', form);
-      const res = await api.get('/teacher/students');
-      setStudents(res.data);
-      setForm({ email: '', fullName: '', password: '', sneType: 'DYSLEXIA' });
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to create student');
-    } finally { setLoading(false); }
-  };
-
-  const toggleStudentSelection = (id: string) => {
-    setSelectedStudentIds(prev =>
-      prev.includes(id) ? prev.filter(s => s !== id) : [...prev, id]
-    );
-  };
-
-  const handleAssign = async () => {
-    if (!selectedLessonId || selectedStudentIds.length === 0) { setError('Select a lesson and at least one student'); return; }
-    setLoading(true); setError('');
-    try {
-      await api.post('/teacher/content/assign', {
-        contentId: Number(selectedLessonId),
-        studentIds: selectedStudentIds.map(Number)
-      });
-      alert('Lesson assigned!');
-      setSelectedStudentIds([]);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Assignment failed');
-    } finally { setLoading(false); }
-  };
+  if (loading) return <SidebarLayout><div className="flex items-center justify-center h-64 text-white">Loading dashboard...</div></SidebarLayout>;
+  if (error) return <SidebarLayout><div className="bg-red-100 text-red-700 p-4 rounded-lg">{error}</div></SidebarLayout>;
+  if (!analytics) return null;
 
   return (
     <SidebarLayout>
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-white">Teacher Dashboard</h1>
+      <h1 className="text-3xl font-bold text-white mb-8">Teacher Dashboard</h1>
+      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
+        {[
+          { label: 'Total Learners', value: analytics.totalLearners },
+          { label: 'Active This Week', value: analytics.activeLearners },
+          { label: 'Avg Score', value: `${analytics.averageScore.toFixed(1)}%` },
+          { label: 'Completion Rate', value: `${analytics.completionRate.toFixed(0)}%` },
+          { label: 'At Risk', value: analytics.atRiskStudents },
+        ].map((card, i) => (
+          <div key={i} className="bg-white rounded-xl p-4 shadow">
+            <p className="text-sm text-gray-500">{card.label}</p>
+            <p className="text-3xl font-bold text-gray-800">{card.value}</p>
+          </div>
+        ))}
       </div>
-
-      {error && <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg mb-4">{error}</div>}
-
-      <div className="flex gap-4 mb-6">
-        <button onClick={() => setTab('students')} className={`btn-primary ${tab === 'students' ? 'opacity-100' : 'opacity-50'}`}>Students</button>
-        <button onClick={() => setTab('assign')} className={`btn-primary ${tab === 'assign' ? 'opacity-100' : 'opacity-50'}`}>Assign Lesson</button>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <div className="bg-white rounded-xl p-6 shadow">
+          <h2 className="text-lg font-semibold text-gray-800 mb-4">Weekly Activity</h2>
+          <ResponsiveContainer width="100%" height={250}>
+            <BarChart data={analytics.weeklyActivity}>
+              <CartesianGrid strokeDasharray="3 3" /><XAxis dataKey="day" /><YAxis /><Tooltip />
+              <Bar dataKey="completed" fill="#3B6DE5" radius={[4, 4, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+        <div className="bg-white rounded-xl p-6 shadow">
+          <h2 className="text-lg font-semibold text-gray-800 mb-4">Lesson Completion</h2>
+          <ResponsiveContainer width="100%" height={250}>
+            <PieChart>
+              <Pie data={[
+                { name: 'Completed', value: analytics.lessonsAssigned > 0 ? analytics.completionRate : 0 },
+                { name: 'Pending', value: analytics.lessonsAssigned > 0 ? 100 - analytics.completionRate : 100 }
+              ]} cx="50%" cy="50%" outerRadius={100} dataKey="value" label>
+                {[0, 1].map((_, i) => <Cell key={i} fill={COLORS[i]} />)}
+              </Pie>
+              <Tooltip />
+            </PieChart>
+          </ResponsiveContainer>
+        </div>
       </div>
-
-      {tab === 'students' && (
-        <div className="card mb-6">
-          <h2 className="text-xl font-semibold text-blue-900 mb-4">Create Learner</h2>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <input className="border rounded-lg px-3 py-2" placeholder="Email" value={form.email} onChange={e => setForm({...form, email: e.target.value})} />
-            <input className="border rounded-lg px-3 py-2" placeholder="Full Name" value={form.fullName} onChange={e => setForm({...form, fullName: e.target.value})} />
-            <input className="border rounded-lg px-3 py-2" type="password" placeholder="Password" value={form.password} onChange={e => setForm({...form, password: e.target.value})} />
-            <select className="border rounded-lg px-3 py-2" value={form.sneType} onChange={e => setForm({...form, sneType: e.target.value})}>
-              <option>DYSLEXIA</option><option>ADHD</option><option>AUTISM</option><option>INTELLECTUAL_DISABILITY</option><option>DYSCALCULIA</option><option>NONE</option>
-            </select>
-          </div>
-          <button onClick={handleCreate} disabled={loading} className="btn-primary mt-4 disabled:opacity-50">
-            {loading ? 'Creating...' : 'Create Student'}
-          </button>
-
-          <h2 className="text-xl font-semibold text-blue-900 mt-8 mb-4">Your Students</h2>
-          {students.length === 0 ? <p className="text-gray-500">No students in your institution yet.</p> : (
-            <ul className="space-y-2">
-              {students.map(s => (
-                <li key={s.id} className="flex justify-between items-center border-b pb-2">
-                  <span className="text-gray-700">{s.name} ({s.sneType})</span>
-                </li>
+      <div className="bg-white rounded-xl p-6 shadow">
+        <h2 className="text-lg font-semibold text-gray-800 mb-4">Recent Assignments</h2>
+        <div className="overflow-x-auto">
+          <table className="w-full text-left">
+            <thead><tr className="text-gray-600 border-b"><th>Student</th><th>Lesson</th><th>Score</th><th>Date</th></tr></thead>
+            <tbody>
+              {analytics.recentAssignments.map((a, i) => (
+                <tr key={i} className="border-b">
+                  <td className="p-2">{a.studentName}</td>
+                  <td className="p-2">Lesson #{a.lessonId}</td>
+                  <td className="p-2"><span className={a.score >= 70 ? 'text-green-600' : 'text-red-600'}>{a.score}%</span></td>
+                  <td className="p-2 text-sm text-gray-500">{new Date(a.date).toLocaleDateString()}</td>
+                </tr>
               ))}
-            </ul>
-          )}
+            </tbody>
+          </table>
         </div>
-      )}
-
-      {tab === 'assign' && (
-        <div className="card mb-6">
-          <h2 className="text-xl font-semibold text-blue-900 mb-4">Assign Lesson</h2>
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Lesson</label>
-            <select className="border rounded-lg px-3 py-2 w-full" value={selectedLessonId} onChange={e => setSelectedLessonId(e.target.value)}>
-              <option value="">Select lesson</option>
-              {lessons.map(l => <option key={l.id} value={l.id}>{l.title}</option>)}
-            </select>
-          </div>
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Students (select one or more)</label>
-            <div className="max-h-48 overflow-y-auto border rounded-lg p-2">
-              {students.map(s => (
-                <label key={s.id} className="flex items-center gap-2 py-1">
-                  <input type="checkbox" checked={selectedStudentIds.includes(s.id)} onChange={() => toggleStudentSelection(s.id)} />
-                  {s.name} ({s.sneType})
-                </label>
-              ))}
-            </div>
-          </div>
-          <button onClick={handleAssign} disabled={loading} className="btn-primary py-2">
-            {loading ? 'Assigning...' : `Assign to ${selectedStudentIds.length} student(s)`}
-          </button>
-        </div>
-      )}
+      </div>
     </SidebarLayout>
   );
 }
