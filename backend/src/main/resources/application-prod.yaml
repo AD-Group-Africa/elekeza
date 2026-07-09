@@ -5,7 +5,7 @@
     password: ${DB_PASSWORD}
   jpa:
     hibernate:
-      ddl-auto: validate
+      ddl-auto: update
   flyway:
     enabled: true
 
@@ -21,3 +21,7 @@ app:
 
 jwt:
   secret: ${JWT_SECRET}
+
+ai:
+  internal-secret: ${AI_INTERNAL_SECRET}
+
