@@ -1,6 +1,8 @@
 ﻿package com.elekeza.backend.config.seed
 
 import com.elekeza.backend.auth.*
+import com.elekeza.backend.institution.GuardianLink
+import com.elekeza.backend.institution.GuardianLinkRepository
 import com.elekeza.backend.content.*
 import com.elekeza.backend.learner.*
 import com.elekeza.backend.quiz.*
@@ -22,7 +24,8 @@ class DataInitializer(
     private val questionRepo: QuizQuestionRepository,
     private val attemptRepo: QuizAttemptRepository,
     private val learnerRepo: LearnerRepository,
-    private val guardianRepo: GuardianRepository
+    private val guardianRepo: GuardianRepository,
+    private val guardianLinkRepository: GuardianLinkRepository
 ) : CommandLineRunner {
 
     private val log = LoggerFactory.getLogger(DataInitializer::class.java)
@@ -32,8 +35,15 @@ class DataInitializer(
         log.info("Seeding demo data (dev profile)...")
 
         val teacher = createUserIfAbsent("teacher@elekeza.app", "teacher123", "Alice Mwalimu", UserRole.TEACHER)
+        teacher.institutionId = 1L
+        userRepository.save(teacher)
+
         val student = createUserIfAbsent("student@elekeza.app", "student123", "Juma Ali", UserRole.STUDENT)
         val parent  = createUserIfAbsent("parent@elekeza.app",  "parent123",  "Fatima Ali", UserRole.GUARDIAN)
+
+        // Link guardian to student
+        val guardianLink = GuardianLink(guardianId = parent.id, learnerId = student.id, relationship = "PARENT")
+        guardianLinkRepository.save(guardianLink)
 
         // Learner profile for student
         if (learnerProfileRepo.findByUserId(student.id) == null) {
@@ -45,7 +55,7 @@ class DataInitializer(
             learnerRepo.save(Learner(email = student.email, cognitiveProfiles = emptyList()))
         }
 
-        // Link guardian → learner
+        // Guardian record
         if (guardianRepo.findAllByEmail(parent.email).isEmpty()) {
             guardianRepo.save(Guardian(
                 learner = learner,
@@ -84,4 +94,3 @@ class DataInitializer(
         return userRepository.save(user)
     }
 }
-
