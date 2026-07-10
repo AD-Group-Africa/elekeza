@@ -5,9 +5,8 @@
     password: ${DB_PASSWORD}
   jpa:
     hibernate:
-      ddl-auto: validate
-  flyway:
-    enabled: true
+      ddl-auto: update
+  flyway:\n      enabled: false
   mail:
     host: smtp.gmail.com
     port: 587
@@ -34,5 +33,7 @@ jwt:
 
 mpesa:
   callback-url: https://placeholder.callback
+
+
 
 
