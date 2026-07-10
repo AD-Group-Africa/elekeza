@@ -64,9 +64,7 @@ class SecurityConfig(private val jwtAuthFilter: JwtAuthFilter) {
                 auth.anyRequest().authenticated()
             }
             .formLogin { it.disable() }
-            .httpBasic { it.disable() }
-            .oauth2Login { it.disable() }
-            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter::class.java)
+            .httpBasic { it.disable() }.addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter::class.java)
 
         return http.build()
     }
@@ -83,4 +81,5 @@ class SecurityConfig(private val jwtAuthFilter: JwtAuthFilter) {
         return source
     }
 }
+
 
