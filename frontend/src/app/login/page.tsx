@@ -13,7 +13,7 @@ export default function LoginPage() {
   const { login } = useAuth();
   const router = useRouter();
 
-    const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       const user = await login(email, password);
@@ -31,11 +31,6 @@ export default function LoginPage() {
           break;
         default:
           router.push('/student-home');
-      }
-    } catch {
-      setError('Invalid email or password.');
-    }
-  };
       }
     } catch {
       setError('Invalid email or password.');
@@ -81,5 +76,3 @@ export default function LoginPage() {
     </main>
   );
 }
-
-
