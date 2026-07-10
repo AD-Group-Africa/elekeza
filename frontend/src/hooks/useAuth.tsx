@@ -17,87 +17,67 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser]       = useState<User | null>(null)
+  const router = useRouter()
+  const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
 
   const mapToUser = (data: AuthResponse): User => ({
-    id:                 String(data.learnerId),
-    email:              data.email,
-    name:               data.name ?? '',
+    id: String(data.learnerId),
+    email: data.email,
+    name: data.name ?? '',
     onboardingComplete: data.onboardingComplete,
-    role:               data.role ?? 'STUDENT',
+    role: data.role ?? 'STUDENT',
     cognitiveProfiles:
       data.cognitiveProfiles?.length
         ? data.cognitiveProfiles
         : readCognitiveProfiles(data.learnerId),
   })
 
-  // On mount: try /auth/me (uses HttpOnly access-token cookie set by login).
-  // Falls back cleanly if not authenticated â€” no error thrown to console.
-    const checkAuth = useCallback(async () => {
-    try {
-      const res = await authAPI.me();
-      const mapped = mapToUser(res.data as AuthResponse);
-      setUser(mapped);
-      // Redirect if on login/register/root page
-      if (typeof window !== 'undefined') {
-        const path = window.location.pathname;
-        if (path === '/login' || path === '/register' || path === '/') {
-          switch (mapped.role) {
-            case 'TEACHER':
-            case 'SCHOOL_ADMIN':
-              router.push('/teacher');
-              break;
-            case 'GUARDIAN':
-              router.push('/guardian');
-              break;
-            case 'ADMIN':
-              router.push('/admin');
-              break;
-            default:
-              router.push('/student-home');
-          }
-        }
+  const redirectByRole = (role: string) => {
+    const path = window.location.pathname
+    if (path === '/login' || path === '/register' || path === '/') {
+      switch (role) {
+        case 'TEACHER':
+        case 'SCHOOL_ADMIN':
+          router.push('/teacher')
+          break
+        case 'GUARDIAN':
+          router.push('/guardian')
+          break
+        case 'ADMIN':
+          router.push('/admin')
+          break
+        default:
+          router.push('/student-home')
       }
+    }
+  }
+
+  const checkAuth = useCallback(async () => {
+    try {
+      const res = await authAPI.me()
+      const mapped = mapToUser(res.data as AuthResponse)
+      setUser(mapped)
+      redirectByRole(mapped.role)
     } catch {
       try {
-        const refreshRes = await authAPI.refresh();
-        const mapped = mapToUser(refreshRes.data as AuthResponse);
-        setUser(mapped);
-        if (typeof window !== 'undefined') {
-          const path = window.location.pathname;
-          if (path === '/login' || path === '/register' || path === '/') {
-            switch (mapped.role) {
-              case 'TEACHER':
-              case 'SCHOOL_ADMIN':
-                router.push('/teacher');
-                break;
-              case 'GUARDIAN':
-                router.push('/guardian');
-                break;
-              case 'ADMIN':
-                router.push('/admin');
-                break;
-              default:
-                router.push('/student-home');
-            }
-          }
-        }
+        const refreshRes = await authAPI.refresh()
+        const mapped = mapToUser(refreshRes.data as AuthResponse)
+        setUser(mapped)
+        redirectByRole(mapped.role)
       } catch {
-        setUser(null);
+        setUser(null)
       }
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  }, [router]);
+  }, [router])
 
   useEffect(() => { checkAuth() }, [checkAuth])
 
   const login = async (email: string, password: string): Promise<User> => {
-    const res  = await authAPI.login(email, password)
+    const res = await authAPI.login(email, password)
     const data = res.data as AuthResponse
-    // Backend sets HttpOnly cookies; also store accessToken in memory for
-    // Authorization header on non-cookie requests
     if (data.accessToken) {
       sessionStorage.setItem('elekeza_access', data.accessToken)
     }
@@ -112,7 +92,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     fullName: string,
     cognitiveProfiles: CognitiveProfile[] = []
   ): Promise<User> => {
-    const res  = await authAPI.register({ email, password, name: fullName, cognitiveProfiles })
+    const res = await authAPI.register({ email, password, name: fullName, cognitiveProfiles })
     const data = res.data as AuthResponse
     if (data.learnerId && cognitiveProfiles.length > 0) {
       persistCognitiveProfiles(data.learnerId, cognitiveProfiles)
@@ -129,6 +109,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try { await authAPI.logout() } catch {}
     sessionStorage.removeItem('elekeza_access')
     setUser(null)
+    router.push('/login')
   }
 
   return (
@@ -143,6 +124,3 @@ export function useAuth() {
   if (!ctx) throw new Error('useAuth must be used within an AuthProvider')
   return ctx
 }
-
-
-
