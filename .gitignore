@@ -1,54 +1,16 @@
-﻿# Dependencies
-node_modules/
-.pnp
-.pnp.js
-
-# Build outputs
+﻿node_modules/
 .next/
-out/
-dist/
 build/
-*.class
-*.jar
-*.war
-*.nar
-
-# IDE
-.idea/
-.vscode/
-*.swp
-*.swo
-
-# Environment
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-*.log
-
-# OS
-Thumbs.db
-.DS_Store
-
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
-venv/
-*.egg-info/
-
-# Gradle
+out/
 .gradle/
-!gradle/wrapper/gradle-wrapper.jar
-
-# Misc
-*.zip
-backend-fresh/
-
-*.zip
-
-*.zip
-
+venv/
+__pycache__/
+*.log
 .env
-*.env
+Accessible-docs/.env
+backend/complete.json
+backend/Test-ElewaAPI.ps1
+frontend/src/src/
+ELEKEZA_FULL_CODEBASE.txt
+PROJECT_FILES.txt
+PROJECT_TREE.txt
