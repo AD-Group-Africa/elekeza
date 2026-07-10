@@ -1,6 +1,6 @@
-import asyncio
+﻿import asyncio
 import json
-import logging
+import structlog
 import time
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
@@ -16,7 +16,7 @@ from models.responses import (
 from models.errors import AIServiceError, ErrorResponse, ERROR_SCHEMA_INVALID
 from utils.error_handler import error_json_response as _error_response
 
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger().getLogger(__name__)
 router = APIRouter()
 
 
@@ -26,18 +26,18 @@ def _profile_label(request) -> str:
 
 
 # ---------------------------------------------------------------------------
-# Quiz generate (unchanged from Day 7 — kept here for single-file cohesion)
+# Quiz generate (unchanged from Day 7 â€” kept here for single-file cohesion)
 # ---------------------------------------------------------------------------
 
 QUIZ_SYSTEM_PROMPT = """
 You are a quiz generation assistant for learners with cognitive disabilities.
 You will be given a simplified lesson and a learner profile.
 Your job is to generate multiple choice questions that test understanding of
-the lesson content — not memory of exact wording.
+the lesson content â€” not memory of exact wording.
 
 QUESTION RULES:
 - Questions must be answerable from the lesson content only.
-- Questions must use the same simplified language as the lesson — match the
+- Questions must use the same simplified language as the lesson â€” match the
   reading level and vocabulary of the profile.
 - Each question must have exactly 4 options: id "a", "b", "c", "d".
 - Only one option is correct.
@@ -125,7 +125,7 @@ def _validate_quiz_completeness(quiz: QuizResponse, num_questions: int, stage: s
         if len(q.options) != 4:
             raise AIServiceError(ErrorResponse(
                 error_code=ERROR_SCHEMA_INVALID,
-                message=f"Question '{q.id}' has {len(q.options)} options — exactly 4 required.",
+                message=f"Question '{q.id}' has {len(q.options)} options â€” exactly 4 required.",
                 stage=stage,
             ))
         if q.correct_id not in option_ids:
@@ -175,11 +175,11 @@ Your job is to:
 1. Write a short, encouraging learner_message appropriate to the profile.
 2. Return a directive that tells the system what to do next.
 
-DIRECTIVE RULES — return exactly one of these four values:
-- "easier"  — learner answered wrong and took a long time (latency_ms > 5000)
-- "revisit" — learner answered wrong and was within normal time
-- "same"    — learner answered correctly but took a long time (latency_ms > 5000)
-- "harder"  — learner answered correctly and quickly (latency_ms <= 5000)
+DIRECTIVE RULES â€” return exactly one of these four values:
+- "easier"  â€” learner answered wrong and took a long time (latency_ms > 5000)
+- "revisit" â€” learner answered wrong and was within normal time
+- "same"    â€” learner answered correctly but took a long time (latency_ms > 5000)
+- "harder"  â€” learner answered correctly and quickly (latency_ms <= 5000)
 
 LEARNER MESSAGE RULES:
 - dyslexia: short sentences (max 12 words), positive tone, active voice.
@@ -191,7 +191,7 @@ LEARNER MESSAGE RULES:
 You must respond with ONLY a valid JSON object. No markdown, no extra text.
 
 {
-  "learner_message": "string — message shown directly to the learner",
+  "learner_message": "string â€” message shown directly to the learner",
   "directive": "easier" | "same" | "harder" | "revisit"
 }
 """
@@ -229,7 +229,7 @@ def _parse_adaptive_response(raw_response: str) -> AdaptiveResponse:
             stage="adaptive_response",
         ))
 
-    # Validate directive before Pydantic — give clearer error message
+    # Validate directive before Pydantic â€” give clearer error message
     valid_directives = {"easier", "same", "harder", "revisit"}
     directive = data.get("directive", "")
     if directive not in valid_directives:
@@ -273,7 +273,7 @@ async def adaptive_response(request: AdaptiveResponseRequest):
         logger.info(f"Adaptive response wall latency: {wall_latency_ms:.0f}ms")
 
         if wall_latency_ms > 800:
-            logger.warning(f"⚠️  Adaptive response exceeded 800ms target: {wall_latency_ms:.0f}ms")
+            logger.warning(f"âš ï¸  Adaptive response exceeded 800ms target: {wall_latency_ms:.0f}ms")
 
         result = _parse_adaptive_response(raw_response)
         return result
@@ -314,7 +314,7 @@ Just the re-explanation text the learner will read.
 REATTEMPT_SYSTEM_PROMPT = """
 You are a question regeneration assistant for learners with cognitive disabilities.
 A learner answered a quiz question incorrectly. Generate a NEW version of the same
-question — testing the same concept but using different wording.
+question â€” testing the same concept but using different wording.
 
 RULES:
 - The new question must test the same concept as the original.
@@ -326,7 +326,7 @@ RULES:
 - autism: literal, unambiguous, factual.
 - intellectual_disability: max 8 words in question, max 5 words per option.
 
-Return ONLY a plain string — the question followed by the options, like this:
+Return ONLY a plain string â€” the question followed by the options, like this:
 Question: [question text]
 a) [option a]
 b) [option b]
@@ -366,7 +366,7 @@ LESSON SECTION CONTENT:
 Generate a new version of this question testing the same concept.
 """
 
-        # Fire both calls concurrently — never sequential
+        # Fire both calls concurrently â€” never sequential
         parallel_start = time.monotonic()
 
         re_explanation_task = complete(
@@ -387,7 +387,7 @@ Generate a new version of this question testing the same concept.
             profile=profile,
         )
 
-        # asyncio.gather — both fire simultaneously
+        # asyncio.gather â€” both fire simultaneously
         re_explanation, reattempt_question = await asyncio.gather(
             re_explanation_task,
             reattempt_task,
@@ -395,7 +395,7 @@ Generate a new version of this question testing the same concept.
 
         parallel_latency_ms = (time.monotonic() - parallel_start) * 1000
         logger.info(
-            f"Wrong answer flow — both calls completed in {parallel_latency_ms:.0f}ms "
+            f"Wrong answer flow â€” both calls completed in {parallel_latency_ms:.0f}ms "
             f"(parallel, not sequential)"
         )
 
@@ -414,3 +414,4 @@ Generate a new version of this question testing the same concept.
             message="An unexpected error occurred in wrong answer flow.",
             stage="wrong_answer_flow",
         ))
+

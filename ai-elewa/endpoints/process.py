@@ -1,4 +1,4 @@
-import logging
+﻿import structlog
 from fastapi import APIRouter, Request
 from models.requests import ProcessRequest
 from models.responses import ProcessResponse
@@ -11,7 +11,7 @@ from models.errors import AIServiceError, ErrorResponse, ERROR_EMPTY_CONTENT, ER
 from utils.error_handler import error_json_response
 import config
 
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger().getLogger(__name__)
 router = APIRouter()
 
 @router.post("/process")
@@ -72,3 +72,4 @@ async def process_file(request: ProcessRequest):
             message="An unexpected error occurred processing the file.",
             stage="process",
         ))
+
