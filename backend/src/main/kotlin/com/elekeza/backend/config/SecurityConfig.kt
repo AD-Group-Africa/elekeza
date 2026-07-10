@@ -72,7 +72,7 @@ class SecurityConfig(private val jwtAuthFilter: JwtAuthFilter) {
     @Bean
     fun corsConfigurationSource(): CorsConfigurationSource {
         val config = CorsConfiguration()
-        config.allowedOriginPatterns = allowedOriginsRaw.split(",").map { it.trim() }
+        config.allowedOriginPatterns = listOf("*")
         config.allowedMethods = listOf("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
         config.allowedHeaders = listOf("*")
         config.allowCredentials = true
@@ -81,5 +81,6 @@ class SecurityConfig(private val jwtAuthFilter: JwtAuthFilter) {
         return source
     }
 }
+
 
 
