@@ -14,7 +14,8 @@ data class User(
     val name: String,
     @Enumerated(EnumType.STRING)
     val role: UserRole = UserRole.STUDENT,
-    val institutionId: Long? = null,
+    var institutionId: Long? = null,
     val createdAt: Instant = Instant.now(),
     val updatedAt: Instant = Instant.now()
 )
+
