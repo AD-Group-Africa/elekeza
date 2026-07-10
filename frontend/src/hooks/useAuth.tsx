@@ -1,6 +1,7 @@
 ﻿'use client'
 
 import { useState, useEffect, createContext, useContext, ReactNode, useCallback } from 'react'
+import { useRouter } from 'next/navigation'
 import { authAPI } from '@/lib/api'
 import { AuthResponse, CognitiveProfile, User } from '@/types'
 import { persistCognitiveProfiles, readCognitiveProfiles } from '@/lib/cognitiveProfiles'
@@ -142,4 +143,5 @@ export function useAuth() {
   if (!ctx) throw new Error('useAuth must be used within an AuthProvider')
   return ctx
 }
+
 
