@@ -13,25 +13,29 @@ export default function LoginPage() {
   const { login } = useAuth();
   const router = useRouter();
 
-  const handleSubmit = async (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       const user = await login(email, password);
-      // Redirect based on role
-      if (user.role === 'TEACHER' || user.role === 'School Admin') {
-        router.push('/teacher');
-      } else if (user.role === 'GUARDIAN') {
-        router.push('/guardian');
-      } else {
-        if (user.role === 'TEACHER' || user.role === 'SCHOOL_ADMIN') {
-      router.push('/teacher');
-    } else if (user.role === 'GUARDIAN') {
-      router.push('/guardian');
-    } else if (user.role === 'ADMIN') {
-      router.push('/admin');
-    } else {
-      router.push('/student-home');
-    };
+      // Route based on role — each role gets its own dashboard
+      switch (user.role) {
+        case 'TEACHER':
+        case 'SCHOOL_ADMIN':
+          router.push('/teacher');
+          break;
+        case 'GUARDIAN':
+          router.push('/guardian');
+          break;
+        case 'ADMIN':
+          router.push('/admin');
+          break;
+        default:
+          router.push('/student-home');
+      }
+    } catch {
+      setError('Invalid email or password.');
+    }
+  };
       }
     } catch {
       setError('Invalid email or password.');
@@ -77,4 +81,5 @@ export default function LoginPage() {
     </main>
   );
 }
+
 
