@@ -9,14 +9,22 @@ import java.time.LocalDateTime
 
 @Repository
 interface LearnerProfileRepository : JpaRepository<LearnerProfile, Long> {
-    @org.springframework.data.jpa.repository.Query("SELECT lp FROM LearnerProfile lp WHERE lp.user.id = :userId") fun findByUserId(userId: Long): LearnerProfile?
+    @Query("SELECT lp FROM LearnerProfile lp WHERE lp.user.id = :userId")
+    fun findByUserId(@Param("userId") userId: Long): LearnerProfile?
 }
 
 @Repository
 interface LessonProgressRepository : JpaRepository<LessonProgress, Long> {
+
     fun findByUserIdOrderByCreatedAtDesc(userId: Long): List<LessonProgress>
 
     fun findByUserAndContentId(user: User, contentId: Long): LessonProgress?
+
+    @Query("SELECT p FROM LessonProgress p WHERE p.user.id = :userId AND p.contentId = :contentId")
+    fun findByUserIdAndContentId(
+        @Param("userId") userId: Long,
+        @Param("contentId") contentId: Long
+    ): LessonProgress?
 
     @Query("SELECT COUNT(p) FROM LessonProgress p WHERE p.user.id = :userId AND p.completed = :completed")
     fun countByUserIdAndCompleted(@Param("userId") userId: Long, completed: Boolean): Long
@@ -25,11 +33,11 @@ interface LessonProgressRepository : JpaRepository<LessonProgress, Long> {
     fun avgQuizScore(@Param("userId") userId: Long): Double?
 
     @Query("SELECT p FROM LessonProgress p WHERE p.user.id = :userId AND p.completedAt >= :since")
-    fun findRecentActivity(@Param("userId") userId: Long, @Param("since") since: LocalDateTime): List<LessonProgress>
+    fun findRecentActivity(
+        @Param("userId") userId: Long,
+        @Param("since") since: LocalDateTime
+    ): List<LessonProgress>
 
     @Query("SELECT p FROM LessonProgress p WHERE p.user.id = :userId AND p.completed = :completed")
     fun findByUserIdAndCompleted(@Param("userId") userId: Long, completed: Boolean): List<LessonProgress>
-
-    @Query("SELECT p FROM LessonProgress p WHERE p.user.id = :userId AND p.contentId = :contentId")
-    fun findByUserIdAndContentId(@Param("userId") userId: Long, @Param("contentId") contentId: Long): LessonProgress?
 }

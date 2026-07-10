@@ -16,67 +16,49 @@ spring:
 
   jpa:
     hibernate:
-      # NEVER use 'update' in production — use validate + Flyway
       ddl-auto: validate
     show-sql: false
     open-in-view: false
-    properties:
-      hibernate:
-        format_sql: false
-
-  security:
-    oauth2:
-      client:
-        registration:
-          google:
-            client-id: ${GOOGLE_CLIENT_ID}
-            client-secret: ${GOOGLE_CLIENT_SECRET}
-            scope:
-              - email
-              - profile
 
   flyway:
     enabled: true
     locations: classpath:db/migration
-    baseline-on-migrate: false
+    baseline-on-migrate: true
     validate-on-migrate: true
 
   mail:
     host: ${MAIL_HOST:smtp.gmail.com}
     port: ${MAIL_PORT:587}
-    username: ${MAIL_USERNAME}
-    password: ${MAIL_PASSWORD}
+    username: ${MAIL_USERNAME:noreply@elekeza.app}
+    password: ${MAIL_PASSWORD:unused}
     properties:
-      mail:
-        smtp:
-          auth: true
-          starttls:
-            enable: true
+      mail.smtp.auth: true
+      mail.smtp.starttls.enable: true
+
+  # Disable OAuth2 autoconfiguration when Google credentials are not provided
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.security.oauth2.client.servlet.OAuth2ClientAutoConfiguration
 
 jwt:
   secret: ${JWT_SECRET}
-  expiration: 900000        # 15 minutes
-  refresh-expiration: 604800000  # 7 days
+  expiration: 900000
+  refresh-expiration: 604800000
 
-# Single AI service config (removed duplicate fastapi.* block)
 ai:
-  base-url: ${AI_SERVICE_URL}
-  internal-secret: ${AI_INTERNAL_SECRET}
-
-mpesa:
-  consumer-key: ${MPESA_CONSUMER_KEY:placeholder}
-  consumer-secret: ${MPESA_CONSUMER_SECRET:placeholder}
-  pass-key: ${MPESA_PASS_KEY:placeholder}
-  short-code: ${MPESA_SHORT_CODE:174379}
-  callback-url: ${MPESA_CALLBACK_URL}
+  base-url: ${AI_SERVICE_URL:http://ai-service:8000}
+  internal-secret: ${AI_INTERNAL_SECRET:change-me}
+  timeout-seconds: 60
+  client:
+    type: ${AI_CLIENT_TYPE:real}
 
 app:
   cors:
-    allowed-origins: ${CORS_ALLOWED_ORIGINS}
-  frontend-url: ${FRONTEND_URL}
-  upload-dir: uploads
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:*}
+  frontend-url: ${FRONTEND_URL:http://localhost:3000}
+  upload-dir: ${UPLOAD_DIR:uploads}
+  secure-cookies: ${SECURE_COOKIES:true}
 
-# Actuator — health only, no sensitive exposure
 management:
   endpoints:
     web:
@@ -90,5 +72,3 @@ logging:
   level:
     root: INFO
     com.elekeza: INFO
-  pattern:
-    console: '{"time":"%d{ISO8601}","level":"%p","logger":"%logger{36}","msg":"%m"}%n'

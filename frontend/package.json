@@ -9,6 +9,9 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@capacitor/android": "^8.4.1",
+    "@capacitor/cli": "^8.4.1",
+    "@capacitor/core": "^8.4.1",
     "@heroicons/react": "^2.2.0",
     "@tanstack/react-query": "^5.101.0",
     "autoprefixer": "^10.5.2",

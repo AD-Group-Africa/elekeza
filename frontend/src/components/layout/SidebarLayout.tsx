@@ -1,126 +1,179 @@
-﻿'use client';
-
+'use client';
 import { useAuth } from '@/hooks/useAuth';
+import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
-import { useState, useEffect } from 'react';
+import { api } from '@/lib/api';
 
 const NAV_BY_ROLE: Record<string, { label: string; href: string; icon: string }[]> = {
   TEACHER: [
-    { label: 'Dashboard', href: '/teacher', icon: '📊' },
-    { label: 'Upload',    href: '/upload', icon: '📤' },
-    { label: 'Profile',   href: '/dashboard/profile', icon: '👤' },
-    { label: 'Settings',  href: '/dashboard/settings', icon: '⚙️' },
+    { label: 'Dashboard',  href: '/teacher',      icon: '📊' },
+    { label: 'Upload',     href: '/upload',        icon: '📤' },
+    { label: 'Import',     href: '/school/import', icon: '📋' },
+    { label: 'Profile',    href: '/dashboard/profile', icon: '👤' },
+    { label: 'Settings',   href: '/dashboard/settings', icon: '⚙️' },
+  ],
+  SCHOOL_ADMIN: [
+    { label: 'Dashboard',  href: '/teacher',             icon: '📊' },
+    { label: 'Import',     href: '/school/import',        icon: '📋' },
+    { label: 'Analytics',  href: '/admin/analytics',      icon: '📈' },
+    { label: 'Upload',     href: '/upload',               icon: '📤' },
+    { label: 'Settings',   href: '/dashboard/settings',   icon: '⚙️' },
   ],
   STUDENT: [
-    { label: 'Home',      href: '/student-home', icon: '🏠' },
-    { label: 'Dashboard', href: '/dashboard', icon: '📊' },
-    { label: 'History',   href: '/dashboard/history', icon: '📚' },
-    { label: 'Profile',   href: '/dashboard/profile', icon: '👤' },
-    { label: 'Settings',  href: '/dashboard/settings', icon: '⚙️' },
+    { label: 'Home',       href: '/student-home',      icon: '🏠' },
+    { label: 'Progress',   href: '/dashboard',          icon: '📊' },
+    { label: 'History',    href: '/dashboard/history',  icon: '📚' },
+    { label: 'Settings',   href: '/dashboard/settings', icon: '⚙️' },
   ],
   GUARDIAN: [
-    { label: 'Dashboard', href: '/guardian', icon: '📊' },
-    { label: 'Profile',   href: '/dashboard/profile', icon: '👤' },
-    { label: 'Settings',  href: '/dashboard/settings', icon: '⚙️' },
+    { label: 'My Children', href: '/parent-portal',    icon: '👨‍👩‍👦' },
+    { label: 'Settings',    href: '/dashboard/settings', icon: '⚙️' },
+  ],
+  ADMIN: [
+    { label: 'Schools',    href: '/admin',             icon: '🏫' },
+    { label: 'Analytics',  href: '/admin/analytics',   icon: '📈' },
+    { label: 'Users',      href: '/admin/users',       icon: '👥' },
+    { label: 'Settings',   href: '/dashboard/settings', icon: '⚙️' },
   ],
 };
 
-export default function SidebarLayout({
-  children,
-  rightPanel,
-}: {
-  children: React.ReactNode;
-  rightPanel?: React.ReactNode;
-}) {
-  const { user, logout } = useAuth();
-  const router = useRouter();
-  const pathname = usePathname();
-  const [collapsed, setCollapsed] = useState(false);
+export default function SidebarLayout({ children }: { children: React.ReactNode }) {
+  const { user, logout }  = useAuth();
+  const router    = useRouter();
+  const pathname  = usePathname();
+  const [collapsed, setCollapsed]   = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [unread, setUnread]         = useState(0);
 
+  // Responsive collapse
   useEffect(() => {
-    const handleResize = () => {
+    const resize = () => {
       if (window.innerWidth < 768) { setCollapsed(true); setMobileOpen(false); }
       else if (window.innerWidth < 1024) setCollapsed(true);
       else setCollapsed(false);
     };
-    handleResize();
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    resize();
+    window.addEventListener('resize', resize);
+    return () => window.removeEventListener('resize', resize);
   }, []);
 
-  const handleLogout = async () => {
-    await logout();
-    router.push('/login');
-  };
+  // Poll unread notifications
+  useEffect(() => {
+    if (!user) return;
+    const load = () => api.get('/notifications/unread')
+      .then(r => setUnread(Array.isArray(r.data) ? r.data.length : 0))
+      .catch(() => {});
+    load();
+    const t = setInterval(load, 60_000);
+    return () => clearInterval(t);
+  }, [user]);
 
-  const navItems = NAV_BY_ROLE[user?.role || 'STUDENT'] || NAV_BY_ROLE.STUDENT;
+  const handleLogout = async () => { await logout(); router.push('/login'); };
+
+  const navItems = NAV_BY_ROLE[user?.role ?? 'STUDENT'] ?? NAV_BY_ROLE.STUDENT;
 
   return (
     <div className="flex min-h-screen">
+      {/* Hamburger */}
       <button
-        className="fixed top-4 left-4 z-50 md:hidden text-white bg-gray-800 p-2 rounded"
-        onClick={() => setMobileOpen(!mobileOpen)}
+        className="fixed top-4 left-4 z-50 md:hidden text-white bg-gray-800/80 backdrop-blur p-2 rounded-lg shadow"
+        onClick={() => setMobileOpen(o => !o)}
+        aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
       >
         {mobileOpen ? '✕' : '☰'}
       </button>
 
-      <aside
-        className={`bg-gray-900 text-white p-4 flex flex-col transition-all duration-300 fixed md:sticky top-0 left-0 h-screen z-40
-          ${mobileOpen ? 'translate-x-0' : '-translate-x-full'}
-          md:translate-x-0
-          ${collapsed ? 'w-20' : 'w-64'}
-        `}
-      >
-        <div className="flex items-center justify-between mb-8">
+      {/* Backdrop */}
+      {mobileOpen && (
+        <div className="fixed inset-0 bg-black/40 z-30 md:hidden"
+          onClick={() => setMobileOpen(false)} />
+      )}
+
+      {/* Sidebar */}
+      <aside className={`bg-gray-900 text-white flex flex-col transition-all duration-300 fixed md:sticky top-0 left-0 h-screen z-40
+        ${mobileOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0
+        ${collapsed ? 'w-20' : 'w-64'}`}>
+
+        {/* Logo */}
+        <div className="flex items-center justify-between p-4 border-b border-gray-700 min-h-[64px]">
           {!collapsed && (
-            <Link href="/dashboard">
-              <Image src="/Elekeza Logo.png" alt="Elekeza" width={120} height={40} />
+            <Link href="/dashboard" className="flex items-center gap-2">
+              <span className="text-xl font-bold text-purple-400">Elekeza</span>
             </Link>
           )}
-          <button onClick={() => setCollapsed(!collapsed)} className="text-white opacity-70 hover:opacity-100 text-xl hidden md:block">
+          <button
+            onClick={() => setCollapsed(c => !c)}
+            className="hidden md:flex w-8 h-8 items-center justify-center rounded-lg hover:bg-gray-700 text-gray-400 hover:text-white transition text-sm"
+            aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          >
             {collapsed ? '→' : '←'}
           </button>
         </div>
 
-        <nav className="flex-1 space-y-2">
-          {navItems.map((item) => {
-            const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
+        {/* Nav */}
+        <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
+          {navItems.map(item => {
+            const active = pathname === item.href || pathname.startsWith(item.href + '/');
+            const isNotif = item.href === '/notifications';
             return (
               <Link key={item.href} href={item.href}
-                className={`flex items-center gap-3 px-3 py-2 rounded-lg transition hover:bg-white/10
-                  ${collapsed ? 'justify-center' : ''}
-                  ${isActive ? 'border-l-4 border-purple-500 bg-white/10 font-bold' : 'opacity-70'}
-                `}
-                onClick={() => setMobileOpen(false)}>
-                <span className="text-xl">{item.icon}</span>
-                {!collapsed && <span>{item.label}</span>}
+                onClick={() => setMobileOpen(false)}
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition font-medium text-sm
+                  ${active ? 'bg-purple-600 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white'}`}>
+                <span className="text-lg flex-shrink-0">{item.icon}</span>
+                {!collapsed && (
+                  <span className="flex-1">{item.label}</span>
+                )}
+                {!collapsed && isNotif && unread > 0 && (
+                  <span className="bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center flex-shrink-0">
+                    {unread > 9 ? '9+' : unread}
+                  </span>
+                )}
               </Link>
             );
           })}
+
+          {/* Notifications for all roles */}
+          <Link href="/notifications" onClick={() => setMobileOpen(false)}
+            className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition font-medium text-sm
+              ${pathname === '/notifications' ? 'bg-purple-600 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white'}`}>
+            <span className="text-lg flex-shrink-0">🔔</span>
+            {!collapsed && (
+              <>
+                <span className="flex-1">Notifications</span>
+                {unread > 0 && (
+                  <span className="bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                    {unread > 9 ? '9+' : unread}
+                  </span>
+                )}
+              </>
+            )}
+          </Link>
         </nav>
 
-        <div className="mt-auto pt-4 border-t border-white/20">
-          {!collapsed && <p className="text-sm opacity-80 mb-2">{user?.name || 'Learner'}</p>}
-          <button onClick={handleLogout} className="text-sm opacity-60 hover:opacity-100 transition">
-            {collapsed ? '🚪' : 'Logout'}
+        {/* User footer */}
+        <div className="p-3 border-t border-gray-700">
+          {!collapsed && user && (
+            <div className="px-2 pb-2">
+              <p className="text-sm font-medium text-white truncate">{user.name}</p>
+              <p className="text-xs text-gray-400 truncate">{user.email}</p>
+              <p className="text-xs text-purple-400 mt-0.5 capitalize">{user.role?.toLowerCase().replace('_', ' ')}</p>
+            </div>
+          )}
+          <button onClick={handleLogout}
+            className="flex items-center gap-3 w-full px-3 py-2 rounded-xl text-gray-400 hover:bg-gray-700 hover:text-white transition text-sm">
+            <span className="text-lg">🚪</span>
+            {!collapsed && 'Sign out'}
           </button>
         </div>
       </aside>
 
-      <main className="flex-1 flex flex-col min-h-screen">
-        <div className="flex-1 px-4 md:px-8 py-6 max-w-7xl mx-auto w-full">
-          {children}
-        </div>
+      {/* Main content */}
+      <main className="flex-1 p-6 md:p-8 overflow-auto min-h-screen">
+        {children}
       </main>
-
-      {rightPanel && (
-        <aside className="w-72 bg-white/5 backdrop-blur-lg p-4 hidden xl:block">
-          {rightPanel}
-        </aside>
-      )}
     </div>
   );
 }
