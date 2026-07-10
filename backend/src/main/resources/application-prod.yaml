@@ -5,7 +5,7 @@
     password: ${DB_PASSWORD}
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: validate
   flyway:
     enabled: true
   mail:
@@ -34,4 +34,5 @@ jwt:
 
 mpesa:
   callback-url: https://placeholder.callback
+
 
