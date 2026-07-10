@@ -1,4 +1,4 @@
-﻿package com.elekeza.backend.config
+package com.elekeza.backend.config
 
 import com.elekeza.backend.auth.JwtAuthFilter
 import org.springframework.beans.factory.annotation.Value
@@ -22,18 +22,16 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity(prePostEnabled = true)
-class SecurityConfig(
-    private val jwtAuthFilter: JwtAuthFilter
-) {
+class SecurityConfig(private val jwtAuthFilter: JwtAuthFilter) {
+
     @Value("\${app.cors.allowed-origins}")
     private lateinit var allowedOriginsRaw: String
 
-    @Bean
-    fun passwordEncoder(): PasswordEncoder = BCryptPasswordEncoder()
+    @Bean fun passwordEncoder(): PasswordEncoder = BCryptPasswordEncoder()
 
     @Bean
-    fun authenticationManager(authConfiguration: AuthenticationConfiguration): AuthenticationManager =
-        authConfiguration.authenticationManager
+    fun authenticationManager(cfg: AuthenticationConfiguration): AuthenticationManager =
+        cfg.authenticationManager
 
     @Bean
     fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {
@@ -42,14 +40,34 @@ class SecurityConfig(
             .csrf { it.disable() }
             .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
             .authorizeHttpRequests { auth ->
-                auth.requestMatchers("/api/auth/**", "/api/institutions/register", "/actuator/health", "/h2-console/**").permitAll()
+                // ── Public ────────────────────────────────────────────────────
+                auth.requestMatchers(
+                    "/api/auth/**",
+                    "/api/institutions/register",   // school self-registration is public
+                    "/api/waitlist/**",
+                    "/actuator/health",
+                    "/h2-console/**"
+                ).permitAll()
                 auth.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+
+                // ── Role-scoped ────────────────────────────────────────────────
+                auth.requestMatchers("/api/admin/**")
+                    .hasRole("ADMIN")
+                auth.requestMatchers("/api/teacher/**")
+                    .hasAnyRole("TEACHER", "SCHOOL_ADMIN", "ADMIN")
+                auth.requestMatchers("/api/guardian/**")
+                    .hasAnyRole("GUARDIAN", "SCHOOL_ADMIN", "ADMIN")
+                auth.requestMatchers("/api/institutions/**")
+                    .hasAnyRole("SCHOOL_ADMIN", "ADMIN")
+
+                // ── Authenticated (any role) ───────────────────────────────────
                 auth.anyRequest().authenticated()
             }
             .formLogin { it.disable() }
             .httpBasic { it.disable() }
             .oauth2Login { it.disable() }
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter::class.java)
+
         return http.build()
     }
 
@@ -65,7 +83,3 @@ class SecurityConfig(
         return source
     }
 }
-
-
-
-

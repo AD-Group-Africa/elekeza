@@ -1,70 +1,114 @@
-﻿'use client';
-import { useEffect, useState } from 'react';
-import SidebarLayout from '@/components/layout/SidebarLayout';
-import { api } from '@/lib/api';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
+'use client';
 
-export default function StudentDashboard() {
-  const [data, setData] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import SidebarLayout from '@/components/layout/SidebarLayout';
+import { useAuth } from '@/hooks/useAuth';
+import { api } from '@/lib/api';
+
+interface Lesson {
+  id: number;
+  title: string;
+  score?: number;
+  completed?: boolean;
+}
+
+export default function StudentHome() {
+  const router = useRouter();
+  const { user, loading: authLoading } = useAuth();
+  const [lessons, setLessons]  = useState<Lesson[]>([]);
+  const [loading, setLoading]  = useState(true);
 
   useEffect(() => {
-    api.get('/analytics/student')
-      .then(res => setData(res.data))
-      .catch(() => {})
-      .finally(() => setLoading(false));
-  }, []);
+    if (authLoading) return;
+    if (!user) { router.replace('/login'); return; }
 
-  if (loading) return <SidebarLayout><div className="text-white text-center mt-20">Loading your dashboard...</div></SidebarLayout>;
-  if (!data) return <SidebarLayout><div className="text-white text-center mt-20">No data available yet.</div></SidebarLayout>;
+    // Fetch assigned lessons (not all content — only what this student is assigned)
+    api.get('/progress/lessons')
+      .then(res => setLessons(Array.isArray(res.data) ? res.data : []))
+      .catch(() => setLessons([]))
+      .finally(() => setLoading(false));
+  }, [user, authLoading, router]);
+
+  if (authLoading || loading) return (
+    <SidebarLayout>
+      <div className="text-white text-center mt-20 animate-pulse">Loading your lessons…</div>
+    </SidebarLayout>
+  );
+
+  const pending   = lessons.filter(l => !l.completed);
+  const completed = lessons.filter(l => l.completed);
 
   return (
     <SidebarLayout>
-      <h1 className="text-3xl font-bold text-white mb-8">Your Dashboard</h1>
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-        {[
-          { label: 'Learning Streak', value: `${data.learningStreak} days` },
-          { label: 'Completed', value: data.completedLessons },
-          { label: 'Pending', value: data.pendingLessons },
-          { label: 'Avg Score', value: `${data.averageScore.toFixed(1)}%` },
-        ].map((s, i) => (
-          <div key={i} className="bg-white rounded-xl p-4 shadow text-center">
-            <p className="text-sm text-gray-500">{s.label}</p>
-            <p className="text-2xl font-bold text-gray-800">{s.value}</p>
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-white">
+          Hello, {user?.name?.split(' ')[0] ?? 'Learner'} 👋
+        </h1>
+        <p className="text-blue-200 mt-1">
+          {pending.length > 0
+            ? `You have ${pending.length} lesson${pending.length === 1 ? '' : 's'} to complete.`
+            : completed.length > 0
+              ? 'All lessons complete — great work!'
+              : 'Your teacher will assign lessons soon.'}
+        </p>
+      </div>
+
+      {/* Pending lessons */}
+      {pending.length > 0 && (
+        <section className="mb-8">
+          <h2 className="text-lg font-semibold text-blue-100 mb-3">Your lessons</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {pending.map(lesson => (
+              <div
+                key={lesson.id}
+                className="card cursor-pointer hover:shadow-xl transition border-l-4 border-purple-400"
+                onClick={() => router.push(`/lesson/${lesson.id}`)}
+                role="button"
+                tabIndex={0}
+                onKeyDown={e => e.key === 'Enter' && router.push(`/lesson/${lesson.id}`)}
+                aria-label={`Start lesson: ${lesson.title}`}
+              >
+                <h2 className="text-xl font-semibold text-blue-900 mb-2">{lesson.title}</h2>
+                <p className="text-purple-600 text-sm font-medium">Start reading →</p>
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        <div className="bg-white rounded-xl p-6 shadow">
-          <h2 className="text-lg font-semibold text-gray-800 mb-4">Weekly Minutes</h2>
-          <ResponsiveContainer width="100%" height={250}>
-            <BarChart data={data.weeklyActivity || []}>
-              <CartesianGrid strokeDasharray="3 3" /><XAxis dataKey="day" /><YAxis /><Tooltip />
-              <Bar dataKey="minutes" fill="#8B45F5" radius={[4, 4, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
+        </section>
+      )}
+
+      {/* Completed lessons */}
+      {completed.length > 0 && (
+        <section>
+          <h2 className="text-lg font-semibold text-blue-100 mb-3">Completed</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {completed.map(lesson => (
+              <div
+                key={lesson.id}
+                className="card flex items-center justify-between cursor-pointer hover:shadow-md transition opacity-80"
+                onClick={() => router.push(`/lesson/${lesson.id}`)}
+              >
+                <div>
+                  <h3 className="font-medium text-blue-900">{lesson.title}</h3>
+                  {lesson.score != null && (
+                    <p className="text-sm text-gray-500">Score: {Math.round(lesson.score)}%</p>
+                  )}
+                </div>
+                <span className="text-2xl">✅</span>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Empty state */}
+      {lessons.length === 0 && (
+        <div className="card text-center py-12">
+          <div className="text-5xl mb-4">📚</div>
+          <p className="text-gray-600 text-lg">No lessons assigned yet.</p>
+          <p className="text-gray-400 text-sm mt-2">Ask your teacher to assign a lesson.</p>
         </div>
-        <div className="bg-white rounded-xl p-6 shadow">
-          <h2 className="text-lg font-semibold text-gray-800 mb-4">Competency Progress</h2>
-          <ResponsiveContainer width="100%" height={250}>
-            <BarChart data={data.competencyProgress || []} layout="vertical">
-              <CartesianGrid strokeDasharray="3 3" /><XAxis type="number" domain={[0, 100]} /><YAxis type="category" dataKey="area" width={100} /><Tooltip />
-              <Bar dataKey="progress" fill="#10B981" radius={[0, 4, 4, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
-      <div className="bg-white rounded-xl p-6 shadow">
-        <h2 className="text-lg font-semibold text-gray-800 mb-4">Quiz History</h2>
-        <ResponsiveContainer width="100%" height={200}>
-          <LineChart data={data.quizHistory || []}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="date" tickFormatter={d => new Date(d).toLocaleDateString()} />
-            <YAxis domain={[0, 100]} /><Tooltip />
-            <Line type="monotone" dataKey="score" stroke="#3B6DE5" strokeWidth={2} dot={{ r: 4 }} />
-          </LineChart>
-        </ResponsiveContainer>
-      </div>
+      )}
     </SidebarLayout>
   );
 }
