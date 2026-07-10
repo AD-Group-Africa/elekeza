@@ -12,7 +12,13 @@ class InstitutionController(
     private val institutionService: InstitutionService,
 ) {
     @PostMapping("/register")
-    fun register(@RequestBody request: InstitutionService.InstitutionRegistrationRequest): ResponseEntity<Institution> {
+    fun register(@RequestBody request: InstitutionService.InstitutionRegistrationRequest): ResponseEntity<Map<String, Any>> {
+        val institution = institutionService.registerInstitution(request)
+        return ResponseEntity.status(HttpStatus.CREATED).body(mapOf(
+            "institution" to institution,
+            "adminEmail" to request.adminEmail,
+            "message" to "School registered successfully. Admin account created."
+        )) }(@RequestBody request: InstitutionService.InstitutionRegistrationRequest): ResponseEntity<Institution> {
         val institution = institutionService.registerInstitution(request)
         return ResponseEntity.status(HttpStatus.CREATED).body(institution)
     }
@@ -33,3 +39,4 @@ class InstitutionController(
         return ResponseEntity.ok(institutionService.getStudents(institutionId))
     }
 }
+

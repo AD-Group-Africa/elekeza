@@ -23,7 +23,15 @@ export default function LoginPage() {
       } else if (user.role === 'GUARDIAN') {
         router.push('/guardian');
       } else {
-        router.push('/student-home');
+        if (user.role === 'TEACHER' || user.role === 'SCHOOL_ADMIN') {
+      router.push('/teacher');
+    } else if (user.role === 'GUARDIAN') {
+      router.push('/guardian');
+    } else if (user.role === 'ADMIN') {
+      router.push('/admin');
+    } else {
+      router.push('/student-home');
+    };
       }
     } catch {
       setError('Invalid email or password.');
@@ -69,3 +77,4 @@ export default function LoginPage() {
     </main>
   );
 }
+
