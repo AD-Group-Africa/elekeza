@@ -1,4 +1,4 @@
-import withPWA from 'next-pwa';
+﻿import withPWA from 'next-pwa';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:9090';
 
@@ -8,7 +8,7 @@ const nextConfig = {
   ],
   // Allow images from any https source (school logos etc)
   images: {
-    remotePatterns: [{ protocol: 'https', hostname: '**' }]
+    remotePatterns: [{ protocol: 'https' as const, hostname: '**' as const }]
   }
 };
 
@@ -40,3 +40,4 @@ export default withPWA({
     }
   ]
 })(nextConfig);
+
