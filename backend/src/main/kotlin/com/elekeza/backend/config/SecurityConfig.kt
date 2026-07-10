@@ -1,4 +1,4 @@
-package com.elekeza.backend.config
+﻿package com.elekeza.backend.config
 
 import com.elekeza.backend.auth.JwtAuthFilter
 import org.springframework.beans.factory.annotation.Value
@@ -40,7 +40,7 @@ class SecurityConfig(private val jwtAuthFilter: JwtAuthFilter) {
             .csrf { it.disable() }
             .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
             .authorizeHttpRequests { auth ->
-                // ── Public ────────────────────────────────────────────────────
+                // â”€â”€ Public â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
                 auth.requestMatchers(
                     "/api/auth/**",
                     "/api/institutions/register",   // school self-registration is public
@@ -50,7 +50,7 @@ class SecurityConfig(private val jwtAuthFilter: JwtAuthFilter) {
                 ).permitAll()
                 auth.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
-                // ── Role-scoped ────────────────────────────────────────────────
+                // â”€â”€ Role-scoped â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
                 auth.requestMatchers("/api/admin/**")
                     .hasRole("ADMIN")
                 auth.requestMatchers("/api/teacher/**")
@@ -60,7 +60,7 @@ class SecurityConfig(private val jwtAuthFilter: JwtAuthFilter) {
                 auth.requestMatchers("/api/institutions/**")
                     .hasAnyRole("SCHOOL_ADMIN", "ADMIN")
 
-                // ── Authenticated (any role) ───────────────────────────────────
+                // â”€â”€ Authenticated (any role) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
                 auth.anyRequest().authenticated()
             }
             .formLogin { it.disable() }
@@ -83,3 +83,4 @@ class SecurityConfig(private val jwtAuthFilter: JwtAuthFilter) {
         return source
     }
 }
+
