@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect, createContext, useContext, ReactNode, useCallback } from 'react'
 import { authAPI } from '@/lib/api'
@@ -32,23 +32,63 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   })
 
   // On mount: try /auth/me (uses HttpOnly access-token cookie set by login).
-  // Falls back cleanly if not authenticated — no error thrown to console.
-  const checkAuth = useCallback(async () => {
+  // Falls back cleanly if not authenticated â€” no error thrown to console.
+    const checkAuth = useCallback(async () => {
     try {
-      const res = await authAPI.me()
-      setUser(mapToUser(res.data as AuthResponse))
+      const res = await authAPI.me();
+      const mapped = mapToUser(res.data as AuthResponse);
+      setUser(mapped);
+      // Redirect if on login/register/root page
+      if (typeof window !== 'undefined') {
+        const path = window.location.pathname;
+        if (path === '/login' || path === '/register' || path === '/') {
+          switch (mapped.role) {
+            case 'TEACHER':
+            case 'SCHOOL_ADMIN':
+              router.push('/teacher');
+              break;
+            case 'GUARDIAN':
+              router.push('/guardian');
+              break;
+            case 'ADMIN':
+              router.push('/admin');
+              break;
+            default:
+              router.push('/student-home');
+          }
+        }
+      }
     } catch {
-      // Not authenticated or token expired — try refresh token
       try {
-        const refreshRes = await authAPI.refresh()
-        setUser(mapToUser(refreshRes.data as AuthResponse))
+        const refreshRes = await authAPI.refresh();
+        const mapped = mapToUser(refreshRes.data as AuthResponse);
+        setUser(mapped);
+        if (typeof window !== 'undefined') {
+          const path = window.location.pathname;
+          if (path === '/login' || path === '/register' || path === '/') {
+            switch (mapped.role) {
+              case 'TEACHER':
+              case 'SCHOOL_ADMIN':
+                router.push('/teacher');
+                break;
+              case 'GUARDIAN':
+                router.push('/guardian');
+                break;
+              case 'ADMIN':
+                router.push('/admin');
+                break;
+              default:
+                router.push('/student-home');
+            }
+          }
+        }
       } catch {
-        setUser(null)
+        setUser(null);
       }
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }, [])
+  }, [router]);
 
   useEffect(() => { checkAuth() }, [checkAuth])
 
@@ -102,3 +142,4 @@ export function useAuth() {
   if (!ctx) throw new Error('useAuth must be used within an AuthProvider')
   return ctx
 }
+
