@@ -33,45 +33,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         : readCognitiveProfiles(data.learnerId),
   })
 
-  const redirectByRole = (role: string) => {
-    const path = window.location.pathname
-    if (path === '/login' || path === '/register' || path === '/') {
-      switch (role) {
-        case 'TEACHER':
-        case 'SCHOOL_ADMIN':
-          router.push('/teacher')
-          break
-        case 'GUARDIAN':
-          router.push('/guardian')
-          break
-        case 'ADMIN':
-          router.push('/admin')
-          break
-        default:
-          router.push('/student-home')
-      }
-    }
-  }
-
+  // Only restore session; no automatic redirect
   const checkAuth = useCallback(async () => {
     try {
       const res = await authAPI.me()
       const mapped = mapToUser(res.data as AuthResponse)
       setUser(mapped)
-      redirectByRole(mapped.role)
     } catch {
       try {
         const refreshRes = await authAPI.refresh()
         const mapped = mapToUser(refreshRes.data as AuthResponse)
         setUser(mapped)
-        redirectByRole(mapped.role)
       } catch {
         setUser(null)
       }
     } finally {
       setLoading(false)
     }
-  }, [router])
+  }, [])
 
   useEffect(() => { checkAuth() }, [checkAuth])
 
