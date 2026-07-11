@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 import { useAuth } from '@/hooks/useAuth';
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
@@ -8,34 +8,34 @@ import { api } from '@/lib/api';
 
 const NAV_BY_ROLE: Record<string, { label: string; href: string; icon: string }[]> = {
   TEACHER: [
-    { label: 'Dashboard',  href: '/teacher',      icon: '📊' },
-    { label: 'Upload',     href: '/upload',        icon: '📤' },
-    { label: 'Import',     href: '/school/import', icon: '📋' },
-    { label: 'Profile',    href: '/dashboard/profile', icon: '👤' },
-    { label: 'Settings',   href: '/dashboard/settings', icon: '⚙️' },
+    { label: 'Dashboard',  href: '/teacher',      icon: 'ðŸ“Š' },
+    { label: 'Upload',     href: '/upload',        icon: 'ðŸ“¤' },
+    { label: 'Import',     href: '/school/import', icon: 'ðŸ“‹' },
+    { label: 'Profile',    href: '/dashboard/profile', icon: 'ðŸ‘¤' },
+    { label: 'Settings',   href: '/dashboard/settings', icon: 'âš™ï¸' },
   ],
   SCHOOL_ADMIN: [
-    { label: 'Dashboard',  href: '/teacher',             icon: '📊' },
-    { label: 'Import',     href: '/school/import',        icon: '📋' },
-    { label: 'Analytics',  href: '/admin/analytics',      icon: '📈' },
-    { label: 'Upload',     href: '/upload',               icon: '📤' },
-    { label: 'Settings',   href: '/dashboard/settings',   icon: '⚙️' },
+    { label: 'Dashboard',  href: '/teacher',             icon: 'ðŸ“Š' },
+    { label: 'Import',     href: '/school/import',        icon: 'ðŸ“‹' },
+    { label: 'Analytics',  href: '/admin/analytics',      icon: 'ðŸ“ˆ' },
+    { label: 'Upload',     href: '/upload',               icon: 'ðŸ“¤' },
+    { label: 'Settings',   href: '/dashboard/settings',   icon: 'âš™ï¸' },
   ],
   STUDENT: [
-    { label: 'Home',       href: '/student-home',      icon: '🏠' },
-    { label: 'Progress',   href: '/dashboard',          icon: '📊' },
-    { label: 'History',    href: '/dashboard/history',  icon: '📚' },
-    { label: 'Settings',   href: '/dashboard/settings', icon: '⚙️' },
+    { label: 'Home',       href: '/student-home',      icon: 'ðŸ ' },
+    { label: 'Progress',   href: '/dashboard',          icon: 'ðŸ“Š' },
+    { label: 'History',    href: '/dashboard/history',  icon: 'ðŸ“š' },
+    { label: 'Settings',   href: '/dashboard/settings', icon: 'âš™ï¸' },
   ],
   GUARDIAN: [
-    { label: 'My Children', href: '/parent-portal',    icon: '👨‍👩‍👦' },
-    { label: 'Settings',    href: '/dashboard/settings', icon: '⚙️' },
+    { label: 'My Children', href: '/guardian',    icon: 'ðŸ‘¨â€ðŸ‘©â€ðŸ‘¦' },
+    { label: 'Settings',    href: '/dashboard/settings', icon: 'âš™ï¸' },
   ],
   ADMIN: [
-    { label: 'Schools',    href: '/admin',             icon: '🏫' },
-    { label: 'Analytics',  href: '/admin/analytics',   icon: '📈' },
-    { label: 'Users',      href: '/admin/users',       icon: '👥' },
-    { label: 'Settings',   href: '/dashboard/settings', icon: '⚙️' },
+    { label: 'Schools',    href: '/admin',             icon: 'ðŸ«' },
+    { label: 'Analytics',  href: '/admin/analytics',   icon: 'ðŸ“ˆ' },
+    { label: 'Users',      href: '/admin/users',       icon: 'ðŸ‘¥' },
+    { label: 'Settings',   href: '/dashboard/settings', icon: 'âš™ï¸' },
   ],
 };
 
@@ -82,7 +82,7 @@ export default function SidebarLayout({ children }: { children: React.ReactNode 
         onClick={() => setMobileOpen(o => !o)}
         aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
       >
-        {mobileOpen ? '✕' : '☰'}
+        {mobileOpen ? 'âœ•' : 'â˜°'}
       </button>
 
       {/* Backdrop */}
@@ -108,7 +108,7 @@ export default function SidebarLayout({ children }: { children: React.ReactNode 
             className="hidden md:flex w-8 h-8 items-center justify-center rounded-lg hover:bg-gray-700 text-gray-400 hover:text-white transition text-sm"
             aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           >
-            {collapsed ? '→' : '←'}
+            {collapsed ? 'â†’' : 'â†'}
           </button>
         </div>
 
@@ -139,7 +139,7 @@ export default function SidebarLayout({ children }: { children: React.ReactNode 
           <Link href="/notifications" onClick={() => setMobileOpen(false)}
             className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition font-medium text-sm
               ${pathname === '/notifications' ? 'bg-purple-600 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white'}`}>
-            <span className="text-lg flex-shrink-0">🔔</span>
+            <span className="text-lg flex-shrink-0">ðŸ””</span>
             {!collapsed && (
               <>
                 <span className="flex-1">Notifications</span>
@@ -164,7 +164,7 @@ export default function SidebarLayout({ children }: { children: React.ReactNode 
           )}
           <button onClick={handleLogout}
             className="flex items-center gap-3 w-full px-3 py-2 rounded-xl text-gray-400 hover:bg-gray-700 hover:text-white transition text-sm">
-            <span className="text-lg">🚪</span>
+            <span className="text-lg">ðŸšª</span>
             {!collapsed && 'Sign out'}
           </button>
         </div>
@@ -177,3 +177,4 @@ export default function SidebarLayout({ children }: { children: React.ReactNode 
     </div>
   );
 }
+
