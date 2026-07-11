@@ -1,16 +1,32 @@
-﻿node_modules/
+﻿# Dependencies
+node_modules/
 .next/
 build/
 out/
 .gradle/
 venv/
 __pycache__/
+
+# IDE
+.vscode/
+.idea/
+*.iml
+
+# Logs & Temp
 *.log
+*.tmp
+
+# Environment
 .env
-Accessible-docs/.env
-backend/complete.json
-backend/Test-ElewaAPI.ps1
-frontend/src/src/
-ELEKEZA_FULL_CODEBASE.txt
-PROJECT_FILES.txt
-PROJECT_TREE.txt
+.env.local
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Test artifacts
+*-test.json
+login-prod.json
+student-create.json
+school-create.json
+update-teacher.js
