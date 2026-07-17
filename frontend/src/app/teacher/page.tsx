@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useEffect, useState } from 'react';
 import SidebarLayout from '@/components/layout/SidebarLayout';
@@ -45,7 +45,7 @@ export default function TeacherDashboard() {
         setStudents(studentsRes.data);
         setLessons(lessonsRes.data);
       })
-      .catch(() => setError('Unable to load dashboard. Please ensure the backend is running on port 9090.'))
+      .catch(() => setError('Unable to load dashboard. Something went wrong. Please try again.'))
       .finally(() => setLoading(false));
   }, []);
 
@@ -101,7 +101,12 @@ export default function TeacherDashboard() {
             <div className="h-64 bg-gray-800 rounded-xl"></div>
           </div>
         </div>
-      </SidebarLayout>
+      <div className="text-right mt-6">
+  <button onClick={() => window.print()} className="px-5 py-2 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-500 transition">
+    ?? Download Report (PDF)
+  </button>
+</div>
+</SidebarLayout>
     );
   }
 
@@ -110,14 +115,19 @@ export default function TeacherDashboard() {
     return (
       <SidebarLayout>
         <div className="flex flex-col items-center justify-center h-96 text-center">
-          <div className="text-5xl mb-4">⚠️</div>
+          <div className="text-5xl mb-4">??</div>
           <h2 className="text-xl font-semibold text-white mb-2">Connection Error</h2>
           <p className="text-gray-400 max-w-md">{error}</p>
           <button onClick={() => window.location.reload()} className="mt-6 px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition">
             Retry
           </button>
         </div>
-      </SidebarLayout>
+      <div className="text-right mt-6">
+  <button onClick={() => window.print()} className="px-5 py-2 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-500 transition">
+    ?? Download Report (PDF)
+  </button>
+</div>
+</SidebarLayout>
     );
   }
 
@@ -166,7 +176,7 @@ export default function TeacherDashboard() {
           {/* Charts Row */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
             {/* Weekly Activity */}
-            <div className="bg-white rounded-xl p-6 shadow">
+            <div className="glass-card rounded-xl p-6 shadow">
               <h2 className="text-lg font-semibold text-gray-800 mb-4">Weekly Activity</h2>
               {analytics.weeklyActivity.every(d => d.completed === 0) ? (
                 <div className="flex flex-col items-center justify-center h-64 text-gray-400">
@@ -190,7 +200,7 @@ export default function TeacherDashboard() {
             </div>
 
             {/* Completion Pie */}
-            <div className="bg-white rounded-xl p-6 shadow">
+            <div className="glass-card rounded-xl p-6 shadow">
               <h2 className="text-lg font-semibold text-gray-800 mb-4">Lesson Completion</h2>
               {analytics.lessonsAssigned === 0 ? (
                 <div className="flex flex-col items-center justify-center h-64 text-gray-400">
@@ -222,7 +232,7 @@ export default function TeacherDashboard() {
           </div>
 
           {/* Recent Assignments Table */}
-          <div className="bg-white rounded-xl p-6 shadow">
+          <div className="glass-card rounded-xl p-6 shadow">
             <h2 className="text-lg font-semibold text-gray-800 mb-4">Recent Assignments</h2>
             {analytics.recentAssignments.length === 0 ? (
               <div className="text-center py-8 text-gray-400">
@@ -266,7 +276,7 @@ export default function TeacherDashboard() {
       {/* Lessons Tab */}
       {activeTab === 'lessons' && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="bg-white rounded-xl p-6 shadow">
+          <div className="glass-card rounded-xl p-6 shadow">
             <h2 className="text-lg font-semibold text-gray-800 mb-4">Upload New Lesson</h2>
             <div className="space-y-4">
               <div>
@@ -297,7 +307,7 @@ export default function TeacherDashboard() {
             </div>
           </div>
 
-          <div className="bg-white rounded-xl p-6 shadow">
+          <div className="glass-card rounded-xl p-6 shadow">
             <h2 className="text-lg font-semibold text-gray-800 mb-4">Your Lessons ({lessons.length})</h2>
             {lessons.length === 0 ? (
               <div className="text-center py-12 text-gray-400">
@@ -327,7 +337,7 @@ export default function TeacherDashboard() {
 
       {/* Students Tab */}
       {activeTab === 'students' && (
-        <div className="bg-white rounded-xl p-6 shadow">
+        <div className="glass-card rounded-xl p-6 shadow">
           <h2 className="text-lg font-semibold text-gray-800 mb-4">Your Students ({students.length})</h2>
           {students.length === 0 ? (
             <div className="text-center py-12 text-gray-400">
@@ -365,7 +375,7 @@ export default function TeacherDashboard() {
 
       {/* Assign Tab */}
       {activeTab === 'assign' && (
-        <div className="bg-white rounded-xl p-6 shadow">
+        <div className="glass-card rounded-xl p-6 shadow">
           <h2 className="text-lg font-semibold text-gray-800 mb-4">Bulk Assign Lesson</h2>
           <div className="space-y-4">
             <div>
@@ -407,8 +417,15 @@ export default function TeacherDashboard() {
           </div>
         </div>
       )}
-    </SidebarLayout>
+    <div className="text-right mt-6">
+  <button onClick={() => window.print()} className="px-5 py-2 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-500 transition">
+    ?? Download Report (PDF)
+  </button>
+</div>
+</SidebarLayout>
   );
 }
+
+
 
 

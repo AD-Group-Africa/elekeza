@@ -1,4 +1,4 @@
-﻿# ELEKEZA Frontend
+# ELEKEZA Frontend
 
 Frontend for the ELEKEZA adaptive literacy platform, built with Next.js (App Router), React, TypeScript, and Tailwind CSS.
 
@@ -79,7 +79,7 @@ npm run lint   # lint project
 
 - Hard refresh browser
 - Check console for errors
-- Confirm localStorage key `docuease-settings` exists
+- Confirm localStorage key `elekeza-settings` exists
 
 ## Team Workflow Notes
 

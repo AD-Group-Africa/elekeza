@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
@@ -36,7 +36,7 @@ export default function SchoolOnboarding() {
       });
       router.push(`/login?welcome=1&email=${encodeURIComponent(f.adminEmail)}`);
     } catch(e:any){
-      setErr(e.response?.data?.message || 'Registration failed — please try again.');
+      setErr(e.response?.data?.message || 'Registration failed â€” please try again.');
     } finally { setBusy(false); }
   };
 
@@ -47,9 +47,9 @@ export default function SchoolOnboarding() {
     <div className="min-h-screen bg-gradient-to-br from-blue-900 via-purple-900 to-indigo-900 flex items-center justify-center p-4">
       <div className="w-full max-w-lg">
         <div className="text-center mb-8">
-          <div className="text-5xl mb-3">🏫</div>
+          <div className="text-5xl mb-3">ðŸ«</div>
           <h1 className="text-3xl font-bold text-white">Get started with Elekeza</h1>
-          <p className="text-blue-200 mt-1 text-sm">For any school — mainstream, SNE, NGO, homeschool</p>
+          <p className="text-blue-200 mt-1 text-sm">For any school â€” mainstream, SNE, NGO, homeschool</p>
         </div>
 
         {/* Step dots */}
@@ -58,14 +58,14 @@ export default function SchoolOnboarding() {
             <div key={s} className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold border-2 transition-all ${
               step===s?'bg-purple-500 border-purple-400 text-white':
               s<step?'bg-green-500 border-green-400 text-white':'bg-white/10 border-white/20 text-white/40'
-            }`}>{s<step?'✓':s}</div>
+            }`}>{s<step?'âœ“':s}</div>
           ))}
         </div>
 
-        <div className="bg-white rounded-2xl shadow-2xl p-8">
+        <div className="glass-card rounded-2xl shadow-2xl p-8">
           {err && <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg px-4 py-3 text-sm mb-5">{err}</div>}
 
-          {/* Step 1 — School */}
+          {/* Step 1 â€” School */}
           {step===1 && <div>
             <h2 className="text-xl font-semibold text-gray-900 mb-5">About your school</h2>
             <div className="space-y-4">
@@ -84,7 +84,7 @@ export default function SchoolOnboarding() {
                 <div>
                   <label className="label">County</label>
                   <select className="input-field" value={f.county} onChange={e=>upd('county',e.target.value)}>
-                    <option value="">Select…</option>
+                    <option value="">Selectâ€¦</option>
                     {COUNTIES.map(c=><option key={c}>{c}</option>)}
                   </select>
                 </div>
@@ -95,10 +95,10 @@ export default function SchoolOnboarding() {
               </div>
             </div>
             <button onClick={()=>{if(!canNext1){setErr('School name required');return;}next();}}
-              className="btn-primary w-full mt-6">Next →</button>
+              className="btn-primary w-full mt-6">Next â†’</button>
           </div>}
 
-          {/* Step 2 — Admin account */}
+          {/* Step 2 â€” Admin account */}
           {step===2 && <div>
             <h2 className="text-xl font-semibold text-gray-900 mb-1">Create admin account</h2>
             <p className="text-gray-400 text-sm mb-5">You'll manage teachers and students from this account</p>
@@ -125,17 +125,17 @@ export default function SchoolOnboarding() {
               </div>
             </div>
             <div className="flex gap-3 mt-6">
-              <button onClick={back} className="btn-outline flex-1">← Back</button>
-              <button onClick={()=>{if(!canNext2){setErr('All fields required (password ≥ 8 chars)');return;}next();}}
-                className="btn-primary flex-1">Review →</button>
+              <button onClick={back} className="btn-outline flex-1">â† Back</button>
+              <button onClick={()=>{if(!canNext2){setErr('All fields required (password â‰¥ 8 chars)');return;}next();}}
+                className="btn-primary flex-1">Review â†’</button>
             </div>
           </div>}
 
-          {/* Step 3 — Confirm */}
+          {/* Step 3 â€” Confirm */}
           {step===3 && <div>
             <h2 className="text-xl font-semibold text-gray-900 mb-5">Confirm &amp; create</h2>
-            <div className="bg-gray-50 rounded-xl p-4 space-y-2 text-sm mb-6">
-              {[['School',f.name],['Type',f.type],['County',f.county||'—'],['Admin',f.adminName],['Email',f.adminEmail]].map(([k,v])=>(
+            <div className="glass-card rounded-xl p-4 space-y-2 text-sm mb-6">
+              {[['School',f.name],['Type',f.type],['County',f.county||'â€”'],['Admin',f.adminName],['Email',f.adminEmail]].map(([k,v])=>(
                 <div key={k} className="flex justify-between">
                   <span className="text-gray-500">{k}</span>
                   <span className="font-medium text-gray-800">{v}</span>
@@ -143,9 +143,9 @@ export default function SchoolOnboarding() {
               ))}
             </div>
             <div className="flex gap-3">
-              <button onClick={back} className="btn-outline flex-1">← Back</button>
+              <button onClick={back} className="btn-outline flex-1">â† Back</button>
               <button onClick={submit} disabled={busy} className="btn-primary flex-1 disabled:opacity-60">
-                {busy ? 'Creating…' : '✓ Create school'}
+                {busy ? 'Creatingâ€¦' : 'âœ“ Create school'}
               </button>
             </div>
           </div>}
@@ -158,3 +158,4 @@ export default function SchoolOnboarding() {
     </div>
   );
 }
+

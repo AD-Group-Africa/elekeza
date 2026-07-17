@@ -75,7 +75,7 @@ export default function AdminDashboard() {
           { label: 'Guardians', value: data.totalGuardians || 0 },
           { label: 'Institutions', value: data.totalInstitutions || 0 },
         ].map((s, i) => (
-          <div key={i} className="bg-white rounded-xl p-4 shadow text-center">
+          <div key={i} className="glass-card rounded-xl p-4 shadow text-center">
             <p className="text-sm text-gray-500">{s.label}</p>
             <p className="text-3xl font-bold text-gray-800">{s.value}</p>
           </div>
@@ -83,7 +83,7 @@ export default function AdminDashboard() {
       </div>
 
       {/* Monthly Registrations Chart */}
-      <div className="bg-white rounded-xl p-6 shadow mb-8">
+      <div className="glass-card rounded-xl p-6 shadow mb-8">
         <h2 className="text-lg font-semibold text-gray-800 mb-4">Monthly Registrations</h2>
         {(data.monthlyRegistrations || []).length === 0 ? (
           <div className="text-center py-12 text-gray-400">
@@ -106,7 +106,7 @@ export default function AdminDashboard() {
           { label: 'Quizzes Taken', value: data.totalQuizzes || 0 },
           { label: 'Active Today', value: data.activeToday || 0 },
         ].map((s, i) => (
-          <div key={i} className="bg-white rounded-xl p-4 shadow text-center">
+          <div key={i} className="glass-card rounded-xl p-4 shadow text-center">
             <p className="text-sm text-gray-500">{s.label}</p>
             <p className="text-2xl font-bold text-gray-800">{s.value}</p>
           </div>
@@ -115,3 +115,4 @@ export default function AdminDashboard() {
     </SidebarLayout>
   );
 }
+

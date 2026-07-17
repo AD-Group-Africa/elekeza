@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import RoleLayout from '@/components/roles/RoleLayout'
 import { guardianConfig } from '@/components/roles/roleConfig'
@@ -35,4 +35,5 @@ export default function GuardianSchedulePage() {
     </RoleLayout>
   )
 }
+
 
