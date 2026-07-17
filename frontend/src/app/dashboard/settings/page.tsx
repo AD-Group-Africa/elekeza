@@ -12,7 +12,7 @@ export default function SettingsPage() {
         <h1 className="text-3xl font-bold text-white">Settings</h1>
       </div>
 
-      <div className="bg-gray-50 rounded-2xl p-6 space-y-8">
+      <div className="glass-card rounded-2xl p-6 space-y-8">
 
         {/* Display Modes */}
         <section>
@@ -93,3 +93,4 @@ export default function SettingsPage() {
     </SidebarLayout>
   );
 }
+

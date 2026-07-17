@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import RoleLayout from '@/components/roles/RoleLayout'
 import { guardianConfig } from '@/components/roles/roleConfig'
@@ -15,10 +15,10 @@ export default function GuardianCommunicationPage() {
       <Panel title="Messages">
         <div className="space-y-3">
           <div className="rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm text-slate-700">
-            Teacher: “Today your learner completed all reading tasks.” <span className="text-xs text-slate-500">(Read)</span>
+            Teacher: â€œToday your learner completed all reading tasks.â€ <span className="text-xs text-slate-500">(Read)</span>
           </div>
           <div className="rounded-lg border border-slate-200 p-3 text-sm text-slate-700">
-            You: “Thank you, can we review math support options?” <span className="text-xs text-slate-500">(Delivered)</span>
+            You: â€œThank you, can we review math support options?â€ <span className="text-xs text-slate-500">(Delivered)</span>
           </div>
         </div>
         <div className="mt-4 flex gap-2">
@@ -29,4 +29,5 @@ export default function GuardianCommunicationPage() {
     </RoleLayout>
   )
 }
+
 

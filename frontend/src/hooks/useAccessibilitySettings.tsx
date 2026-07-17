@@ -2,7 +2,7 @@
 
 import { createContext, ReactNode, useContext, useEffect, useMemo, useState } from 'react'
 
-const LOCAL_STORAGE_KEY = 'docuease-settings'
+const LOCAL_STORAGE_KEY = 'elekeza-settings'
 
 export type AccessibilitySettings = {
   calmUI: boolean

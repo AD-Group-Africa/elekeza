@@ -17,16 +17,21 @@ export default function GuardianDashboard() {
       .finally(() => setLoading(false));
   }, []);
 
-  if (loading) return <SidebarLayout><DashboardSkeleton title="Guardian Dashboard" /></SidebarLayout>;
+  if (loading) return <SidebarLayout><DashboardSkeleton title="Guardian Dashboard" /><div className="text-right mt-6">
+  <button onClick={() => window.print()} className="px-5 py-2 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-500 transition">
+    📄 Download Report (PDF)
+  </button>
+</div>
+</SidebarLayout>;
 
   return (
     <SidebarLayout>
       <h1 className="text-3xl font-bold text-white mb-8">Your Children</h1>
       {wards.length === 0 ? (
-        <div className="bg-white rounded-xl p-12 text-center text-gray-500">No linked children yet.</div>
+        <div className="glass-card rounded-xl p-12 text-center text-gray-500">No linked children yet.</div>
       ) : (
         wards.map((ward: any) => (
-          <div key={ward.id} className="bg-white rounded-xl p-6 shadow mb-6">
+          <div key={ward.id} className="glass-card rounded-xl p-6 shadow mb-6">
             <h2 className="text-xl font-semibold text-blue-900 mb-2">{ward.name}</h2>
             <p className="text-sm text-gray-500 mb-4">SNE Type: {ward.sneType}</p>
             <div className="grid grid-cols-3 gap-4 mb-6">
@@ -46,6 +51,13 @@ export default function GuardianDashboard() {
           </div>
         ))
       )}
-    </SidebarLayout>
+    <div className="text-right mt-6">
+  <button onClick={() => window.print()} className="px-5 py-2 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-500 transition">
+    📄 Download Report (PDF)
+  </button>
+</div>
+</SidebarLayout>
   );
 }
+
+

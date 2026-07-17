@@ -2,168 +2,42 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --spacing-sm: 0.75rem;
-  --spacing-md: 1.5rem;
-  --spacing-lg: 2rem;
-}
-
 body {
-  margin: 0;
-  padding: 0;
-  font-family: var(--font-nunito), var(--font-inter), system-ui, -apple-system, sans-serif;
-  background: radial-gradient(circle at 50% 30%, #8B45F5 0%, #3B6DE5 100%);
+  background: linear-gradient(135deg, #0F0A2E 0%, #1A1340 50%, #2D1F66 100%);
+  color: #F5F3FF;
   min-height: 100vh;
+  font-family: 'Inter', system-ui, sans-serif;
+  line-height: 1.6;
 }
 
-.card {
-  box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+.glass-card {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(124, 58, 237, 0.15);
   border-radius: 1rem;
-  padding: var(--spacing-md);
-  background: white;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
 }
 
-.btn-primary {
-  background: linear-gradient(90deg, #3B6DE5 0%, #8B45F5 100%);
-  color: white;
-  font-weight: 600;
-  padding: 0.75rem 1.5rem;
+.metric-card {
+  background: linear-gradient(135deg, rgba(124,58,237,0.2) 0%, rgba(139,92,246,0.05) 100%);
+  border: 1px solid rgba(124, 58, 237, 0.2);
   border-radius: 0.75rem;
-  box-shadow: 0 4px 14px rgba(0,0,0,0.2);
-  transition: all 0.2s;
-  border: none;
-  cursor: pointer;
+  padding: 1rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
 }
-.btn-primary:hover { opacity: 0.9; transform: translateY(-1px); }
-.btn-primary:active { transform: scale(0.98); }
-
-.btn-outline {
-  background: transparent;
-  color: #8B45F5;
-  border: 2px solid #8B45F5;
-  font-weight: 600;
-  padding: 0.6rem 1.5rem;
-  border-radius: 0.75rem;
-  transition: all 0.2s;
-  cursor: pointer;
-}
-.btn-outline:hover { background: #8B45F5; color: white; }
-
-*:focus-visible {
-  outline: 3px solid #8B45F5;
-  outline-offset: 2px;
-}
-body.dyslexia-font {
-  font-family: 'Atkinson Hyperlegible', 'OpenDyslexic', sans-serif !important;
-}
-body.reduced-motion * {
-  animation-duration: 0.001ms !important;
-  transition-duration: 0.001ms !important;
+.metric-card:hover {
+  border-color: rgba(124, 58, 237, 0.5);
+  box-shadow: 0 4px 20px rgba(124, 58, 237, 0.25);
 }
 
-/* ── Accessibility body classes ──────────────────────────── */
-body.a11y-calm-ui {
-  filter: grayscale(0.3);
-  transition: filter 0.3s;
-}
-body.a11y-focus-mode {
-  background: #1e1e2e !important;
-}
-body.a11y-dyslexia-support {
-  font-family: 'OpenDyslexic', 'Atkinson Hyperlegible', sans-serif;
-}
-body.a11y-high-contrast {
-  filter: contrast(1.5);
-}
-body.a11y-large-text {
-  font-size: 1.2rem;
-}
-body.a11y-reduced-motion * {
-  animation-duration: 0.001ms !important;
-  transition-duration: 0.001ms !important;
-}
-body.a11y-reading-guide {
-  --reading-guide-opacity: 0.3;
-}
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: #1A1340; }
+::-webkit-scrollbar-thumb { background: #4C2D99; border-radius: 3px; }
 
-/* ── Accessibility body classes (high specificity) ───────── */
-body.a11y-calm-ui {
-  filter: grayscale(0.4) !important;
-}
-body.a11y-focus-mode {
-  background: #111827 !important;
-}
-body.a11y-dyslexia-support,
-body.a11y-dyslexia-support * {
-  font-family: 'OpenDyslexic', 'Atkinson Hyperlegible', sans-serif !important;
-  letter-spacing: 0.05em !important;
-}
-body.a11y-high-contrast {
-  filter: contrast(1.6) !important;
-}
-body.a11y-large-text {
-  font-size: 1.25rem !important;
-}
-body.a11y-reduced-motion *,
-body.a11y-reduced-motion *::before,
-body.a11y-reduced-motion *::after {
-  animation-duration: 0.001ms !important;
-  transition-duration: 0.001ms !important;
-}
-body.a11y-reading-guide::after {
-  content: '';
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(transparent 0%, rgba(255,255,255,0.25) 25%, rgba(255,255,255,0.25) 75%, transparent 100%);
-  pointer-events: none;
-  z-index: 1000;
-}
-
-/* ── Missing accessibility body‑class styles ──────────────── */
-body.a11y-autism-friendly {
-  filter: saturate(0.8) brightness(1.1);
-}
-body.a11y-adhd-support {
-  animation: none !important;
-}
-body.a11y-simplified-language {
-  max-width: 65ch;
-  margin: 0 auto;
-}
-body.a11y-memory-support {
-  border: 3px solid #4F46E5;
-}
-body.a11y-text-to-speech {
-  cursor: pointer;
-}
-body.a11y-distraction-free {
-  background: #ffffff !important;
-}
-body.a11y-distraction-free * {
-  border: none !important;
-  box-shadow: none !important;
-}
-body.a11y-encouraging-feedback {
-  --accent-color: #22c55e;
-}
-body.a11y-step-by-step-guidance {
-  scroll-behavior: smooth;
-}
-body.a11y-show-reminders {
-  counter-reset: reminder;
-}
-body.a11y-auto-save-progress {
-  opacity: 0.9;
-}
-body.a11y-remove-time-pressure {
-  transition: none !important;
-}
-body.a11y-confirmation-before-actions {
-  pointer-events: auto;
-}
-body.a11y-anxiety-support {
-  filter: brightness(0.95);
+.focus-mode .glass-card:not(:hover) { opacity: 0.4; }
+.dyslexic-font * {
+  font-family: 'OpenDyslexic', sans-serif !important;
+  letter-spacing: 0.05em;
+  word-spacing: 0.15em;
+  line-height: 1.8;
 }

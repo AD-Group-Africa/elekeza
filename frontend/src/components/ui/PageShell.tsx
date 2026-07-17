@@ -17,7 +17,7 @@ type PageShellProps = {
 
 export default function PageShell({
   children,
-  footerText = 'Copyright 2026 DocuEase. All rights reserved.',
+  footerText = 'Copyright 2026 Elekeza. All rights reserved.',
   withSidebar = true,
   showAccessibilityToolbar = false,
   calmUI = false,

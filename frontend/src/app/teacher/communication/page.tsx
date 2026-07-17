@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import RoleLayout from '@/components/roles/RoleLayout'
 import { teacherConfig } from '@/components/roles/roleConfig'
@@ -19,4 +19,5 @@ export default function TeacherCommunicationPage() {
     </RoleLayout>
   )
 }
+
 

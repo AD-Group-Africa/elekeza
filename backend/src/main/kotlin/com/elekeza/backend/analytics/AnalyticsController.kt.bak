@@ -176,22 +176,5 @@ class AnalyticsController(
             else -> ResponseEntity.ok(mapOf("message" to "Dashboard not available for this role"))
         }
     }
-
-    @GetMapping("/admin/overview")
-    fun adminOverview(): ResponseEntity<Map<String, Any>> {
-        val users = userRepo.count()
-        val institutions = institutionRepo.count()
-        val teachers = userRepo.findByRole(UserRole.TEACHER).size
-        val students = userRepo.findByRole(UserRole.STUDENT).size
-        val guardians = userRepo.findByRole(UserRole.GUARDIAN).size
-        return ResponseEntity.ok(mapOf(
-            "totalUsers" to users,
-            "institutions" to institutions,
-            "teachers" to teachers,
-            "students" to students,
-            "guardians" to guardians
-        ))
-    }
 }
-
 

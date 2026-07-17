@@ -143,4 +143,4 @@ Victor – Frontend, UI/UX, Accessibility
 Alvin – AI Service, Pipeline, Model Selection
 
 License
-Proprietary – AD Group Africa. All rights reserved.
+AProprietary – AD Group Africa. All rights reserved.
