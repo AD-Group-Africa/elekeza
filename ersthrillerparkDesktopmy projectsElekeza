@@ -1,0 +1,10 @@
+[33m6520c1f[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mstaging[m[33m, [m[1;31morigin/staging[m[33m)[m Add mermaid field to Section model
+[33m3e679a9[m Integrate Mermaid diagrams: AI prompts, Section model, frontend rendering, structlog fix
+[33m6c1b9ec[m Clean: remove test artifacts and backup files, confirmed build
+[33m71b418a[m Fix Next.js 16 build: add turbopack config
+[33m2b951bc[m Fix structlog logger calls across all AI endpoints
+[33mc42aa03[m Fix structlog logger call in quiz.py
+[33md8e7469[m Fix requirements.txt line break: pdfplumber + structlog
+[33mbd08202[m Remove DocuEase branding, fix teacher error message
+[33m53ba1ad[m Fix guardian routing: /parent-portal → /guardian
+[33m115d1d8[m Fix parent-portal route to /guardian
