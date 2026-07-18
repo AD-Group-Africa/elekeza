@@ -1,4 +1,4 @@
-﻿from contextlib import asynccontextmanager
+from contextlib import asynccontextmanager
 import logging
 import httpx
 from fastapi import FastAPI, Request
@@ -68,3 +68,4 @@ async def global_exception_handler(request: Request, exc: Exception):
 @app.get("/health")
 async def health():
     return {"status": "ok"}
+
