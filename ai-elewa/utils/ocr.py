@@ -230,3 +230,4 @@ def extract_text_from_file(file_path: str) -> str:
     else:
         raise ValueError(f"Unsupported file type: {suffix}. Supported: .txt, .pdf, .docx")
 
+

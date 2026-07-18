@@ -523,3 +523,4 @@ class TestSecurityEdgeCases:
             timeout=10.0,
         )
         assert_error_response(resp, 401, "UNAUTHORISED")
+

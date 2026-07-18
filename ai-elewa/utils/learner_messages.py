@@ -317,3 +317,4 @@ def get_all_messages_for_profile(profile: str) -> dict[str, Optional[str]]:
         message = profile_map.get(profile) or profile_map.get("_generic")
         result[error_code] = message
     return result
+

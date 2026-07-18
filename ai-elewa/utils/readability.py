@@ -339,3 +339,4 @@ def compute_lesson_summary(
         "target_flesch_min": target.flesch_min,
         "target_flesch_max": target.flesch_max,
     }
+

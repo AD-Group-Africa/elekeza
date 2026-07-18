@@ -89,3 +89,4 @@ def test_single_profile_not_labelled_as_comorbid():
     ctx = make_context(["dyslexia"])
     result = build_system_prompt(ctx)
     assert "Comorbid" not in result
+

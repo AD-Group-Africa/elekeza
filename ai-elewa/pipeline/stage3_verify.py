@@ -146,3 +146,4 @@ Return your findings as the JSON object described in the system prompt.
         logger.info("Stage 3 complete — issues flagged but no sections matched for correction")
 
     return lesson_json
+

@@ -363,3 +363,4 @@ class TestStrategyConstants:
 
     def test_cause_effect_has_because_marker(self):
         assert "because" in CAUSE_EFFECT_STRATEGY.structure_markers
+

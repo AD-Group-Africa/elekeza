@@ -561,3 +561,4 @@ class TestStandardiseVisualHintsStage4:
         ctx = make_context(["autism", "intellectual_disability"], language_level=1)
         result = standardise_visual_hints(lesson, ctx)
         assert result.sections[0].visual_hint_type in _CONCRETE_TYPES
+

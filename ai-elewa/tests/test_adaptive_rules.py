@@ -309,3 +309,4 @@ class TestBuildAdaptiveContextBlock:
         block = build_adaptive_context_block(profile, 2, True, 3000, rule)
         assert isinstance(block, str)
         assert len(block) > 50
+

@@ -415,3 +415,4 @@ def write_report(results, failures, total_passed, total_checks):
 
 if __name__ == "__main__":
     run_review()
+

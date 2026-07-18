@@ -36,3 +36,4 @@ def extract_concepts(lesson_json: LessonJSON) -> LessonJSON:
     logger.info(f"Stage 4 complete — {len(cleaned_terms)} key term(s) extracted")
     lesson_json.key_terms = cleaned_terms
     return lesson_json
+

@@ -17,3 +17,4 @@ def error_json_response(error: ErrorResponse) -> JSONResponse:
     """Convert an ErrorResponse into a JSONResponse with the correct HTTP status."""
     status = ERROR_STATUS_MAP.get(error.error_code, 500)
     return JSONResponse(status_code=status, content=error.model_dump())
+

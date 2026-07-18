@@ -380,3 +380,4 @@ def test_extract_concepts_still_works_after_readability_added():
     result = extract_concepts(lesson)
     assert len(result.key_terms) == 1
     assert result.key_terms[0].term == "Photosynthesis"
+

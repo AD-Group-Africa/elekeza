@@ -105,3 +105,4 @@ async def test_succeeds_on_retry():
     result = await with_retry(fails_then_succeeds, **RETRY_KWARGS, max_retries=2)
     assert result == "success"
     assert call_count == 2
+

@@ -223,3 +223,4 @@ async def test_non_english_content_returns_422():
         )
     assert resp.status_code == 422
     assert_error_shape(resp.json(), "NON_ENGLISH")
+

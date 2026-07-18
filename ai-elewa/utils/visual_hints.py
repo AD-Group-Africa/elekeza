@@ -309,3 +309,4 @@ def standardise_hint(
         f"Section '{heading}': visual hint type downgraded to 'illustration'. "
         f"Reason: {reason}"
     )
+

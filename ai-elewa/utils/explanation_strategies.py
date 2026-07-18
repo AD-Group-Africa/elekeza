@@ -416,3 +416,4 @@ def validate_explanation_structure(
             )
 
     return len(issues) == 0, issues
+

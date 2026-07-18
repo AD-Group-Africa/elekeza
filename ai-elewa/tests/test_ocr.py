@@ -116,3 +116,4 @@ async def test_temp_file_deleted_after_failure():
 
     for path in created_paths:
         assert not Path(path).exists(), f"Temp file was NOT deleted after failure: {path}"
+
