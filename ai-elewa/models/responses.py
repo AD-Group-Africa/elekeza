@@ -1,4 +1,4 @@
-﻿from pydantic import BaseModel
+from pydantic import BaseModel
 from typing import List, Optional
 
 class KeyTerm(BaseModel):
@@ -14,8 +14,8 @@ class Section(BaseModel):
     heading: str
     body: str
     visual_hint: str = ""
-    reading_level: int = 2
     mermaid: str = ""  # Mermaid.js diagram for this section
+    reading_level: int = 2
 
 class LessonJSON(BaseModel):
     title: str
@@ -24,3 +24,4 @@ class LessonJSON(BaseModel):
     estimated_minutes: int = 5
     profile: str
     stage_flags: StageFlags = StageFlags()
+
