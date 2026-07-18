@@ -75,3 +75,4 @@ MAX_WORDS = 5000              # requests above this return OVERSIZED error
 MIN_CHARS = 1                 # below this return EMPTY_CONTENT error
 
 print(f"✅ Config loaded — provider: {AI_PROVIDER} | stage2: {STAGE2_MODEL} | stage3: {STAGE3_MODEL}")
+

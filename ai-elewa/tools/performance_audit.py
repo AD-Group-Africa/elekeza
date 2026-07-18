@@ -610,3 +610,4 @@ def write_report(results: dict, endpoint_results: list):
 
 if __name__ == "__main__":
     run_audit()
+

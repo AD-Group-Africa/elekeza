@@ -103,3 +103,4 @@ async def simplify_image(request: SimplifyImageRequest):
             message="An unexpected error occurred. Please try again.",
             stage="simplify_image",
         ))
+

@@ -77,3 +77,4 @@ class ProcessRequest(BaseModel):
 class ProcessResponse(BaseModel):
     simplified_text: str
     word_count: int
+

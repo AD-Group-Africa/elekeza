@@ -42,3 +42,4 @@ class AIServiceError(Exception):
     def __init__(self, error_response: ErrorResponse):
         self.error_response = error_response
         super().__init__(error_response.error_code)
+

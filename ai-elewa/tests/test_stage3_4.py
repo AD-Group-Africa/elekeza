@@ -75,3 +75,4 @@ def test_long_text_is_above_threshold():
     # 13 words per repetition × 45 = 585 words — safely above 500
     long_text = "This is a longer text with many words included for testing purposes here. " * 45
     assert len(long_text.split()) > WORD_THRESHOLD
+

@@ -355,3 +355,4 @@ class TestErrorResponseModel:
         assert "stage" in dumped
         assert "retried" in dumped
         assert "learner_message" in dumped
+

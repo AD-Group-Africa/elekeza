@@ -486,3 +486,4 @@ def analyse_rhythm(
         "profile_rule": rule.rule_description,
         "violations": violations,
     }
+

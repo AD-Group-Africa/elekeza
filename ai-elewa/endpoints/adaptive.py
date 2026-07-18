@@ -196,3 +196,4 @@ def _rule_based_fallback(
                 return {"directive": "revisit", "message": "Let us try this concept a different way.", "reasoning": "Easier not allowed for profile, consecutive wrongs"}
             return {"directive": "easier", "message": "No worries — let us take a step back.", "reasoning": "Multiple consecutive wrong answers"}
         return {"directive": "same", "message": "Almost — try again with the next question.", "reasoning": "Single wrong answer, maintain difficulty"}
+

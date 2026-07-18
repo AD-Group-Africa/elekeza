@@ -472,3 +472,4 @@ def test_rhythm_runs_for_comorbid_profile():
     ctx = make_context(["dyslexia", "intellectual_disability"], language_level=1)
     result = measure_readability(lesson, ctx)
     assert all(s.rhythm_score is not None for s in result.sections)
+

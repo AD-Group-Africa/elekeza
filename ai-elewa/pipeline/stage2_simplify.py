@@ -127,3 +127,4 @@ CONTENT TO SIMPLIFY:
     lesson.stage_flags.correction_applied = False
 
     return lesson
+

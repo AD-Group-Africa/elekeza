@@ -68,3 +68,4 @@ def trace_ai_call(
         _langfuse.flush()
     except Exception as e:
         logger.warning(f"⚠️  Langfuse trace failed silently: {e}")
+
