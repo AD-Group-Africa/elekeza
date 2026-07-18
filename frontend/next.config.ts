@@ -1,4 +1,4 @@
-﻿import withPWA from 'next-pwa';
+import withPWA from 'next-pwa';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:9090';
 
@@ -40,4 +40,5 @@ export default withPWA({
     }
   ]
 })(nextConfig);
+
 
