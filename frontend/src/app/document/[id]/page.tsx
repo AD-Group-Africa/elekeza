@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 
-const API_URL = "http://127.0.0.1:8000";
+const API_URL = "https://elekeza-ai.onrender.com";
 
 export default function DocumentViewer() {
   const params = useParams();
@@ -178,3 +178,4 @@ export default function DocumentViewer() {
     </div>
   )
 }
+
