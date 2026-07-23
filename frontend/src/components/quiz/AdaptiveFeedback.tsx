@@ -37,3 +37,4 @@ export function AdaptiveFeedback({ directive, message, isVisible }: Props) {
         </div>
     )
 }
+

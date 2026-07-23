@@ -1,88 +1,112 @@
-﻿'use client';
-import GamificationWidget from '@/components/GamificationWidget';
+'use client';
 
 import { useEffect, useState } from 'react';
+import api from '@/lib/axios';
 import SidebarLayout from '@/components/layout/SidebarLayout';
-import { api } from '@/lib/api';
-import DashboardSkeleton from '@/components/DashboardSkeleton';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
+import { BookOpen, ClipboardCheck, TrendingUp, Award, Zap } from 'lucide-react';
+import Link from 'next/link';
 
-export default function StudentDashboard() {
-  const [data, setData] = useState<any>(null);
+export default function StudentHome() {
+  const [progress, setProgress] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    api.get('/analytics/student')
-      .then(res => setData(res.data))
-      .catch(() => {})
+    api.get('/progress/dashboard')
+      .then(res => setProgress(res.data))
+      .catch(console.error)
       .finally(() => setLoading(false));
   }, []);
 
-  if (loading) return <SidebarLayout><DashboardSkeleton title="Student Dashboard" /></SidebarLayout>;
+  if (loading) return <SidebarLayout><div className="p-6 text-purple-200">Loading…</div></SidebarLayout>;
 
-  if (!data) return (
-    <SidebarLayout>
-      <div className="text-white text-center mt-20">
-        <h1 className="text-3xl font-bold mb-4">Welcome!</h1>
-        <p>No learning data yet. Start your first lesson.</p>
-      </div>
-    </SidebarLayout>
-  );
+  const streak = progress?.streak || 0;
+  const completedLessons = progress?.completedLessons || 0;
+  const avgScore = progress?.averageScore || 0;
+
+  let badge = 'Rising Star';
+  let badgeColor = 'text-purple-300';
+  if (streak >= 5) { badge = 'Fire Streak'; badgeColor = 'text-orange-400'; }
+  else if (completedLessons >= 5) { badge = 'Scholar'; badgeColor = 'text-blue-400'; }
+  else if (avgScore >= 80) { badge = 'Top Scorer'; badgeColor = 'text-green-400'; }
 
   return (
     <SidebarLayout>
-      <h1 className="text-3xl font-bold text-white mb-8">Your Dashboard</h1>
-      {/* Stats */}
-      <GamificationWidget />
-			<div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-        {[
-          { label: 'Learning Streak', value: `${data.learningStreak} days` },
-          { label: 'Completed', value: data.completedLessons },
-          { label: 'Pending', value: data.pendingLessons },
-          { label: 'Avg Score', value: `${data.averageScore.toFixed(1)}%` },
-        ].map((s, i) => (
-          <div key={i} className="glass-card rounded-xl p-4 shadow text-center">
-            <p className="text-sm text-gray-500">{s.label}</p>
-            <p className="text-2xl font-bold text-gray-800">{s.value}</p>
+      <div className="space-y-6">
+        <div className="flex items-center gap-3">
+          <h1 className="text-2xl font-bold text-purple-200">Welcome{progress?.name ? ', ' + progress.name : ''}!</h1>
+          <span className={'px-3 py-1 rounded-full text-xs font-semibold ' + badgeColor + ' bg-white/10'}>{badge}</span>
+        </div>
+
+        {streak > 0 && (
+          <div className="glass-card p-4 flex items-center gap-3">
+            <Zap size={24} className="text-yellow-400" />
+            <div>
+              <p className="text-purple-200 font-semibold">{streak} Day Streak!</p>
+              <p className="text-purple-300 text-sm">Keep it up!</p>
+            </div>
           </div>
-        ))}
-      </div>
-      {/* Charts */}
-      <GamificationWidget />
-			<div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        <div className="glass-card rounded-xl p-6 shadow">
-          <h2 className="text-lg font-semibold text-gray-800 mb-4">Weekly Minutes</h2>
-          <ResponsiveContainer width="100%" height={250}>
-            <BarChart data={data.weeklyActivity || []}>
-              <CartesianGrid strokeDasharray="3 3" /><XAxis dataKey="day" /><YAxis /><Tooltip />
-              <Bar dataKey="minutes" fill="#8B45F5" radius={[4, 4, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
+        )}
+
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="glass-card p-4 flex flex-col items-center">
+            <BookOpen size={24} className="text-blue-400 mb-2" />
+            <p className="text-purple-300 text-sm">Lessons</p>
+            <p className="text-2xl font-bold text-purple-100">{completedLessons}</p>
+          </div>
+          <div className="glass-card p-4 flex flex-col items-center">
+            <ClipboardCheck size={24} className="text-green-400 mb-2" />
+            <p className="text-purple-300 text-sm">Quizzes</p>
+            <p className="text-2xl font-bold text-purple-100">{progress?.quizzesTaken || 0}</p>
+          </div>
+          <div className="glass-card p-4 flex flex-col items-center">
+            <TrendingUp size={24} className="text-purple-400 mb-2" />
+            <p className="text-purple-300 text-sm">Avg Score</p>
+            <p className="text-2xl font-bold text-purple-100">{avgScore}%</p>
+          </div>
+          <div className="glass-card p-4 flex flex-col items-center">
+            <Award size={24} className="text-yellow-400 mb-2" />
+            <p className="text-purple-300 text-sm">Streak</p>
+            <p className="text-2xl font-bold text-purple-100">{streak} days</p>
+          </div>
         </div>
-        <div className="glass-card rounded-xl p-6 shadow">
-          <h2 className="text-lg font-semibold text-gray-800 mb-4">Competency Progress</h2>
-          <ResponsiveContainer width="100%" height={250}>
-            <BarChart data={data.competencyProgress || []} layout="vertical">
-              <CartesianGrid strokeDasharray="3 3" /><XAxis type="number" domain={[0, 100]} /><YAxis type="category" dataKey="area" width={100} /><Tooltip />
-              <Bar dataKey="progress" fill="#10B981" radius={[0, 4, 4, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
+
+        <div className="grid md:grid-cols-2 gap-6">
+          <div className="glass-card p-4">
+            <h3 className="text-lg font-semibold text-purple-200 mb-3">Recent Lessons</h3>
+            {progress?.recentLessons?.length > 0 ? (
+              <ul className="space-y-2">
+                {progress.recentLessons.map((l: any, idx: number) => (
+                  l.id ? (
+                    <li key={l.id || idx} className="flex justify-between text-purple-200">
+                      <span>{l.title}</span>
+                      <Link href={'/lesson/' + l.id} className="text-purple-400 hover:underline">Continue</Link>
+                    </li>
+                  ) : null
+                ))}
+              </ul>
+            ) : (
+              <p className="text-purple-300">No lessons assigned yet.</p>
+            )}
+          </div>
+          <div className="glass-card p-4">
+            <h3 className="text-lg font-semibold text-purple-200 mb-3">Upcoming Quizzes</h3>
+            {progress?.upcomingQuizzes?.length > 0 ? (
+              <ul className="space-y-2">
+                {progress.upcomingQuizzes.map((q: any, idx: number) => (
+                  q.lessonId ? (
+                    <li key={q.id || idx} className="flex justify-between text-purple-200">
+                      <span>{q.title}</span>
+                      <Link href={'/quiz/' + q.lessonId} className="text-purple-400 hover:underline">Start</Link>
+                    </li>
+                  ) : null
+                ))}
+              </ul>
+            ) : (
+              <p className="text-purple-300">No quizzes available.</p>
+            )}
+          </div>
         </div>
-      </div>
-      {/* Quiz History */}
-      <div className="glass-card rounded-xl p-6 shadow">
-        <h2 className="text-lg font-semibold text-gray-800 mb-4">Quiz History</h2>
-        <ResponsiveContainer width="100%" height={200}>
-          <LineChart data={data.quizHistory || []}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="date" tickFormatter={d => new Date(d).toLocaleDateString()} />
-            <YAxis domain={[0, 100]} /><Tooltip />
-            <Line type="monotone" dataKey="score" stroke="#3B6DE5" strokeWidth={2} dot={{ r: 4 }} />
-          </LineChart>
-        </ResponsiveContainer>
       </div>
     </SidebarLayout>
   );
 }
-
-

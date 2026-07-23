@@ -32,13 +32,12 @@ jwt:
   secret: dev-secret-at-least-32-characters-long!!
   expiration: 900000
   refresh-expiration: 604800000
-
 ai:
   client:
-    type: mock
-  base-url: http://localhost:8000
-  internal-secret: dev-internal-secret-change-in-prod
-  timeout-seconds: 60
+    type: real
+  base-url: https://elekeza-ai.onrender.com
+  internal-secret: ${AI_INTERNAL_SECRET:change-me}
+  timeout-seconds: 120
 
 app:
   frontend-url: http://localhost:3000
@@ -46,11 +45,17 @@ app:
     allowed-origins: "*"
 
 mpesa:
-  consumer-key: dev-key
-  consumer-secret: dev-secret
-  pass-key: dev-pass
-  short-code: 174379
-  callback-url: http://localhost:9090/mpesa/callback
+  consumer-key: 7BTGmPEGK6ZTHa87dY46KjjEDXJmSti2nhW26FKPBpO9eHaU
+  consumer-secret: rs6GOYBkI2LhA2QUTL3AG5X7APCeHY2buJgSp5ziRvnMsb5dZyUzDszy9s11p8uJ
+  passkey: dev-pass
+  shortcode: 174379
+  callback-url: http://localhost:8080/api/payments/callback
+  environment: sandbox
+
+africastalking:
+  username: ${AFRICASTALKING_USERNAME:myElekezaapp}
+  api-key: ${AFRICASTALKING_API_KEY:atsk_6351f010a04b39e7f6574abdb95c24ab34a9a0b17b265dd4687dc0d041159ae35d8924a4}
+  sender-id: ${AFRICASTALKING_SENDER_ID:Elekeza}
 
 management:
   health:

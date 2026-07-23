@@ -1,4 +1,4 @@
-﻿export default function DashboardSkeleton({ title }: { title: string }) {
+export default function DashboardSkeleton({ title }: { title: string }) {
   return (
     <div className="min-h-screen p-6">
       <div className="animate-pulse">
@@ -16,3 +16,4 @@
     </div>
   );
 }
+

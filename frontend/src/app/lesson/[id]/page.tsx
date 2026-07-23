@@ -2,83 +2,86 @@
 
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
+import api from '@/lib/axios';
 import SidebarLayout from '@/components/layout/SidebarLayout';
-import { api } from '@/lib/api';
+import { ArrowLeft, BookOpen, Volume2 } from 'lucide-react';
+import Link from 'next/link';
+import { useAuth } from '@/hooks/useAuth';
 
 export default function LessonPage() {
-  const { id } = useParams<{ id: string }>();
+  const { id } = useParams();
   const [lesson, setLesson] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const { user } = useAuth();
+  const isStudent = user?.role === 'STUDENT';
 
   useEffect(() => {
-    if (!id) return;
-    api.get(`/content/lessons/${id}`)
+    api.get('/content/lessons/' + id)
       .then(res => setLesson(res.data))
-      .catch(err => setError(err.response?.data?.message || 'Failed to load lesson'))
+      .catch(() => setError('Failed to load lesson.'))
       .finally(() => setLoading(false));
   }, [id]);
 
-  if (loading) return <SidebarLayout><div className="text-white text-center mt-20">Loading lesson...
-        <div className="mt-8 text-center">
-          <button
-            onClick={() => window.location.href = `/quiz/${id}`}
-            className="btn-primary px-8 py-3"
-          >
-            Take Quiz
-          </button>
-        </div>
-</div></SidebarLayout>;
-  if (error) return <SidebarLayout><div className="card text-center mt-20 text-red-600">{error}
-        <div className="mt-8 text-center">
-          <button
-            onClick={() => window.location.href = `/quiz/${id}`}
-            className="btn-primary px-8 py-3"
-          >
-            Take Quiz
-          </button>
-        </div>
-</div></SidebarLayout>;
-  if (!lesson) return <SidebarLayout><div className="card text-center mt-20">Lesson not found.
-        <div className="mt-8 text-center">
-          <button
-            onClick={() => window.location.href = `/quiz/${id}`}
-            className="btn-primary px-8 py-3"
-          >
-            Take Quiz
-          </button>
-        </div>
-</div></SidebarLayout>;
+  if (loading) return <SidebarLayout><div className="p-6 text-purple-200">Loading lesson…</div></SidebarLayout>;
+  if (error) return <SidebarLayout><div className="p-6 text-red-400">{error}</div></SidebarLayout>;
+
+  const title = lesson?.title || 'Untitled Lesson';
+  const status = lesson?.status || '';
+  const sections = lesson?.sections || [];
+  const keyTerms = lesson?.keyTerms || {};
 
   return (
     <SidebarLayout>
-      <h1 className="text-3xl font-bold text-white mb-8">{lesson.title}</h1>
       <div className="space-y-6">
-        {lesson.sections?.map((section: any, idx: number) => (
-          <div key={idx} className="card">
-            <h2 className="text-xl font-semibold text-blue-900 mb-3">{section.heading}</h2>
-            <p className="text-lg leading-relaxed text-gray-800">{section.body}</p>
-            <button
-              onClick={() => {
-                const utterance = new SpeechSynthesisUtterance(section.body);
-                utterance.rate = 0.85;
-                speechSynthesis.speak(utterance);
-              }}
-              className="mt-4 inline-flex items-center gap-2 px-4 py-2 border border-purple-500 text-purple-600 rounded-full hover:bg-purple-50 transition"
-            >
-              <span>🔊</span> Listen
-            </button>
-          </div>
-        ))}
-        <div className="mt-8 text-center">
-          <button
-            onClick={() => window.location.href = `/quiz/${id}`}
-            className="btn-primary px-8 py-3"
-          >
-            Take Quiz
-          </button>
+        <Link href={isStudent ? "/student-home" : "/teacher"} className="flex items-center gap-2 text-purple-300 hover:text-white">
+          <ArrowLeft size={18} /> Back
+        </Link>
+
+        <div>
+          <h1 className="text-2xl font-bold text-purple-200">{title}</h1>
+          {status && (
+            <span className="inline-block mt-2 px-3 py-1 rounded-full text-xs font-medium bg-green-600/40 text-green-300">{status}</span>
+          )}
         </div>
 
+        {sections.length > 0 ? (
+          <div className="space-y-4">
+            {sections.map((section: any, idx: number) => {
+              const bodyText = typeof section.body === 'object' ? (section.body.text || section.body.content || '') : section.body;
+              return (
+                <div key={idx} className="glass-card p-4">
+                  {section.heading && <h3 className="text-lg font-semibold text-purple-200 mb-2">{section.heading}</h3>}
+                  <p className="text-purple-300 whitespace-pre-line">{bodyText}</p>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="glass-card p-6 text-center text-purple-300">
+            <BookOpen size={48} className="text-purple-400 mx-auto mb-4" />
+            <p>No content sections available yet.</p>
+          </div>
+        )}
+
+        {Object.keys(keyTerms).length > 0 && (
+          <div className="glass-card p-4">
+            <h3 className="text-lg font-semibold text-purple-200 mb-2">Key Terms</h3>
+            <div className="flex flex-wrap gap-2">
+              {Object.entries(keyTerms).map(([term, definition]: any) => (
+                <span key={term} className="px-3 py-1 bg-purple-600/30 rounded-full text-sm text-purple-200" title={definition}>{term}</span>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {isStudent && (
+          <div className="flex justify-end">
+            <Link href={'/quiz/' + id} className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-lg">
+              Take Quiz
+            </Link>
+          </div>
+        )}
       </div>
     </SidebarLayout>
   );

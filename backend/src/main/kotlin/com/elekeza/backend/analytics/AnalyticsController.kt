@@ -1,4 +1,4 @@
-﻿package com.elekeza.backend.analytics
+package com.elekeza.backend.analytics
 
 import com.elekeza.backend.auth.User
 import com.elekeza.backend.auth.UserRepository

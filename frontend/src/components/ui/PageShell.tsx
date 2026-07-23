@@ -45,11 +45,12 @@ export default function PageShell({
           )}
           {children}
         </main>
-        <footer className="border-t border-slate-200 bg-white px-6 py-4 text-center text-sm text-slate-500">
+        <footer className="border-t border-slate-200 glass-card px-6 py-4 text-center text-sm text-purple-300">
           {footerText}
         </footer>
       </div>
     </div>
   )
 }
+
 

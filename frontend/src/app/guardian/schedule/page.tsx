@@ -1,39 +1,43 @@
-﻿'use client'
+'use client';
 
-import RoleLayout from '@/components/roles/RoleLayout'
-import { guardianConfig } from '@/components/roles/roleConfig'
-import { Panel, RoleHero } from '@/components/roles/RoleBlocks'
+import { useEffect, useState } from 'react';
+import api from '@/lib/axios';
+import { Calendar } from 'lucide-react';
 
-const routineItems = [
-  { time: '08:00', task: 'Reading Warmup', status: 'Completed' },
-  { time: '10:00', task: 'Math Practice', status: 'Pending' },
-  { time: '14:00', task: 'Speech Session', status: 'Scheduled' },
-  { time: '17:00', task: 'Homework Review', status: 'Pending' },
-]
+export default function GuardianSchedule() {
+  const [schedule, setSchedule] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-export default function GuardianSchedulePage() {
+  useEffect(() => {
+    api.get('/guardian/schedule')
+      .then(res => setSchedule(res.data))
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  }, []);
+
   return (
-    <RoleLayout config={guardianConfig}>
-      <RoleHero
-        title="Schedule and Routine"
-        description="Manage daily routine, reminders, and appointments in calendar/list style."
-      />
-
-      <Panel title="Today Routine List">
-        <ul className="space-y-3">
-          {routineItems.map((item) => (
-            <li key={`${item.time}-${item.task}`} className="flex items-center justify-between rounded-lg border border-slate-200 p-3">
+    <div className="space-y-6">
+      <h1 className="text-2xl font-bold text-purple-200">Schedule</h1>
+      {loading ? (
+        <p className="text-purple-300">Loading…</p>
+      ) : schedule.length === 0 ? (
+        <div className="glass-card p-6 text-center">
+          <Calendar size={48} className="text-purple-400 mx-auto mb-4" />
+          <p className="text-purple-200">No upcoming activities.</p>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {schedule.map((item, i) => (
+            <div key={i} className="glass-card p-4 flex justify-between items-center">
               <div>
-                <p className="text-sm font-semibold text-slate-900">{item.task}</p>
-                <p className="text-xs text-slate-500">{item.time}</p>
+                <h3 className="text-purple-200 font-semibold">{item.title}</h3>
+                <p className="text-purple-300 text-sm">{item.date} • {item.time}</p>
               </div>
-              <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">{item.status}</span>
-            </li>
+              <span className="text-purple-400 text-xs">{item.type}</span>
+            </div>
           ))}
-        </ul>
-      </Panel>
-    </RoleLayout>
-  )
+        </div>
+      )}
+    </div>
+  );
 }
-
-

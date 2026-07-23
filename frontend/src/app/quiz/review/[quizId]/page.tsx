@@ -1,104 +1,51 @@
-'use client'
+'use client';
 
-import { useEffect, useState } from 'react'
-import { useParams, useRouter } from 'next/navigation'
-import { useAuth } from '@/hooks/useAuth'
-import { quizAPI } from '@/lib/api'
-import { QuizCompleteResponse } from '@/types'
+import { useEffect, useState } from 'react';
+import { useParams } from 'next/navigation';
+import api from '@/lib/axios';
+import SidebarLayout from '@/components/layout/SidebarLayout';
+import { ArrowLeft, Check, X } from 'lucide-react';
+import Link from 'next/link';
 
-export default function QuizReviewPage() {
-  const { user, loading: authLoading } = useAuth()
-  const params = useParams()
-  const router = useRouter()
-  const quizId = params.quizId as string
-
-  const [review, setReview] = useState<QuizCompleteResponse | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
+export default function QuizReview() {
+  const { quizId } = useParams();
+  const [review, setReview] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!authLoading && !user) {
-      router.replace('/login')
-      return
-    }
-    if (user && quizId) {
-      fetchReview()
-    }
-  }, [authLoading, user, quizId, router])
+    api.get(`/quiz/${quizId}/review`)
+      .then(res => setReview(res.data))
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  }, [quizId]);
 
-  async function fetchReview() {
-    try {
-      const res = await quizAPI.review(quizId)
-      const data = res.data
-      setReview(data)
-    } catch {
-      setError('Failed to load quiz review')
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  if (authLoading || loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-elekeza-deep-blue via-white to-elekeza-indigo">
-        <p className="text-slate-700">Loading quiz review...</p>
-      </div>
-    )
-  }
-
-  if (error || !review) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-elekeza-deep-blue via-white to-elekeza-indigo p-6">
-        <div className="bg-white p-8 rounded-2xl shadow-xl border border-slate-200 max-w-md w-full text-center">
-          <h2 className="text-xl font-bold text-slate-900 mb-2">Quiz Review Error</h2>
-          <p className="text-slate-700 mb-4">{error || 'No review data found'}</p>
-          <button
-            onClick={() => router.push('/dashboard')}
-            className="bg-elekeza-deep-blue text-white px-6 py-2 rounded-lg hover:bg-elekeza-indigo"
-          >
-            Back to Dashboard
-          </button>
-        </div>
-      </div>
-    )
-  }
+  if (loading) return <SidebarLayout><div className="p-6 text-purple-200">Loading review…</div></SidebarLayout>;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-elekeza-deep-blue via-white to-elekeza-indigo p-4 sm:p-6">
-      <div className="max-w-3xl mx-auto bg-white p-6 sm:p-8 rounded-2xl shadow-xl border border-slate-200">
-        <h1 className="text-2xl font-bold text-slate-900 mb-2">Quiz Review</h1>
-        <p className="text-slate-700 mb-6">
-          Score: <span className="font-semibold">{Math.round(review.scorePercentage)}%</span> ({review.correctCount}/{review.totalQuestions})
-        </p>
-
-        {review.failedQuestions && review.failedQuestions.length > 0 ? (
-          <div className="space-y-3">
-            {review.failedQuestions.map((q, idx) => (
-              <div key={q.questionId} className="rounded-lg border border-amber-200 bg-amber-50 p-4">
-                <p className="font-semibold text-slate-900">{idx + 1}. {q.questionText}</p>
-                <p className="mt-1 text-sm text-red-700">
-                  Your answer: {q.selectedAnswerText ?? q.selectedOptionId ?? 'Not answered'}
-                </p>
-                <p className="text-sm text-emerald-700">
-                  Correct answer: {q.correctAnswerText ?? q.correctOptionId}
-                </p>
+    <SidebarLayout>
+      <div className="space-y-6">
+        <Link href="/student-home" className="flex items-center gap-2 text-purple-300 hover:text-white">
+          <ArrowLeft size={18} /> Back
+        </Link>
+        <h1 className="text-2xl font-bold text-purple-200">Quiz Review</h1>
+        {review?.questions.map((q: any, idx: number) => (
+          <div key={idx} className="glass-card p-4">
+            <div className="flex items-start gap-2">
+              {q.correct ? (
+                <Check size={20} className="text-green-400 mt-1" />
+              ) : (
+                <X size={20} className="text-red-400 mt-1" />
+              )}
+              <div>
+                <p className="text-purple-200 font-semibold">{q.question}</p>
+                <p className="text-purple-300 text-sm">Your answer: {q.userAnswer}</p>
+                {!q.correct && <p className="text-green-300 text-sm">Correct: {q.correctAnswer}</p>}
+                {q.explanation && <p className="text-purple-400 text-xs mt-1">{q.explanation}</p>}
               </div>
-            ))}
+            </div>
           </div>
-        ) : (
-          <p className="text-emerald-700 font-medium">Great work. No failed questions to review.</p>
-        )}
-
-        <div className="mt-6">
-          <button
-            onClick={() => router.push('/dashboard')}
-            className="bg-elekeza-deep-blue text-white px-5 py-2 rounded-lg hover:bg-elekeza-indigo"
-          >
-            Back to Dashboard
-          </button>
-        </div>
+        ))}
       </div>
-    </div>
-  )
+    </SidebarLayout>
+  );
 }
-

@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useAuth } from '@/hooks/useAuth';
 import Image from 'next/image';
@@ -32,3 +32,4 @@ export default function AppBar() {
     </header>
   );
 }
+

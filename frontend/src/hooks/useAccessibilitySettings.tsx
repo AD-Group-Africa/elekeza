@@ -242,3 +242,4 @@ export function useAccessibilitySettings() {
   }
   return context
 }
+

@@ -7,7 +7,7 @@ export default function Navbar() {
   const [profileOpen, setProfileOpen] = useState(false)
 
   return (
-    <header className="bg-white border-b border-gray-200 px-6 py-3 flex justify-between items-center shadow-sm sticky top-0 z-50">
+    <header className="glass-card border-b border-gray-200 px-6 py-3 flex justify-between items-center shadow-sm sticky top-0 z-50">
       {/* Left: Title / Breadcrumb */}
       <div className="text-xl font-bold text-purple-700">MAIN DASH</div>
 
@@ -28,7 +28,7 @@ export default function Navbar() {
           </button>
 
           {profileOpen && (
-            <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-xl shadow-lg py-2 flex flex-col">
+            <div className="absolute right-0 mt-2 w-48 glass-card border border-gray-200 rounded-xl shadow-lg py-2 flex flex-col">
               <button className="px-4 py-2 hover:bg-gray-100 text-left">Profile</button>
               <button className="px-4 py-2 hover:bg-gray-100 text-left">Settings</button>
               <button className="px-4 py-2 hover:bg-gray-100 text-left text-red-500">
@@ -41,3 +41,4 @@ export default function Navbar() {
     </header>
   )
 }
+

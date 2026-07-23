@@ -1,5 +1,5 @@
 {
-  "name": "Elekeza â€“ Inclusive Learning",
+  "name": "Elekeza – Inclusive Learning",
   "short_name": "Elekeza",
   "description": "AI-powered learning for every learner, including special needs.",
   "start_url": "/dashboard",
@@ -9,15 +9,9 @@
   "orientation": "any",
   "icons": [
     {
-      "src": "/frontend/public/Elekeza Logo.png",
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='192' height='192' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' rx='24' fill='%234F46E5'/%3E%3Ctext x='96' y='116' font-size='100' fill='white' text-anchor='middle' font-family='Arial' font-weight='bold'%3EE%3C/text%3E%3C/svg%3E",
       "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "/icons/icon-512x512.png",
-      "sizes": "512x512",
-      "type": "image/png",
+      "type": "image/svg+xml",
       "purpose": "any maskable"
     }
   ],

@@ -1,105 +1,84 @@
-﻿'use client'
+'use client';
 
-import { useState, useEffect, createContext, useContext, ReactNode, useCallback } from 'react'
-import { useRouter } from 'next/navigation'
-import { authAPI } from '@/lib/api'
-import { AuthResponse, CognitiveProfile, User } from '@/types'
-import { persistCognitiveProfiles, readCognitiveProfiles } from '@/lib/cognitiveProfiles'
+import { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
+import api from '@/lib/axios';
+
+interface User {
+  learnerId: number;
+  email: string;
+  name: string;
+  role: string;
+  accessToken: string;
+}
 
 interface AuthContextType {
-  user: User | null
-  loading: boolean
-  login: (email: string, password: string) => Promise<User>
-  register: (email: string, password: string, fullName: string, cognitiveProfiles?: CognitiveProfile[]) => Promise<User>
-  logout: () => Promise<void>
+  user: User | null;
+  login: (email: string, password: string) => Promise<User>;
+  register: (email: string, password: string, name: string, phone: string, role: string, termsAccepted: boolean) => Promise<void>;
+  loginWithGoogle: () => Promise<void>;
+  logout: () => Promise<void>;
+  loading: boolean;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined)
+const AuthContext = createContext<AuthContextType>({} as AuthContextType);
 
-export function AuthProvider({ children }: { children: ReactNode }) {
-  const router = useRouter()
-  const [user, setUser] = useState<User | null>(null)
-  const [loading, setLoading] = useState(true)
+export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
-  const mapToUser = (data: AuthResponse): User => ({
-    id: String(data.learnerId),
-    email: data.email,
-    name: data.name ?? '',
-    onboardingComplete: data.onboardingComplete,
-    role: data.role ?? 'STUDENT',
-    cognitiveProfiles:
-      data.cognitiveProfiles?.length
-        ? data.cognitiveProfiles
-        : readCognitiveProfiles(data.learnerId),
-  })
+  useEffect(() => {
+    const token = localStorage.getItem('accessToken');
+    if (token) {
+      api.get('/auth/me')
+        .then(res => setUser({ ...res.data, accessToken: token }))
+        .catch(() => localStorage.removeItem('accessToken'))
+        .finally(() => setLoading(false));
+    } else {
+      setLoading(false);
+    }
+  }, []);
 
-  // Only restore session; no automatic redirect
-  const checkAuth = useCallback(async () => {
+  const login = useCallback(async (email: string, password: string) => {
+    const res = await api.post('/auth/login', { email, password });
+    const userData = res.data;
+    localStorage.setItem('accessToken', userData.accessToken);
+    setUser(userData);
+    switch (userData.role) {
+      case 'TEACHER': router.push('/teacher'); break;
+      case 'STUDENT': router.push('/student-home'); break;
+      case 'GUARDIAN': router.push('/guardian'); break;
+      case 'SCHOOL_ADMIN':
+      case 'ADMIN': router.push('/admin'); break;
+      default: router.push('/student-home');
+    }
+    return userData;
+  }, [router]);
+
+  const register = useCallback(async (email: string, password: string, name: string, phone: string, role: string, termsAccepted: boolean) => {
+    await api.post('/auth/register', { email, password, name, phone, role, termsAccepted });
+    await login(email, password);
+  }, [login]);
+
+  const loginWithGoogle = useCallback(async () => {
+    alert('Google Sign-In coming soon');
+  }, []);
+
+  const logout = useCallback(async () => {
     try {
-      const res = await authAPI.me()
-      const mapped = mapToUser(res.data as AuthResponse)
-      setUser(mapped)
-    } catch {
-      try {
-        const refreshRes = await authAPI.refresh()
-        const mapped = mapToUser(refreshRes.data as AuthResponse)
-        setUser(mapped)
-      } catch {
-        setUser(null)
-      }
-    } finally {
-      setLoading(false)
-    }
-  }, [])
-
-  useEffect(() => { checkAuth() }, [checkAuth])
-
-  const login = async (email: string, password: string): Promise<User> => {
-    const res = await authAPI.login(email, password)
-    const data = res.data as AuthResponse
-    if (data.accessToken) {
-      sessionStorage.setItem('elekeza_access', data.accessToken)
-    }
-    const mapped = mapToUser(data)
-    setUser(mapped)
-    return mapped
-  }
-
-  const register = async (
-    email: string,
-    password: string,
-    fullName: string,
-    cognitiveProfiles: CognitiveProfile[] = []
-  ): Promise<User> => {
-    const res = await authAPI.register({ email, password, name: fullName, cognitiveProfiles })
-    const data = res.data as AuthResponse
-    if (data.learnerId && cognitiveProfiles.length > 0) {
-      persistCognitiveProfiles(data.learnerId, cognitiveProfiles)
-    }
-    if (data.accessToken) {
-      sessionStorage.setItem('elekeza_access', data.accessToken)
-    }
-    const mapped = mapToUser(data)
-    setUser(mapped)
-    return mapped
-  }
-
-  const logout = async () => {
-    try { await authAPI.logout() } catch {}
-    sessionStorage.removeItem('elekeza_access')
-    setUser(null)
-    router.push('/login')
-  }
+      await api.post('/auth/logout');
+    } catch {}
+    localStorage.removeItem('accessToken');
+    setUser(null);
+    router.push('/login');
+  }, [router]);
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout }}>
+    <AuthContext.Provider value={{ user, login, register, loginWithGoogle, logout, loading }}>
       {children}
     </AuthContext.Provider>
-  )
+  );
 }
 
-export function useAuth() {
-  const ctx = useContext(AuthContext)
-  if (!ctx) throw new Error('useAuth must be used within an AuthProvider')
-  return ctx
-}
+export const useAuth = () => useContext(AuthContext);

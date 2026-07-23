@@ -1,63 +1,88 @@
-﻿'use client';
+'use client';
 
 import { useEffect, useState } from 'react';
-import SidebarLayout from '@/components/layout/SidebarLayout';
-import { api } from '@/lib/api';
-import DashboardSkeleton from '@/components/DashboardSkeleton';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import api from '@/lib/axios';
+import { User, TrendingUp, BookOpen, Award, CalendarCheck } from 'lucide-react';
+import Link from 'next/link';
 
 export default function GuardianDashboard() {
-  const [wards, setWards] = useState<any[]>([]);
+  const [children, setChildren] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     api.get('/guardian/wards')
-      .then(res => setWards(res.data || []))
-      .catch(() => {})
+      .then(res => setChildren(res.data))
+      .catch(console.error)
       .finally(() => setLoading(false));
   }, []);
 
-  if (loading) return <SidebarLayout><DashboardSkeleton title="Guardian Dashboard" /><div className="text-right mt-6">
-  <button onClick={() => window.print()} className="px-5 py-2 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-500 transition">
-    📄 Download Report (PDF)
-  </button>
-</div>
-</SidebarLayout>;
-
   return (
-    <SidebarLayout>
-      <h1 className="text-3xl font-bold text-white mb-8">Your Children</h1>
-      {wards.length === 0 ? (
-        <div className="glass-card rounded-xl p-12 text-center text-gray-500">No linked children yet.</div>
+    <div className="space-y-6">
+      <h1 className="text-2xl font-bold text-purple-200">Parent Dashboard</h1>
+      {loading ? (
+        <p className="text-purple-300">Loading…</p>
+      ) : children.length === 0 ? (
+        <div className="glass-card p-6 text-center">
+          <User size={48} className="text-purple-400 mx-auto mb-4" />
+          <p className="text-purple-200">No linked children yet.</p>
+          <p className="text-purple-300 text-sm">Contact your school to link your child's account.</p>
+        </div>
       ) : (
-        wards.map((ward: any) => (
-          <div key={ward.id} className="glass-card rounded-xl p-6 shadow mb-6">
-            <h2 className="text-xl font-semibold text-blue-900 mb-2">{ward.name}</h2>
-            <p className="text-sm text-gray-500 mb-4">SNE Type: {ward.sneType}</p>
-            <div className="grid grid-cols-3 gap-4 mb-6">
-              <div className="text-center"><p className="text-3xl font-bold text-purple-600">{ward.lessonsCompleted}</p><p className="text-sm text-gray-500">Completed</p></div>
-              <div className="text-center"><p className="text-3xl font-bold text-green-600">{ward.averageScore.toFixed(0)}%</p><p className="text-sm text-gray-500">Avg Score</p></div>
-              <div className="text-center"><p className="text-3xl font-bold text-blue-600">{ward.lessonsPending}</p><p className="text-sm text-gray-500">Pending</p></div>
+        children.map(child => (
+          <div key={child.id} className="glass-card p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <User size={32} className="text-blue-400" />
+              <div>
+                <h2 className="text-xl font-semibold text-purple-200">{child.name}</h2>
+                <p className="text-purple-300 text-sm">{child.sneType || 'No SNE profile'}</p>
+              </div>
+              <Link
+                href={'/guardian/wards/' + child.id}
+                className="ml-auto text-purple-300 hover:text-white text-sm underline"
+              >
+                View Details
+              </Link>
             </div>
-            <h3 className="text-md font-semibold text-gray-700 mb-2">Progress Over Time</h3>
-            <ResponsiveContainer width="100%" height={200}>
-              <LineChart data={ward.progressHistory || []}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="date" tickFormatter={d => new Date(d).toLocaleDateString()} />
-                <YAxis domain={[0, 100]} /><Tooltip />
-                <Line type="monotone" dataKey="score" stroke="#3B6DE5" strokeWidth={2} dot={{ r: 3 }} />
-              </LineChart>
-            </ResponsiveContainer>
+
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="bg-white/5 p-3 rounded text-center">
+                <BookOpen size={20} className="text-blue-400 mx-auto mb-1" />
+                <p className="text-purple-300 text-xs">Completed Lessons</p>
+                <p className="text-lg font-bold text-purple-100">{child.lessonsCompleted || 0}</p>
+              </div>
+              <div className="bg-white/5 p-3 rounded text-center">
+                <CalendarCheck size={20} className="text-green-400 mx-auto mb-1" />
+                <p className="text-purple-300 text-xs">Pending</p>
+                <p className="text-lg font-bold text-purple-100">{child.lessonsPending || 0}</p>
+              </div>
+              <div className="bg-white/5 p-3 rounded text-center">
+                <TrendingUp size={20} className="text-purple-400 mx-auto mb-1" />
+                <p className="text-purple-300 text-xs">Avg Score</p>
+                <p className="text-lg font-bold text-purple-100">{child.averageScore || 0}%</p>
+              </div>
+              <div className="bg-white/5 p-3 rounded text-center">
+                <Award size={20} className="text-yellow-400 mx-auto mb-1" />
+                <p className="text-purple-300 text-xs">Last Active</p>
+                <p className="text-lg font-bold text-purple-100">{child.lastActive || 'N/A'}</p>
+              </div>
+            </div>
+
+            {child.recentQuizzes && Object.keys(child.recentQuizzes).length > 0 && (
+              <div className="mt-4">
+                <h3 className="text-sm font-semibold text-purple-200 mb-2">Recent Quizzes</h3>
+                <div className="space-y-1">
+                  {Object.entries(child.recentQuizzes).map(([key, val]: any) => (
+                    <div key={key} className="flex justify-between text-purple-300 text-xs">
+                      <span>{key}</span>
+                      <span>{val}%</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         ))
       )}
-    <div className="text-right mt-6">
-  <button onClick={() => window.print()} className="px-5 py-2 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-500 transition">
-    📄 Download Report (PDF)
-  </button>
-</div>
-</SidebarLayout>
+    </div>
   );
 }
-
-

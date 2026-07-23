@@ -15,7 +15,15 @@ data class User(
     @Enumerated(EnumType.STRING)
     val role: UserRole = UserRole.STUDENT,
     var institutionId: Long? = null,
+    var gender: String? = null,          // "MALE" or "FEMALE"
+    var phone: String? = null,
     val createdAt: Instant = Instant.now(),
     val updatedAt: Instant = Instant.now()
-)
-
+) {
+    val title: String
+        get() = when (gender) {
+            "MALE" -> "Mr."
+            "FEMALE" -> "Ms."
+            else -> ""
+        }
+}
