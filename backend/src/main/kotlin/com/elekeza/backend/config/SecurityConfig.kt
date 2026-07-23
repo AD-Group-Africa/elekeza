@@ -1,4 +1,4 @@
-﻿package com.elekeza.backend.config
+package com.elekeza.backend.config
 
 import com.elekeza.backend.auth.JwtAuthFilter
 import org.springframework.beans.factory.annotation.Value
@@ -40,48 +40,42 @@ class SecurityConfig(private val jwtAuthFilter: JwtAuthFilter) {
             .csrf { it.disable() }
             .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
             .authorizeHttpRequests { auth ->
-                // â”€â”€ Public â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
                 auth.requestMatchers(
                     "/api/auth/**",
-                    "/api/institutions/register",   // school self-registration is public
+                    "/api/institutions/register",
                     "/api/waitlist/**",
                     "/actuator/health",
                     "/h2-console/**"
                 ).permitAll()
                 auth.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
-                // â”€â”€ Role-scoped â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-                auth.requestMatchers("/api/admin/**")
-                    .hasRole("ADMIN")
-                auth.requestMatchers("/api/teacher/**")
-                    .hasAnyRole("TEACHER", "SCHOOL_ADMIN", "ADMIN")
-                auth.requestMatchers("/api/guardian/**")
-                    .hasAnyRole("GUARDIAN", "SCHOOL_ADMIN", "ADMIN")
-                auth.requestMatchers("/api/institutions/**")
-                    .hasAnyRole("SCHOOL_ADMIN", "ADMIN")
+                // Allow school admin to access analytics and admin endpoints
+                auth.requestMatchers("/api/analytics/teacher").hasAnyRole("TEACHER", "SCHOOL_ADMIN", "ADMIN")
+                auth.requestMatchers("/api/analytics/admin", "/api/analytics/admin/overview").hasAnyRole("SCHOOL_ADMIN", "ADMIN")
+                auth.requestMatchers("/api/analytics/**").hasAnyRole("ADMIN")
 
-                // â”€â”€ Authenticated (any role) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+                auth.requestMatchers("/api/teacher/**").hasAnyRole("TEACHER", "SCHOOL_ADMIN", "ADMIN")
+                auth.requestMatchers("/api/guardian/**").hasAnyRole("GUARDIAN", "SCHOOL_ADMIN", "ADMIN")
+                auth.requestMatchers("/api/institutions/**").hasAnyRole("SCHOOL_ADMIN", "ADMIN")
                 auth.anyRequest().authenticated()
             }
             .formLogin { it.disable() }
-            .httpBasic { it.disable() }.addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter::class.java)
-
+            .httpBasic { it.disable() }
+            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter::class.java)
         return http.build()
     }
 
     @Bean
     fun corsConfigurationSource(): CorsConfigurationSource {
-        val config = CorsConfiguration()
-        config.allowedOriginPatterns = listOf("*")
-        config.allowedMethods = listOf("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
-        config.allowedHeaders = listOf("*")
-        config.allowCredentials = true
+        val origins = allowedOriginsRaw.split(",").map { it.trim() }.filter { it.isNotBlank() }
+        val config = CorsConfiguration().apply {
+            allowedOriginPatterns = origins
+            allowedMethods = listOf("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
+            allowedHeaders = listOf("*")
+            allowCredentials = true
+        }
         val source = UrlBasedCorsConfigurationSource()
         source.registerCorsConfiguration("/**", config)
         return source
     }
 }
-
-
-
-

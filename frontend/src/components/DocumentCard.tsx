@@ -22,7 +22,7 @@ const DocumentCard: React.FC<Props> = ({ document, calmUI }) => {
       <div
         className={`h-full rounded-2xl border p-5 shadow-sm transition duration-200 group-hover:-translate-y-1 group-hover:shadow-lg ${
           calmUI
-            ? 'border-gray-300 bg-white'
+            ? 'border-gray-300 glass-card'
             : 'border-slate-200 bg-gradient-to-br from-white to-slate-50'
         }`}
       >
@@ -30,7 +30,7 @@ const DocumentCard: React.FC<Props> = ({ document, calmUI }) => {
           <p className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">
             {document.fileType ?? 'Document'}
           </p>
-          <p className="text-xs font-medium text-slate-500">{uploadedLabel}</p>
+          <p className="text-xs font-medium text-purple-300">{uploadedLabel}</p>
         </div>
 
         <h2 className="line-clamp-2 text-xl font-bold text-slate-900">{document.title}</h2>
@@ -72,3 +72,4 @@ const DocumentCard: React.FC<Props> = ({ document, calmUI }) => {
 }
 
 export default DocumentCard
+

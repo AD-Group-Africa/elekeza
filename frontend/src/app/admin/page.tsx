@@ -1,118 +1,76 @@
-﻿'use client';
+'use client';
 
 import { useEffect, useState } from 'react';
+import api from '@/lib/axios';
 import SidebarLayout from '@/components/layout/SidebarLayout';
-import { api } from '@/lib/api';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { Users, BookOpen, GraduationCap, Plus, Upload } from 'lucide-react';
+import Link from 'next/link';
 
-export default function AdminDashboard() {
-  const [data, setData] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+export default function SchoolAdminDashboard() {
+  const [stats, setStats] = useState<any>({});
+  const [students, setStudents] = useState<any[]>([]);
+  const [grouped, setGrouped] = useState<Record<string, any[]>>({});
 
   useEffect(() => {
-    api.get('/analytics/admin')
-      .then(res => setData(res.data))
-      .catch(() => setError('Unable to load admin dashboard. Is the backend running?'))
-      .finally(() => setLoading(false));
+    api.get('/analytics/admin').then(res => setStats(res.data)).catch(() => {});
+    api.get('/teacher/students').then(res => {
+      setStudents(res.data);
+      const grp: Record<string, any[]> = {};
+      res.data.forEach((s: any) => {
+        const grade = s.grade || 'Unassigned';
+        if (!grp[grade]) grp[grade] = [];
+        grp[grade].push(s);
+      });
+      setGrouped(grp);
+    }).catch(console.error);
   }, []);
-
-  if (loading) {
-    return (
-      <SidebarLayout>
-        <div className="animate-pulse p-6">
-          <div className="h-8 bg-gray-700 rounded w-1/3 mb-8"></div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-            {[...Array(4)].map((_, i) => (
-              <div key={i} className="h-20 bg-gray-800 rounded-xl"></div>
-            ))}
-          </div>
-          <div className="h-64 bg-gray-800 rounded-xl mb-8"></div>
-          <div className="grid grid-cols-3 gap-4">
-            {[...Array(3)].map((_, i) => (
-              <div key={i} className="h-20 bg-gray-800 rounded-xl"></div>
-            ))}
-          </div>
-        </div>
-      </SidebarLayout>
-    );
-  }
-
-  if (error) {
-    return (
-      <SidebarLayout>
-        <div className="flex flex-col items-center justify-center h-96 text-center">
-          <div className="text-5xl mb-4">⚠️</div>
-          <h2 className="text-xl font-semibold text-white mb-2">Connection Error</h2>
-          <p className="text-gray-400 max-w-md">{error}</p>
-          <button onClick={() => window.location.reload()} className="mt-6 px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition">Retry</button>
-        </div>
-      </SidebarLayout>
-    );
-  }
-
-  if (!data) {
-    return (
-      <SidebarLayout>
-        <div className="flex flex-col items-center justify-center h-96 text-center">
-          <div className="text-6xl mb-4">🏫</div>
-          <h1 className="text-3xl font-bold text-white mb-2">No Institution Data</h1>
-          <p className="text-gray-400 max-w-md">Register a school to see institution analytics.</p>
-        </div>
-      </SidebarLayout>
-    );
-  }
 
   return (
     <SidebarLayout>
-      <h1 className="text-3xl font-bold text-white mb-8">Admin Dashboard</h1>
+      <div className="space-y-6">
+        <h1 className="text-2xl font-bold text-purple-200">School Administration</h1>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <KPI icon={<Users size={24} className="text-blue-400 mb-2" />} label="Teachers" value={stats?.totalTeachers || 0} />
+          <KPI icon={<GraduationCap size={24} className="text-green-400 mb-2" />} label="Students" value={stats?.totalStudents || 0} />
+          <KPI icon={<BookOpen size={24} className="text-purple-400 mb-2" />} label="Lessons" value={stats?.totalLessons || 0} />
+          <KPI icon={<Upload size={24} className="text-yellow-400 mb-2" />} label="Imports" value="0" />
+        </div>
 
-      {/* Main Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-        {[
-          { label: 'Learners', value: data.totalLearners || 0 },
-          { label: 'Teachers', value: data.totalTeachers || 0 },
-          { label: 'Guardians', value: data.totalGuardians || 0 },
-          { label: 'Institutions', value: data.totalInstitutions || 0 },
-        ].map((s, i) => (
-          <div key={i} className="glass-card rounded-xl p-4 shadow text-center">
-            <p className="text-sm text-gray-500">{s.label}</p>
-            <p className="text-3xl font-bold text-gray-800">{s.value}</p>
+        <div className="grid md:grid-cols-2 gap-4">
+          <div className="glass-card p-4">
+            <h2 className="text-lg font-semibold text-purple-200 mb-3">Students by Grade</h2>
+            {Object.keys(grouped).length === 0 ? <p className="text-purple-300">No students enrolled.</p> :
+              Object.entries(grouped).map(([grade, studs]) => (
+                <div key={grade} className="mb-2">
+                  <h3 className="text-purple-200 font-medium">{grade} ({studs.length})</h3>
+                  <ul className="text-purple-300 text-sm ml-4">
+                    {studs.slice(0, 5).map(s => <li key={s.id}>{s.name}</li>)}
+                    {studs.length > 5 && <li>...and {studs.length - 5} more</li>}
+                  </ul>
+                </div>
+              ))}
           </div>
-        ))}
-      </div>
-
-      {/* Monthly Registrations Chart */}
-      <div className="glass-card rounded-xl p-6 shadow mb-8">
-        <h2 className="text-lg font-semibold text-gray-800 mb-4">Monthly Registrations</h2>
-        {(data.monthlyRegistrations || []).length === 0 ? (
-          <div className="text-center py-12 text-gray-400">
-            <p>No registration data yet</p>
+          <div className="glass-card p-4">
+            <h2 className="text-lg font-semibold text-purple-200 mb-3">Quick Actions</h2>
+            <div className="grid grid-cols-2 gap-2">
+              <Link href="/teacher/students" className="bg-purple-600/40 text-white p-3 rounded-lg text-center">Add Student</Link>
+              <button onClick={() => alert('Add Teacher form under development')} className="bg-purple-600/40 text-white p-3 rounded-lg">Add Teacher</button>
+              <Link href="/school/import" className="bg-purple-600/40 text-white p-3 rounded-lg text-center">Import CSV</Link>
+              <button onClick={() => alert('Coming soon')} className="bg-purple-600/40 text-white p-3 rounded-lg">Reports</button>
+            </div>
           </div>
-        ) : (
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={data.monthlyRegistrations || []}>
-              <CartesianGrid strokeDasharray="3 3" /><XAxis dataKey="month" /><YAxis /><Tooltip />
-              <Bar dataKey="count" fill="#3B6DE5" radius={[4, 4, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
-        )}
-      </div>
-
-      {/* Secondary Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {[
-          { label: 'Content Created', value: data.totalContent || 0 },
-          { label: 'Quizzes Taken', value: data.totalQuizzes || 0 },
-          { label: 'Active Today', value: data.activeToday || 0 },
-        ].map((s, i) => (
-          <div key={i} className="glass-card rounded-xl p-4 shadow text-center">
-            <p className="text-sm text-gray-500">{s.label}</p>
-            <p className="text-2xl font-bold text-gray-800">{s.value}</p>
-          </div>
-        ))}
+        </div>
       </div>
     </SidebarLayout>
   );
 }
 
+function KPI({ icon, label, value }: { icon: React.ReactNode; label: string; value: string | number }) {
+  return (
+    <div className="glass-card p-4 flex flex-col items-center">
+      {icon}
+      <p className="text-purple-300 text-sm">{label}</p>
+      <p className="text-2xl font-bold text-purple-100">{value}</p>
+    </div>
+  );
+}

@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useEffect, useState } from 'react';
 import SidebarLayout from '@/components/layout/SidebarLayout';
@@ -28,15 +28,15 @@ export default function StudentDashboard() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <div className="card text-center">
             <p className="text-4xl font-bold text-purple-600">{progress.completedCount}</p>
-            <p className="text-gray-500">Lessons Completed</p>
+            <p className="text-purple-300">Lessons Completed</p>
           </div>
           <div className="card text-center">
             <p className="text-4xl font-bold text-purple-600">{progress.averageScore}%</p>
-            <p className="text-gray-500">Average Score</p>
+            <p className="text-purple-300">Average Score</p>
           </div>
           <div className="card text-center">
             <p className="text-4xl font-bold text-purple-600">{lessons.length}</p>
-            <p className="text-gray-500">Available Lessons</p>
+            <p className="text-purple-300">Available Lessons</p>
           </div>
         </div>
       ) : (
@@ -51,11 +51,12 @@ export default function StudentDashboard() {
           <div key={lesson.id} className="card cursor-pointer hover:shadow-xl transition"
                onClick={() => window.location.href = `/lesson/${lesson.id}`}>
             <h3 className="text-lg font-semibold text-blue-900">{lesson.title}</h3>
-            <p className="text-sm text-gray-500 mt-1">{lesson.status === 'READY' ? 'Ready' : 'Processing'}</p>
+            <p className="text-sm text-purple-300 mt-1">{lesson.status === 'READY' ? 'Ready' : 'Processing'}</p>
           </div>
         ))}
       </div>
     </SidebarLayout>
   );
 }
+
 

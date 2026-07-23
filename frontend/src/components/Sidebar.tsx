@@ -64,7 +64,7 @@ export default function Sidebar() {
             <div>
               <p
                 data-distraction="true"
-                className="text-[10px] font-semibold uppercase tracking-[0.25em] text-slate-500"
+                className="text-[10px] font-semibold uppercase tracking-[0.25em] text-purple-300"
               >
                 ELEKEZA Space
               </p>
@@ -81,7 +81,7 @@ export default function Sidebar() {
 
           <button
             onClick={() => setCollapsed((prev) => !prev)}
-            className="rounded-xl border border-slate-200 bg-white p-2 text-slate-700 shadow-sm transition hover:border-slate-300 hover:text-slate-900"
+            className="rounded-xl border border-slate-200 glass-card p-2 text-slate-700 shadow-sm transition hover:border-slate-300 hover:text-slate-900"
             aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           >
             {collapsed ? <ChevronDoubleRightIcon className="h-4 w-4" /> : <ChevronDoubleLeftIcon className="h-4 w-4" />}
@@ -118,8 +118,8 @@ export default function Sidebar() {
 
       <div className="border-t border-slate-200/80 bg-white/70 px-4 py-4">
         {!collapsed && (
-          <div className="mb-3 rounded-xl border border-slate-200 bg-white px-3 py-2">
-            <p className="text-xs text-slate-500">Signed in as</p>
+          <div className="mb-3 rounded-xl border border-slate-200 glass-card px-3 py-2">
+            <p className="text-xs text-purple-300">Signed in as</p>
             <p className="truncate text-sm font-semibold text-slate-900">{userDisplayName}</p>
           </div>
         )}
@@ -139,3 +139,4 @@ export default function Sidebar() {
     </aside>
   )
 }
+

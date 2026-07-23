@@ -40,7 +40,7 @@ export default function RoleLayout({ config, children }: RoleLayoutProps) {
         className="w-72 shrink-0 border-r border-slate-200 bg-gradient-to-b from-slate-50 via-white to-cyan-50/50"
       >
         <div className="border-b border-slate-200 px-4 py-5">
-          <p data-distraction="true" className="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-500">
+          <p data-distraction="true" className="text-[10px] font-semibold uppercase tracking-[0.2em] text-purple-300">
             Role Profile
           </p>
           <h1 className="mt-1 text-lg font-bold text-slate-900">{config.roleLabel}</h1>
@@ -70,8 +70,8 @@ export default function RoleLayout({ config, children }: RoleLayoutProps) {
         </nav>
 
         <div className="mt-auto border-t border-slate-200 p-3">
-          <div className="mb-3 rounded-lg border border-slate-200 bg-white p-3">
-            <p className="text-xs text-slate-500">Signed in as</p>
+          <div className="mb-3 rounded-lg border border-slate-200 glass-card p-3">
+            <p className="text-xs text-purple-300">Signed in as</p>
             <p className="truncate text-sm font-semibold text-slate-900">{user?.email ?? 'User'}</p>
           </div>
           <button
@@ -95,10 +95,11 @@ export default function RoleLayout({ config, children }: RoleLayoutProps) {
           />
           {children}
         </main>
-        <footer className="border-t border-slate-200 bg-white px-6 py-4 text-center text-sm text-slate-500">
+        <footer className="border-t border-slate-200 glass-card px-6 py-4 text-center text-sm text-purple-300">
           Copyright 2026 DocuEase. All rights reserved.
         </footer>
       </div>
     </div>
   )
 }
+

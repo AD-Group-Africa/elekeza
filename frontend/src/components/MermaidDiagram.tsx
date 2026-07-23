@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 import { useEffect, useRef } from 'react';
 import mermaid from 'mermaid';
 
@@ -21,3 +21,4 @@ export default function MermaidDiagram({ chart }: { chart: string }) {
 
   return <div ref={ref} className="my-4 p-4 glass-card overflow-x-auto" />;
 }
+

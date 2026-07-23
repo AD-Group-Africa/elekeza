@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useState } from 'react';
 import SidebarLayout from '@/components/layout/SidebarLayout';
@@ -70,13 +70,13 @@ export default function UploadPage() {
             type="file"
             accept=".txt,.pdf,.docx"
             onChange={e => setFile(e.target.files?.[0] || null)}
-            className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100"
+            className="block w-full text-sm text-purple-300 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100"
           />
-          <p className="text-xs text-gray-400 mt-1">Supported: TXT, PDF, DOCX</p>
+          <p className="text-xs text-purple-200 mt-1">Supported: TXT, PDF, DOCX</p>
         </div>
 
         <div className="flex items-center gap-4">
-          <span className="text-gray-400 text-sm">or</span>
+          <span className="text-purple-200 text-sm">or</span>
           <hr className="flex-1" />
         </div>
 
@@ -93,7 +93,7 @@ export default function UploadPage() {
         </div>
 
         <div className="flex justify-between items-center">
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-purple-300">
             {file ? file.name : text ? `${text.length} characters` : 'Choose a file or paste text'}
           </p>
           <button
@@ -108,4 +108,5 @@ export default function UploadPage() {
     </SidebarLayout>
   );
 }
+
 

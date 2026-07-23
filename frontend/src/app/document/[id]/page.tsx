@@ -133,18 +133,18 @@ export default function DocumentViewer() {
       <h1 className="text-3xl font-bold text-blue-600">Document Viewer</h1>
 
       {/* Extracted Text */}
-      <div className="bg-white p-6 rounded shadow">
+      <div className="glass-card p-6 rounded shadow">
         <h2 className="font-bold mb-2">Original Text</h2>
         <textarea value={originalText} onChange={e => setOriginalText(e.target.value)} className="w-full h-64 border rounded p-2 text-sm"></textarea>
         <div className="mt-4 flex space-x-2">
           <button onClick={simplifyText} className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Simplify</button>
           <button onClick={extractTerms} className="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700">Extract Terms</button>
         </div>
-        <p className="text-sm text-gray-500 mt-2">{actionStatus}</p>
+        <p className="text-sm text-purple-300 mt-2">{actionStatus}</p>
       </div>
 
       {/* AI Output */}
-      <div className="bg-white p-6 rounded shadow">
+      <div className="glass-card p-6 rounded shadow">
         <h2 className="font-bold mb-2">AI Output</h2>
         <div className="flex space-x-2 mb-2 border-b pb-2">
           {['child','teen','adult','terms'].map(tab => (
@@ -154,14 +154,14 @@ export default function DocumentViewer() {
           ))}
         </div>
         <textarea value={outputText} readOnly className="w-full h-48 border rounded p-2 text-sm bg-gray-50"></textarea>
-        <p className="text-xs text-gray-500 mt-2">{readingScore}</p>
+        <p className="text-xs text-purple-300 mt-2">{readingScore}</p>
       </div>
 
       {/* Chat */}
-      <div className="bg-white p-6 rounded shadow">
+      <div className="glass-card p-6 rounded shadow">
         <h2 className="font-bold mb-2">Chat with Document</h2>
         <div className="h-48 border rounded p-4 overflow-y-auto bg-gray-50 text-sm space-y-2">
-          {chatHistory.length === 0 ? <p className="text-gray-400 italic">Ask a question to start chatting...</p> :
+          {chatHistory.length === 0 ? <p className="text-purple-200 italic">Ask a question to start chatting...</p> :
             chatHistory.map((c, i) => (
               <div key={i}>
                 <p><strong>You:</strong> {c.user}</p>

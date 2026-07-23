@@ -7,8 +7,8 @@ export default function ProgressStepper({ steps, currentStep }: ProgressStepperP
   const safeCurrentStep = Math.max(1, Math.min(currentStep, steps.length))
 
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white px-4 py-4 shadow-sm">
-      <div className="mb-3 flex items-center justify-between text-xs font-semibold uppercase tracking-wide text-slate-500">
+    <div className="rounded-2xl border border-slate-200 glass-card px-4 py-4 shadow-sm">
+      <div className="mb-3 flex items-center justify-between text-xs font-semibold uppercase tracking-wide text-purple-300">
         <span>Step {safeCurrentStep} of {steps.length}</span>
         <span>{Math.round((safeCurrentStep / steps.length) * 100)}% complete</span>
       </div>
@@ -45,4 +45,5 @@ export default function ProgressStepper({ steps, currentStep }: ProgressStepperP
     </div>
   )
 }
+
 

@@ -1,58 +1,74 @@
-﻿'use client';
+'use client';
+
 import { useEffect, useState } from 'react';
+import api from '@/lib/axios';
 import SidebarLayout from '@/components/layout/SidebarLayout';
-import { api } from '@/lib/api';
-import { Users, School, TrendingUp } from 'lucide-react';
+import { Building2, Users, GraduationCap, Plus, Search } from 'lucide-react';
 
 export default function SuperAdminDashboard() {
   const [stats, setStats] = useState<any>(null);
+  const [schools, setSchools] = useState<any[]>([]);
+  const [selectedSchool, setSelectedSchool] = useState('all');
 
   useEffect(() => {
-    api.get('/analytics/admin/overview')
-      .then(res => setStats(res.data))
-      .catch(() => {});
+    api.get('/analytics/admin/overview').then(res => setStats(res.data)).catch(() => {});
+    // Fetch schools list (assuming endpoint exists; otherwise use mock)
+    api.get('/institutions').then(res => setSchools(res.data || [])).catch(() => {});
   }, []);
-
-  if (!stats) return <SidebarLayout><div className="p-6">Loading...</div></SidebarLayout>;
 
   return (
     <SidebarLayout>
-      <div className="p-6 max-w-7xl mx-auto">
-        <h1 className="text-3xl font-bold text-white mb-8">Platform Overview</h1>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="glass-card p-6">
-            <div className="flex items-center gap-3 mb-3">
-              <Users className="text-purple-400" size={24} />
-              <span className="text-purple-300">Total Users</span>
-            </div>
-            <p className="text-4xl font-extrabold text-white">{stats.totalUsers}</p>
-          </div>
-          <div className="glass-card p-6">
-            <div className="flex items-center gap-3 mb-3">
-              <School className="text-purple-400" size={24} />
-              <span className="text-purple-300">Institutions</span>
-            </div>
-            <p className="text-4xl font-extrabold text-white">{stats.institutions}</p>
-          </div>
-          <div className="glass-card p-6">
-            <div className="flex items-center gap-3 mb-3">
-              <TrendingUp className="text-purple-400" size={24} />
-              <span className="text-purple-300">Teachers / Students</span>
-            </div>
-            <p className="text-4xl font-extrabold text-white">{stats.teachers} / {stats.students}</p>
+      <div className="space-y-6">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <h1 className="text-2xl font-bold text-purple-200">Platform Administration</h1>
+          <div className="flex gap-2">
+            <button className="bg-purple-600 text-white px-4 py-2 rounded-lg flex items-center gap-2">
+              <Plus size={18} /> Add School
+            </button>
           </div>
         </div>
-        <div className="glass-card p-6 mt-6">
-          <h2 className="text-xl font-semibold text-purple-300 mb-4">Distribution</h2>
-          <div className="space-y-2 text-white">
-            <p>Teachers: {stats.teachers}</p>
-            <p>Students: {stats.students}</p>
-            <p>Guardians: {stats.guardians}</p>
-            <p>Institutions: {stats.institutions}</p>
+
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="glass-card p-4 flex flex-col items-center">
+            <Building2 size={24} className="text-blue-400 mb-2" />
+            <p className="text-purple-300 text-sm">Total Schools</p>
+            <p className="text-2xl font-bold text-purple-100">{stats?.totalSchools || 1}</p>
+          </div>
+          <div className="glass-card p-4 flex flex-col items-center">
+            <Users size={24} className="text-green-400 mb-2" />
+            <p className="text-purple-300 text-sm">Total Users</p>
+            <p className="text-2xl font-bold text-purple-100">{stats?.totalUsers || 0}</p>
+          </div>
+          <div className="glass-card p-4 flex flex-col items-center">
+            <GraduationCap size={24} className="text-purple-400 mb-2" />
+            <p className="text-purple-300 text-sm">Active Learners</p>
+            <p className="text-2xl font-bold text-purple-100">{stats?.activeLearners || 0}</p>
+          </div>
+          <div className="glass-card p-4 flex flex-col items-center">
+            <Search size={24} className="text-yellow-400 mb-2" />
+            <p className="text-purple-300 text-sm">Pending Approvals</p>
+            <p className="text-2xl font-bold text-purple-100">0</p>
+          </div>
+        </div>
+
+        <div className="glass-card p-4">
+          <h2 className="text-lg font-semibold text-purple-200 mb-3">Select School</h2>
+          <select className="w-full px-4 py-3 bg-white/10 border border-purple-300/30 rounded-lg text-white" value={selectedSchool} onChange={e => setSelectedSchool(e.target.value)}>
+            <option value="all" className="bg-gray-800">All Schools</option>
+            {schools.map((s: any) => (
+              <option key={s.id} value={s.id} className="bg-gray-800">{s.name}</option>
+            ))}
+          </select>
+        </div>
+
+        <div className="glass-card p-4">
+          <h2 className="text-lg font-semibold text-purple-200 mb-3">Notifications</h2>
+          <div className="space-y-2 text-purple-300">
+            <p>✉️ New school registration pending approval</p>
+            <p>📊 Monthly report ready</p>
           </div>
         </div>
       </div>
     </SidebarLayout>
   );
 }
-

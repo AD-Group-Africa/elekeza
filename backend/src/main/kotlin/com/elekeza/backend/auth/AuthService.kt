@@ -24,10 +24,12 @@ class AuthService(
         }
         val role = try { UserRole.valueOf(req.role?.uppercase() ?: "STUDENT") } catch (e: Exception) { UserRole.STUDENT }
         val user = User(
-            name = req.name?.trim() ?: "Unknown",
             email = emailClean,
+            name = req.name.trim(),
             password = passwordEncoder.encode(req.password),
-            role = role
+            role = role,
+            gender = req.gender,
+            phone = req.phone
         )
         return userRepository.save(user)
     }

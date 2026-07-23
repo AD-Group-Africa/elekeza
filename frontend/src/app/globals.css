@@ -41,3 +41,21 @@ body {
   word-spacing: 0.15em;
   line-height: 1.8;
 }
+
+/* Accessibility overrides */
+.dyslexia-font * { font-family: 'OpenDyslexic', Arial, sans-serif; }
+.high-contrast { filter: contrast(1.5); }
+.reduced-motion * { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
+.large-text { font-size: 1.25rem; }
+
+/* Accessibility: focus indicators */
+*:focus-visible { outline: 2px solid #a78bfa; outline-offset: 2px; }
+
+/* Skip to content */
+.skip-link { position: absolute; top: -40px; left: 0; background: #7c3aed; color: white; padding: 8px 16px; z-index: 100; transition: top 0.2s; }
+.skip-link:focus { top: 0; }
+
+/* Reduce motion preference */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
+}

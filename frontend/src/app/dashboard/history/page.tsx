@@ -1,4 +1,6 @@
-﻿'use client';
+'use client';
+import { AlertTriangle } from 'lucide-react';
+
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -32,8 +34,8 @@ export default function HistoryPage() {
       </div>
 
       {lessons.length === 0 ? (
-        <div className="card bg-white rounded-2xl p-8 text-center">
-          <div className="text-6xl mb-4">📚</div>
+        <div className="card glass-card rounded-2xl p-8 text-center">
+          <div className="text-6xl mb-4"><AlertTriangle size={64} className="text-purple-400" /></div>
           <h2 className="text-xl font-semibold text-blue-900 mb-2">
             No lessons yet
           </h2>
@@ -49,12 +51,12 @@ export default function HistoryPage() {
           {lessons.map((lesson: any) => (
             <div
               key={lesson.id}
-              className="card bg-white rounded-2xl p-6 flex justify-between items-center cursor-pointer hover:bg-blue-50 transition"
+              className="card glass-card rounded-2xl p-6 flex justify-between items-center cursor-pointer hover:bg-blue-50 transition"
               onClick={() => router.push(`/lesson/${lesson.id}`)}
             >
               <div>
                 <p className="font-semibold text-blue-900">{lesson.title}</p>
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-purple-300">
                   Completed: {new Date(lesson.date).toLocaleDateString()}
                 </p>
               </div>
@@ -68,4 +70,5 @@ export default function HistoryPage() {
     </SidebarLayout>
   );
 }
+
 

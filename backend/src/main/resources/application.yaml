@@ -52,12 +52,16 @@ ai:
   client:
     type: ${AI_CLIENT_TYPE:real}
 
+google:
+  client-id: ${GOOGLE_CLIENT_ID:442000591516-2c4fkqj14727fjooo1vtjue768ociucd.apps.googleusercontent.com}
+
 app:
   cors:
     allowed-origins: ${CORS_ALLOWED_ORIGINS:*}
   frontend-url: ${FRONTEND_URL:http://localhost:3000}
   upload-dir: ${UPLOAD_DIR:uploads}
   secure-cookies: ${SECURE_COOKIES:true}
+
 
 management:
   endpoints:
@@ -72,3 +76,6 @@ logging:
   level:
     root: INFO
     com.elekeza: INFO
+
+
+

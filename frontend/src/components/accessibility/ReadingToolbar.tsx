@@ -90,7 +90,7 @@ export function ReadingToolbar({ contentRef }: { contentRef: React.RefObject<HTM
             >
                 <span aria-hidden="true">⚙️</span>
                 Reading Controls
-                <span className="ml-auto text-gray-400">{isOpen ? '▲' : '▼'}</span>
+                <span className="ml-auto text-purple-200">{isOpen ? '▲' : '▼'}</span>
             </button>
 
             {isOpen && (
@@ -202,7 +202,7 @@ export function ReadingToolbar({ contentRef }: { contentRef: React.RefObject<HTM
                     {/* Reset */}
                     <button
                         onClick={() => setPrefs(DEFAULTS)}
-                        className="text-sm text-gray-500 underline"
+                        className="text-sm text-purple-300 underline"
                     >
                         Reset to defaults
                     </button>
@@ -229,3 +229,4 @@ function getLetterSpacing(spacing: string): string {
     }
     return map[spacing] || 'normal'
 }
+
