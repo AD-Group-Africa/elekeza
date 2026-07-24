@@ -37,13 +37,13 @@ export function CognitiveProfileProvider({ children }: { children: ReactNode }) 
   const [version, setVersion] = useState(0)
 
   const profiles = useMemo<CognitiveProfile[]>(() => {
-    if (!user?.id) return []
-    const userProfiles = user.cognitiveProfiles ?? []
+    if (!user?.learnerId) return []
+    const userProfiles = (user.cognitiveProfiles ?? []) as CognitiveProfile[]
     if (userProfiles.length > 0) {
-      persistCognitiveProfiles(user.id, userProfiles)
+      persistCognitiveProfiles(String(user.learnerId), userProfiles)
       return [...new Set(userProfiles)]
     }
-    return readCognitiveProfiles(user.id)
+    return readCognitiveProfiles(String(user.learnerId))
   }, [user, version])
 
   const activeMode = useMemo(() => resolveActiveMode(profiles), [profiles])
@@ -60,9 +60,9 @@ export function CognitiveProfileProvider({ children }: { children: ReactNode }) 
       profiles,
       activeMode,
       setProfilesForCurrentUser: (nextProfiles: CognitiveProfile[]) => {
-        if (!user?.id) return
+        if (!user?.learnerId) return
         const uniqueProfiles = [...new Set(nextProfiles)]
-        persistCognitiveProfiles(user.id, uniqueProfiles)
+        persistCognitiveProfiles(String(user.learnerId), uniqueProfiles)
         setVersion((prev) => prev + 1)
       },
       hasProfile: (profile: CognitiveProfile) => profiles.includes(profile),
@@ -80,4 +80,12 @@ export function useCognitiveProfile() {
   }
   return context
 }
+
+
+
+
+
+
+
+
 
