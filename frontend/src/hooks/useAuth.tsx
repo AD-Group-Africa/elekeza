@@ -10,12 +10,15 @@ interface User {
   name: string;
   role: string;
   accessToken: string;
+  title?: string;
+  gender?: string;
+  cognitiveProfiles?: string[];
 }
 
 interface AuthContextType {
   user: User | null;
   login: (email: string, password: string) => Promise<User>;
-  register: (email: string, password: string, name: string, phone: string, role: string, termsAccepted: boolean) => Promise<void>;
+  register: (email: string, password: string, name: string, phone: string, role: string, termsAccepted: boolean, gender?: string) => Promise<void>;
   loginWithGoogle: () => Promise<void>;
   logout: () => Promise<void>;
   loading: boolean;
@@ -56,8 +59,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return userData;
   }, [router]);
 
-  const register = useCallback(async (email: string, password: string, name: string, phone: string, role: string, termsAccepted: boolean) => {
-    await api.post('/auth/register', { email, password, name, phone, role, termsAccepted });
+  const register = useCallback(async (email: string, password: string, name: string, phone: string, role: string, termsAccepted: boolean, gender?: string) => {
+    await api.post('/auth/register', { email, password, name, phone, role, termsAccepted, gender });
     await login(email, password);
   }, [login]);
 
@@ -66,9 +69,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const logout = useCallback(async () => {
-    try {
-      await api.post('/auth/logout');
-    } catch {}
+    try { await api.post('/auth/logout'); } catch {}
     localStorage.removeItem('accessToken');
     setUser(null);
     router.push('/login');
@@ -82,3 +83,4 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 }
 
 export const useAuth = () => useContext(AuthContext);
+
