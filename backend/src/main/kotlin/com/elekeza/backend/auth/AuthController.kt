@@ -85,7 +85,7 @@ class AuthController(
         status: HttpStatus
     ): ResponseEntity<Map<String, Any>> {
         val accessToken = jwtUtil.generateAccessToken(user.id.toString(), user.email)
-        val refreshToken = jwtUtil.generateRefreshToken(user.id.toString())
+        val refreshToken = java.util.UUID.randomUUID().toString()
         val expiresAt = OffsetDateTime.now().plusSeconds(refreshExpirationMs / 1000)
         val entity = RefreshToken().apply {
             this.user = user
