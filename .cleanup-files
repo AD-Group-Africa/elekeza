@@ -1,0 +1,18 @@
+# Files removed during pilot cleanup (2026-07-25)
+# These files are auto-generated or temporary and are not needed in the pilot repository
+
+Removed files:
+- ai_deps.txt (auto-generated dependency list)
+- ai_endpoints.txt (empty endpoint list)
+- api_endpoints_raw.txt (raw API endpoint dump)
+- backend_deps.txt (backend dependency dump)
+- backend_env_placeholders.txt (environment variable placeholder)
+- frontend_all_app_files.txt (frontend file export)
+- frontend_deps.txt (frontend dependency list)
+- frontend_pages.txt (frontend page list)
+- frontend_unused.txt (unused component list)
+- flyway_migrations.txt (migration notes)
+- teacher-login.json (test credentials)
+- ersthrillerparkDesktopmy projectsElekeza (corrupted file path)
+
+The repository is now clean and pilot-ready.
