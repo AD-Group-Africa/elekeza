@@ -83,23 +83,20 @@ export const onboardingAPI = {
 
 export const quizAPI = {
   start: (lessonId: string | number) =>
-    api.post(`/quiz/${lessonId}/start`),
+    api.get(`/quiz/${lessonId}/start`),
 
   answer: (quizId: string | number, questionId: string | number, selectedOption: string, latencyMs: number) =>
-    api.post(`/quiz/${quizId}/answer`, { questionId, selectedOption, latencyMs }),
+    api.post(`/quiz/${quizId}/answer`, { questionId, selectedOptionId: selectedOption, latencyMs }),
 
-  complete: (quizId: string | number, correctCount: number) =>
-    api.post(`/quiz/${quizId}/complete`, { correctCount }),
-
-  review: (quizId: string | number) =>
-    api.get(`/quiz/${quizId}/review`),
+  complete: (quizId: string | number, answers: Array<{ questionId: number; selectedOption: string }>) =>
+    api.post(`/quiz/${quizId}/complete`, answers),
 }
 
 // â”€â”€ Progress / Dashboard â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export const progressAPI = {
-  dashboard: (userId: number) => api.get(`/learner/dashboard?userId=${userId}`),
-  lessons:   (userId: number) => api.get(`/learner/${userId}/lessons`),
+  dashboard: () => api.get('/progress/dashboard'),
+  lessons:   () => api.get('/progress/lessons'),
 }
 
 // â”€â”€ Teacher â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€

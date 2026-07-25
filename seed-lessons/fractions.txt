@@ -1,1 +1,0 @@
-A fraction represents a part of a whole. The top number is the numerator, and the bottom number is the denominator. For example, in 3/4, 3 is the numerator and 4 is the denominator. Fractions can be added, subtracted, multiplied, and divided.

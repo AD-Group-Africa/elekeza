@@ -6,6 +6,8 @@ import com.elekeza.backend.auth.UserRole
 import com.elekeza.backend.learner.LearnerProfileRepository
 import com.elekeza.backend.learner.LessonProgressRepository
 import com.elekeza.backend.content.ContentRepository
+import com.elekeza.backend.institution.GuardianLink
+import com.elekeza.backend.institution.GuardianLinkRepository
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.annotation.AuthenticationPrincipal
@@ -20,11 +22,13 @@ class TeacherController(
     private val learnerProfileRepo: LearnerProfileRepository,
     private val lessonProgressRepo: LessonProgressRepository,
     private val contentRepo: ContentRepository,
+    private val guardianLinkRepo: GuardianLinkRepository,
     private val passwordEncoder: PasswordEncoder
 ) {
     data class StudentDto(val id: String, val name: String, val email: String, val sneType: String)
     data class CreateStudentRequest(val email: String, val fullName: String, val password: String, val sneType: String)
     data class AssignContentRequest(val contentId: Long, val studentIds: List<Long>)
+    data class LinkGuardianRequest(val studentId: Long, val guardianEmail: String, val relationship: String = "PARENT")
 
     @GetMapping("/students")
     fun getStudents(@AuthenticationPrincipal teacher: User): ResponseEntity<List<StudentDto>> {
@@ -68,6 +72,21 @@ class TeacherController(
             ))
         }
         return ResponseEntity.ok(mapOf("assigned" to req.studentIds.size))
+    }
+
+    @PostMapping("/guardian-link")
+    fun linkGuardian(@AuthenticationPrincipal teacher: User, @RequestBody req: LinkGuardianRequest): ResponseEntity<Map<String, Any>> {
+        val student = userRepo.findById(req.studentId).orElseThrow { IllegalArgumentException("Student not found") }
+        if (student.role != UserRole.STUDENT || student.institutionId != teacher.institutionId) {
+            throw SecurityException("Student not in your institution")
+        }
+        val guardian = userRepo.findByEmail(req.guardianEmail.lowercase().trim())
+            ?: throw IllegalArgumentException("Guardian account not found")
+        if (guardian.role != UserRole.GUARDIAN) throw IllegalArgumentException("Account is not a guardian")
+
+        val exists = guardianLinkRepo.findAll().any { it.guardianId == guardian.id && it.learnerId == student.id }
+        if (!exists) guardianLinkRepo.save(GuardianLink(guardianId = guardian.id, learnerId = student.id, relationship = req.relationship))
+        return ResponseEntity.ok(mapOf("linked" to true, "guardianId" to guardian.id, "studentId" to student.id))
     }
 
     @GetMapping("/student/{studentId}/progress")

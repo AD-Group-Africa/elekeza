@@ -184,6 +184,20 @@ Pre-seeded in dev profile with password reset flow ready.
 | **School Admin** | admin@elekeza.app | admin123 |
 | **Super Admin** | superadmin@elekeza.app | superadmin123 |
 
+> Demo accounts are seeded only by the `dev` profile. Do not expose these credentials in a shared deployment.
+
+## Pilot Data Seed
+
+After deploying, create the pilot cohort with [seed-pilot.ps1](seed-pilot.ps1). It requires a teacher account already attached to the pilot institution, then creates five varied-SNE learners, assigns the Water Cycle lesson, completes its quiz, links a guardian, and creates a school-admin account.
+
+```powershell
+.\seed-pilot.ps1 `
+  -ApiBaseUrl https://your-api.fly.dev `
+  -TeacherEmail teacher@your-school.example `
+  -TeacherPassword '<teacher-password>' `
+  -LessonId 1
+```
+
 ---
 
 ## Environment Variables
@@ -204,6 +218,25 @@ DB_PASSWORD=<password>
 AI_SERVICE_URL=http://localhost:8000
 AI_INTERNAL_SECRET=<same value as INTERNAL_SECRET in ai-elewa>
 ```
+
+| Variable | Required | Purpose | Example / safe default |
+|---|---:|---|---|
+| `SPRING_PROFILES_ACTIVE` | Yes | Enables the production profile | `prod` |
+| `DB_URL` | Yes | PostgreSQL JDBC connection URL | `jdbc:postgresql://host:5432/elekeza` |
+| `DB_USER` / `DB_PASSWORD` | Yes | PostgreSQL credentials | Platform-provided credentials |
+| `JWT_SECRET` | Yes | 32+ character JWT signing secret | Random secret, never committed |
+| `AI_SERVICE_URL` | Yes | Deployed FastAPI AI-service URL | `https://elekeza-ai.onrender.com` |
+| `AI_INTERNAL_SECRET` | Yes | Shared backend/AI request secret | Random secret matching the AI service |
+| `SPRING_JPA_HIBERNATE_DDL_AUTO` | Yes for first deploy | Schema mode for a fresh database | `update`, then consider `validate` |
+| `CORS_ALLOWED_ORIGINS` | Yes | Comma-separated allowed frontend origins | `https://your-site.netlify.app` |
+| `FRONTEND_URL` | Yes | Public frontend origin for links/cookies | `https://your-site.netlify.app` |
+| `SECURE_COOKIES` | Yes | Send refresh cookies only over HTTPS | `true` |
+| `MPESA_CALLBACK_URL` | If payments enabled | Public Daraja callback endpoint | `https://your-api.fly.dev/api/payments/callback` |
+| `MPESA_CONSUMER_KEY`, `MPESA_CONSUMER_SECRET`, `MPESA_PASSKEY`, `MPESA_SHORTCODE` | If payments enabled | Safaricom Daraja credentials | Production secrets |
+| `MAIL_HOST`, `MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD` | If email enabled | SMTP delivery | Provider credentials |
+| `AFRICASTALKING_USERNAME`, `AFRICASTALKING_API_KEY`, `AFRICASTALKING_SENDER_ID` | If SMS enabled | Africa's Talking notifications | Provider credentials |
+
+Start production explicitly with `SPRING_PROFILES_ACTIVE=prod`. The production profile reads only environment-backed secrets; keep them in Fly.io/Netlify secret stores rather than repository files.
 
 ### Critical (AI Service)
 
@@ -251,6 +284,12 @@ flyctl launch --dockerfile backend/Dockerfile
 flyctl deploy
 ```
 
+Set the backend secrets before the first deployment:
+
+```bash
+flyctl secrets set SPRING_PROFILES_ACTIVE=prod DB_URL=... DB_USER=... DB_PASSWORD=... JWT_SECRET=... AI_SERVICE_URL=... AI_INTERNAL_SECRET=... SPRING_JPA_HIBERNATE_DDL_AUTO=update CORS_ALLOWED_ORIGINS=https://your-site.netlify.app
+```
+
 See [Fly.io Docs](https://fly.io/docs/) for full guidance.
 
 ### Frontend (Netlify)
@@ -261,7 +300,7 @@ See [Fly.io Docs](https://fly.io/docs/) for full guidance.
 
 # Build command: npm run build
 # Publish directory: frontend/.next
-# Environment: add NEXT_PUBLIC_API_URL=<your backend URL>
+# Environment: add NEXT_PUBLIC_API_URL=<your backend URL>/api
 ```
 
 See [Netlify Docs](https://docs.netlify.com/) for full guidance.

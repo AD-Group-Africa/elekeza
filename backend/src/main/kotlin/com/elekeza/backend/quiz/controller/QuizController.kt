@@ -21,7 +21,8 @@ class QuizController(
     private val progressRepo: LessonProgressRepository,
     private val userRepo: UserRepository
 ) {
-    @GetMapping("/{lessonId}/start")
+    // Keep GET for the existing lesson page and accept POST for API clients.
+    @RequestMapping("/{lessonId}/start", method = [RequestMethod.GET, RequestMethod.POST])
     fun startQuiz(@PathVariable lessonId: Long, @AuthenticationPrincipal user: User): Map<String, Any> {
         var quiz = quizRepo.findByContentId(lessonId)
         if (quiz == null) {
