@@ -1,4 +1,4 @@
-﻿package com.elekeza.backend.teacher
+package com.elekeza.backend.teacher
 
 import com.elekeza.backend.auth.User
 import com.elekeza.backend.auth.UserRepository
@@ -8,15 +8,13 @@ import com.elekeza.backend.learner.LessonProgressRepository
 import com.elekeza.backend.content.ContentRepository
 import com.elekeza.backend.institution.GuardianLink
 import com.elekeza.backend.institution.GuardianLinkRepository
+import com.elekeza.backend.learner.LessonProgress
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.web.bind.annotation.*
 
-@RestController
-@RequestMapping("/api/teacher")
-@PreAuthorize("hasAnyRole('TEACHER', 'ADMIN', 'SCHOOL_ADMIN')")
 class TeacherController(
     private val userRepo: UserRepository,
     private val learnerProfileRepo: LearnerProfileRepository,
@@ -51,14 +49,8 @@ class TeacherController(
             role = UserRole.STUDENT,
             institutionId = institutionId
         ))
-        val sneType = try { com.elekeza.backend.auth.SneType.valueOf(req.sneType) } catch (e: Exception) { com.elekeza.backend.auth.SneType.NONE }
-        learnerProfileRepo.save(com.elekeza.backend.learner.LearnerProfile(
-            user = student,
-            sneType = sneType,
-            preferences = emptyMap(),
-            adaptationState = emptyMap()
-        ))
-        return ResponseEntity.ok(StudentDto(student.id.toString(), student.name, student.email, sneType.name))
+        val profile = learnerProfileRepo.findByUserId(student.id)
+        return ResponseEntity.ok(StudentDto(student.id.toString(), student.name, student.email, profile?.sneType?.name ?: "NONE"))
     }
 
     @PostMapping("/content/assign")
@@ -66,10 +58,8 @@ class TeacherController(
         req.studentIds.forEach { studentId ->
             val student = userRepo.findById(studentId).orElseThrow { IllegalArgumentException("Student not found") }
             if (student.institutionId != teacher.institutionId) throw SecurityException("Student not in your institution")
-            lessonProgressRepo.save(com.elekeza.backend.learner.LessonProgress(
-                user = student,
-                contentId = req.contentId
-            ))
+            val progress = LessonProgress(user = student, contentId = req.contentId)
+            lessonProgressRepo.save(progress)
         }
         return ResponseEntity.ok(mapOf("assigned" to req.studentIds.size))
     }
@@ -97,4 +87,3 @@ class TeacherController(
         return ResponseEntity.ok(mapOf("studentName" to student.name, "completedLessons" to completed, "averageScore" to (avgScore ?: 0.0)))
     }
 }
-
