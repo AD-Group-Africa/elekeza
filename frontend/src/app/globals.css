@@ -43,8 +43,18 @@ body {
 }
 
 /* Accessibility overrides */
-.dyslexia-font * { font-family: 'OpenDyslexic', Arial, sans-serif; }
-.high-contrast { filter: contrast(1.5); }
+.dyslexia-font *,
+.a11y-dyslexia-support *,
+.a11y-font-family-dyslexia-friendly * { font-family: 'OpenDyslexic', Arial, sans-serif; }
+
+.high-contrast,
+.a11y-high-contrast { filter: contrast(1.5); }
+
+.a11y-high-contrast { background: #000; color: #fff; }
+.a11y-high-contrast a { color: #ffeb3b; text-decoration: underline; }
+.a11y-reduced-motion *, .a11y-reduced-motion *::before, .a11y-reduced-motion *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
+.a11y-font-lg { font-size: 112.5%; }
+.a11y-font-sm { font-size: 87.5%; }
 .reduced-motion * { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
 .large-text { font-size: 1.25rem; }
 

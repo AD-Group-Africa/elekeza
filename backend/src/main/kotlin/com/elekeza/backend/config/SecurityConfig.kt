@@ -43,6 +43,7 @@ class SecurityConfig(private val jwtAuthFilter: JwtAuthFilter) {
                 auth.requestMatchers(
                     "/api/auth/**",
                     "/api/institutions/register",
+                    "/api/payments/callback",
                     "/api/waitlist/**",
                     "/actuator/health",
                     "/h2-console/**"

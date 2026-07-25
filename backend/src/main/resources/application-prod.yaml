@@ -5,7 +5,8 @@ spring:
     password: ${DB_PASSWORD}
   jpa:
     hibernate:
-      ddl-auto: validate
+      # Set to `validate` after a freshly provisioned database is established.
+      ddl-auto: ${SPRING_JPA_HIBERNATE_DDL_AUTO:update}
   flyway:
     enabled: true
   mail:
@@ -36,4 +37,9 @@ jwt:
   secret: ${JWT_SECRET}
 
 mpesa:
+  consumer-key: ${MPESA_CONSUMER_KEY}
+  consumer-secret: ${MPESA_CONSUMER_SECRET}
+  passkey: ${MPESA_PASSKEY}
+  shortcode: ${MPESA_SHORTCODE:174379}
   callback-url: ${MPESA_CALLBACK_URL:https://placeholder.callback}
+  environment: ${MPESA_ENVIRONMENT:production}
