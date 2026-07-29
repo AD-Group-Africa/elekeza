@@ -15,6 +15,8 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.web.bind.annotation.*
 
+@RestController
+@RequestMapping("/api/teacher")
 class TeacherController(
     private val userRepo: UserRepository,
     private val learnerProfileRepo: LearnerProfileRepository,
@@ -32,16 +34,13 @@ class TeacherController(
     fun getStudents(@AuthenticationPrincipal teacher: User): ResponseEntity<List<StudentDto>> {
         val institutionId = teacher.institutionId ?: return ResponseEntity.ok(emptyList())
         val students = userRepo.findByInstitutionIdAndRole(institutionId, UserRole.STUDENT)
-        val dtos = students.map { s ->
-            val profile = learnerProfileRepo.findByUserId(s.id)
-            StudentDto(s.id.toString(), s.name, s.email, profile?.sneType?.name ?: "NONE")
-        }
+        val dtos = students.map { s -> StudentDto(s.id.toString(), s.name, s.email, "NONE") }
         return ResponseEntity.ok(dtos)
     }
 
     @PostMapping("/student")
     fun createStudent(@AuthenticationPrincipal teacher: User, @RequestBody req: CreateStudentRequest): ResponseEntity<StudentDto> {
-        val institutionId = teacher.institutionId ?: throw IllegalStateException("Teacher not linked to an institution")
+        val institutionId = teacher.institutionId
         val student = userRepo.save(User(
             email = req.email,
             name = req.fullName,
@@ -49,8 +48,7 @@ class TeacherController(
             role = UserRole.STUDENT,
             institutionId = institutionId
         ))
-        val profile = learnerProfileRepo.findByUserId(student.id)
-        return ResponseEntity.ok(StudentDto(student.id.toString(), student.name, student.email, profile?.sneType?.name ?: "NONE"))
+        return ResponseEntity.ok(StudentDto(student.id.toString(), student.name, student.email, "NONE"))
     }
 
     @PostMapping("/content/assign")

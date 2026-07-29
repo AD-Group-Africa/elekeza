@@ -69,3 +69,93 @@ body {
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
 }
+
+/* ======= Light Theme (Sunset) ======= */
+[data-theme="light"] {
+  --bg-primary: #FFF5EC;
+  --bg-secondary: #FFE8D6;
+  --bg-card: rgba(255,255,255,0.85);
+  --text-primary: #4A3728;
+  --text-secondary: #7B5E47;
+  --text-muted: #A98467;
+  --accent-1: #F4845F;
+  --accent-2: #F7A072;
+  --accent-3: #F9C74F;
+  --border: rgba(244,132,95,0.2);
+}
+
+[data-theme="light"] body {
+  background: linear-gradient(135deg, #FFF5EC 0%, #FFE8D6 50%, #FDC9B3 100%);
+}
+
+[data-theme="light"] .glass-card {
+  background: var(--bg-card);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+}
+
+[data-theme="light"] .text-purple-200,
+[data-theme="light"] .text-purple-300,
+[data-theme="light"] .text-purple-400 {
+  color: var(--text-primary);
+}
+
+[data-theme="light"] .text-purple-100 {
+  color: var(--text-secondary);
+}
+
+[data-theme="light"] .text-purple-200\/70,
+[data-theme="light"] .text-purple-200\/50 {
+  color: var(--text-muted);
+}
+
+[data-theme="light"] .bg-gradient-to-r.from-blue-600.to-purple-600 {
+  background: linear-gradient(90deg, var(--accent-1), var(--accent-2));
+}
+
+[data-theme="light"] .bg-purple-600,
+[data-theme="light"] .bg-purple-600\/40,
+[data-theme="light"] .bg-purple-600\/60 {
+  background: var(--accent-1);
+}
+
+[data-theme="light"] .hover\:bg-purple-600\/60:hover {
+  background: var(--accent-2);
+}
+
+[data-theme="light"] .border-purple-300\/10,
+[data-theme="light"] .border-purple-300\/20,
+[data-theme="light"] .border-purple-300\/30 {
+  border-color: var(--border);
+}
+
+[data-theme="light"] .bg-white\/5,
+[data-theme="light"] .bg-white\/10 {
+  background: rgba(244,132,95,0.08);
+}
+
+[data-theme="light"] .text-white {
+  color: #FFF5EC;
+}
+
+/* ====== THEME VARIABLES ====== */
+:root {
+  --bg-gradient: linear-gradient(135deg, #0f172a, #1e1b4b, #2e1065);
+  --bg-card: rgba(255, 255, 255, 0.05);
+  --border-color: rgba(139, 92, 246, 0.1);
+  --text-primary: #e9d5ff;
+  --text-secondary: #c4b5fd;
+  --text-muted: #a78bfa;
+  --accent: #7c3aed;
+}
+
+[data-theme="light"] {
+  --bg-gradient: linear-gradient(135deg, #FFF5EC 0%, #FFE8D6 50%, #FDC9B3 100%);
+  --bg-card: rgba(255, 255, 255, 0.85);
+  --border-color: rgba(244, 132, 95, 0.2);
+  --text-primary: #4A3728;
+  --text-secondary: #7B5E47;
+  --text-muted: #A98467;
+  --accent: #F4845F;
+}
