@@ -3,40 +3,112 @@
 import { useEffect, useState } from 'react';
 import api from '@/lib/axios';
 import SidebarLayout from '@/components/layout/SidebarLayout';
-import { BookOpen } from 'lucide-react';
+import { BookOpen, Clock, BarChart3, Filter, Download, Wifi, WifiOff } from 'lucide-react';
 import Link from 'next/link';
 
+interface Lesson {
+  id: number;
+  title: string;
+  subject: string;
+  grade: string;
+  status: string;
+  // Add more fields as needed
+}
+
 export default function StudentLessons() {
-  const [lessons, setLessons] = useState<any[]>([]);
+  const [lessons, setLessons] = useState<Lesson[]>([]);
   const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState<'all' | 'inProgress' | 'completed'>('all');
+  const [search, setSearch] = useState('');
 
   useEffect(() => {
-    api.get('/content/list') // This returns all content; later we can filter by assigned
+    api.get('/content/list')  // Adjust if you have a student‑specific endpoint
       .then(res => setLessons(res.data))
       .catch(console.error)
       .finally(() => setLoading(false));
   }, []);
 
+  const filtered = lessons.filter(l => {
+    const matchFilter = filter === 'all' 
+      || (filter === 'inProgress' && l.status !== 'READY')
+      || (filter === 'completed' && l.status === 'COMPLETED');
+    const matchSearch = l.title.toLowerCase().includes(search.toLowerCase())
+      || l.subject.toLowerCase().includes(search.toLowerCase());
+    return matchFilter && matchSearch;
+  });
+
+  // Mock offline status – replace with real check
+  const offline = false;
+
   return (
     <SidebarLayout>
       <div className="space-y-6">
         <h1 className="text-2xl font-bold text-purple-200">My Lessons</h1>
+
+        {/* Filters */}
+        <div className="flex flex-wrap gap-3 items-center">
+          <div className="relative flex-1 max-w-md">
+            <input
+              type="text"
+              placeholder="Search lessons..."
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              className="w-full px-4 py-3 bg-white/10 border border-purple-300/30 rounded-lg text-white placeholder-purple-200/50 focus:outline-none focus:ring-2 focus:ring-purple-500"
+            />
+          </div>
+          <select
+            value={filter}
+            onChange={e => setFilter(e.target.value as any)}
+            className="px-4 py-3 bg-white/10 border border-purple-300/30 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+          >
+            <option value="all">All</option>
+            <option value="inProgress">In Progress</option>
+            <option value="completed">Completed</option>
+          </select>
+        </div>
+
         {loading ? (
-          <p className="text-purple-300">Loading…</p>
-        ) : lessons.length === 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="glass-card p-4 animate-pulse">
+                <div className="h-4 bg-white/10 rounded w-3/4 mb-3" />
+                <div className="h-3 bg-white/10 rounded w-1/2 mb-2" />
+                <div className="h-2 bg-white/10 rounded w-full" />
+              </div>
+            ))}
+          </div>
+        ) : filtered.length === 0 ? (
           <div className="glass-card p-6 text-center">
             <BookOpen size={48} className="text-purple-400 mx-auto mb-4" />
-            <p className="text-purple-200">No lessons available.</p>
+            <p className="text-purple-200">No lessons found.</p>
+            <p className="text-purple-300 text-sm">Check back later or ask your teacher to assign new content.</p>
           </div>
         ) : (
-          <div className="grid gap-4">
-            {lessons.map((l: any) => (
-              <Link key={l.id} href={'/lesson/' + l.id} className="glass-card p-4 hover:bg-white/5 transition flex justify-between items-center">
-                <div>
-                  <h3 className="text-purple-200 font-semibold">{l.title}</h3>
-                  <p className="text-purple-300 text-sm">{l.subject} • {l.grade}</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {filtered.map(lesson => (
+              <Link key={lesson.id} href={'/lesson/' + lesson.id} className="block group">
+                <div className="glass-card p-4 hover:bg-white/5 transition h-full flex flex-col">
+                  {/* Subject color bar */}
+                  <div className="w-full h-1 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full mb-3" />
+                  <div className="flex-1">
+                    <h3 className="text-lg font-semibold text-purple-200 group-hover:text-white transition">{lesson.title}</h3>
+                    <p className="text-purple-400 text-sm">{lesson.subject} · {lesson.grade}</p>
+                    <div className="flex items-center gap-2 mt-2">
+                      <Clock size={14} className="text-purple-400" />
+                      <span className="text-purple-400 text-xs">15 mins</span>
+                      <span className="text-purple-400 text-xs">·</span>
+                      <BarChart3 size={14} className="text-purple-400" />
+                      <span className="text-purple-400 text-xs">Easy</span>
+                    </div>
+                    <div className="mt-3 w-full bg-white/10 rounded-full h-1.5">
+                      <div className="bg-purple-600 h-1.5 rounded-full" style={{ width: lesson.status === 'COMPLETED' ? '100%' : '40%' }} />
+                    </div>
+                    <div className="flex items-center justify-between mt-2">
+                      <span className="text-purple-500 text-xs">{lesson.status === 'COMPLETED' ? 'Completed' : '40%'}</span>
+                      {offline ? <WifiOff size={14} className="text-orange-400" /> : <Wifi size={14} className="text-green-400" />}
+                    </div>
+                  </div>
                 </div>
-                <span className="text-purple-400">View</span>
               </Link>
             ))}
           </div>

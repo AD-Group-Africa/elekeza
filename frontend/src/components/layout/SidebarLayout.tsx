@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import {
   LayoutDashboard, Users, BookOpen, ClipboardCheck, Upload, TrendingUp,
-  Calendar, User, Settings, FileText, MessageSquare, Menu, X, Building2
+  Calendar, User, Settings, FileText, MessageSquare, Menu, X, Building2, BrainCircuit
 } from 'lucide-react';
 
 const teacherItems = [
@@ -23,6 +23,7 @@ const teacherItems = [
 ];
 
 const studentItems = [
+  { href: '/student-ai-tutor', label: 'AI Tutor', icon: BrainCircuit },
   { href: '/student-home', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/student-lessons', label: 'My Lessons', icon: BookOpen },
   { href: '/student-quizzes', label: 'Quizzes', icon: ClipboardCheck },
@@ -61,16 +62,17 @@ export default function SidebarLayout({ children }: { children: React.ReactNode 
       case 'TEACHER': return teacherItems;
       case 'STUDENT': return studentItems;
       case 'GUARDIAN': return guardianItems;
-      case 'SCHOOL_ADMIN': return adminItems;
+      case 'SCHOOL_ADMIN': return adminItems.filter(item => item.href !== '/super-admin');
       case 'ADMIN': return adminItems; // ADMIN sees same sidebar but can access super-admin
       default: return [];
     }
   })();
 
   const sidebar = (
-    <div className="flex flex-col h-full bg-black/30 backdrop-blur-md border-r border-purple-300/10 p-4">
+    <div className="flex flex-col h-full backdrop-blur-md border-r p-4" style={{ background: "var(--bg-card)", borderColor: "var(--border-color)" }}>
       <div className="flex items-center justify-between mb-6">
-        {!collapsed && <span className="text-xl font-bold text-purple-200">Elekeza</span>}
+        {!collapsed && <Link href={role === 'STUDENT' ? '/student-home' : '/' + role.toLowerCase().replace
+        ('_', '-')} className="text-xl font-bold text-purple-200 hover:text-white transition">Elekeza</Link>}
         <button onClick={() => setCollapsed(!collapsed)} className="text-purple-300 hover:text-white">
           {collapsed ? <Menu size={20} /> : <X size={20} />}
         </button>
@@ -112,7 +114,7 @@ export default function SidebarLayout({ children }: { children: React.ReactNode 
   );
 
   return (
-    <div className="min-h-screen flex bg-gradient-to-br from-gray-900 via-indigo-950 to-purple-950">
+    <div className="min-h-screen flex" style={{ background: "var(--bg-gradient)" }}>
       {/* Desktop sidebar */}
       <aside className={'hidden md:block ' + (collapsed ? 'w-16' : 'w-56') + ' transition-all duration-300'}>
         {sidebar}
@@ -153,3 +155,10 @@ function LogOutIcon({ size }: { size: number }) {
     </svg>
   );
 }
+
+
+
+
+
+
+

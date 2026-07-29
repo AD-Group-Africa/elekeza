@@ -37,6 +37,13 @@ const categories: SettingCategory[] = [
     ],
   },
   {
+    title: 'Appearance',
+    icon: '🎨',
+    settings: [
+      { key: 'lightTheme', label: 'Light Theme', description: 'Switch to warm sunset light mode' },
+    ],
+  },
+  {
     title: 'Cognitive Support',
     icon: '🧠',
     settings: [
@@ -114,6 +121,8 @@ export default function SettingsPage() {
     Object.entries(settings).forEach(([key, value]) => {
       document.body.classList.toggle('setting-' + key, value);
     });
+    // Handle light theme
+    document.documentElement.setAttribute('data-theme', settings.lightTheme ? 'light' : 'dark');
   }, [settings, mounted]);
 
   const toggleSection = (title: string) => {

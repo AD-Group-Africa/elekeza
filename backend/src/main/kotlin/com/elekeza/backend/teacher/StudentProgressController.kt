@@ -20,7 +20,7 @@ class StudentProgressController {
     @GetMapping("/student/progress")
     @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN', 'SCHOOL_ADMIN')")
     fun getStudentProgress(@AuthenticationPrincipal teacher: User): ResponseEntity<List<StudentProgressDto>> {
-        // Replace with real data query later
+        // Return empty list for now – replace with real data query
         return ResponseEntity.ok(emptyList())
     }
 }
