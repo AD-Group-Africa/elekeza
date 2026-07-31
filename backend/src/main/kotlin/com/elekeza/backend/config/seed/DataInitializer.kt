@@ -1,8 +1,10 @@
-﻿package com.elekeza.backend.config.seed
+package com.elekeza.backend.config.seed
 
 import com.elekeza.backend.auth.*
 import com.elekeza.backend.institution.GuardianLink
 import com.elekeza.backend.institution.GuardianLinkRepository
+import com.elekeza.backend.institution.Institution
+import com.elekeza.backend.institution.InstitutionRepository
 import com.elekeza.backend.content.*
 import com.elekeza.backend.learner.*
 import com.elekeza.backend.quiz.*
@@ -25,7 +27,8 @@ class DataInitializer(
     private val attemptRepo: QuizAttemptRepository,
     private val learnerRepo: LearnerRepository,
     private val guardianRepo: GuardianRepository,
-    private val guardianLinkRepository: GuardianLinkRepository
+    private val guardianLinkRepository: GuardianLinkRepository,
+    private val institutionRepository: InstitutionRepository
 ) : CommandLineRunner {
 
     private val log = LoggerFactory.getLogger(DataInitializer::class.java)
@@ -34,12 +37,37 @@ class DataInitializer(
     override fun run(vararg args: String?) {
         log.info("Seeding demo data (dev profile)...")
 
+        // Seed default school institution
+        val institution = if (institutionRepository.count() == 0L) {
+            institutionRepository.save(Institution(
+                name = "Test School",
+                plan = "STARTER",
+                isActive = true
+            ))
+        } else {
+            institutionRepository.findAll().first()
+        }
+
         val teacher = createUserIfAbsent("teacher@elekeza.app", "teacher123", "Alice Mwalimu", UserRole.TEACHER)
-        teacher.institutionId = 1L
+        teacher.institutionId = institution.id
         userRepository.save(teacher)
 
         val student = createUserIfAbsent("student@elekeza.app", "student123", "Juma Ali", UserRole.STUDENT)
+        student.institutionId = institution.id
+        userRepository.save(student)
+
         val parent  = createUserIfAbsent("parent@elekeza.app",  "parent123",  "Fatima Ali", UserRole.GUARDIAN)
+        parent.institutionId = institution.id
+        userRepository.save(parent)
+
+        // Seed Admin Accounts
+        val schoolAdmin = createUserIfAbsent("admin2@testschool.elekeza.app", "teacher123", "School Admin", UserRole.SCHOOL_ADMIN)
+        schoolAdmin.institutionId = institution.id
+        userRepository.save(schoolAdmin)
+
+        val superAdmin = createUserIfAbsent("superadmin@elekeza.app", "teacher123", "Super Admin", UserRole.ADMIN)
+        superAdmin.institutionId = institution.id
+        userRepository.save(superAdmin)
 
         // Link guardian to student
         val guardianLink = GuardianLink(guardianId = parent.id, learnerId = student.id, relationship = "PARENT")

@@ -32,16 +32,24 @@ class JwtAuthFilter(
         chain: FilterChain
     ) {
         val token = resolveToken(request)
-        if (token != null && jwtUtil.validateToken(token)) {
-            runCatching {
-                val email = jwtUtil.getEmail(token)
-                val user  = userRepository.findByEmail(email)
-                if (user != null) {
-                    val auth = UsernamePasswordAuthenticationToken(
-                        user, null,
-                        listOf(SimpleGrantedAuthority("ROLE_${user.role.name}"))
-                    )
-                    SecurityContextHolder.getContext().authentication = auth
+        if (token != null) {
+            val valid = jwtUtil.validateToken(token)
+            println("JWT VALIDATION: token=$token, valid=$valid")
+            if (valid) {
+                runCatching {
+                    val email = jwtUtil.getEmail(token)
+                    val user  = userRepository.findByEmail(email)
+                    println("JWT AUTHENTICATING: email=$email, userFound=${user != null}")
+                    if (user != null) {
+                        val auth = UsernamePasswordAuthenticationToken(
+                            user, null,
+                            listOf(SimpleGrantedAuthority("ROLE_${user.role.name}"))
+                        )
+                        SecurityContextHolder.getContext().authentication = auth
+                    }
+                }.onFailure { e ->
+                    println("JWT AUTHENTICATION ERROR: ${e.message}")
+                    e.printStackTrace()
                 }
             }
         }

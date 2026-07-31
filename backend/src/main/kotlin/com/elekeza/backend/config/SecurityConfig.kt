@@ -52,6 +52,9 @@ class SecurityConfig(private val jwtAuthFilter: JwtAuthFilter) {
                 // Allow school admin to access analytics and admin endpoints
                 auth.requestMatchers("/api/analytics/teacher").hasAnyRole("TEACHER", "SCHOOL_ADMIN", "ADMIN")
                 auth.requestMatchers("/api/analytics/admin", "/api/analytics/admin/overview").hasAnyRole("SCHOOL_ADMIN", "ADMIN")
+                auth.requestMatchers("/api/analytics/student").hasAnyRole("STUDENT", "ADMIN")
+                auth.requestMatchers("/api/analytics/guardian").hasAnyRole("GUARDIAN", "ADMIN")
+                auth.requestMatchers("/api/analytics/dashboard").authenticated()
                 auth.requestMatchers("/api/analytics/**").hasAnyRole("ADMIN")
 
                 auth.requestMatchers("/api/teacher/**").hasAnyRole("TEACHER", "SCHOOL_ADMIN", "ADMIN")

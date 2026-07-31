@@ -52,7 +52,13 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
     logger.warning(f"Request validation error on {request.url.path}: {field_errors}")
     return JSONResponse(
         status_code=422,
-        content={"error_code": "SCHEMA_INVALID", "message": field_errors},
+        content={
+            "error_code": "SCHEMA_INVALID",
+            "message": field_errors,
+            "stage": None,
+            "retried": False,
+            "learner_message": None
+        },
     )
 
 
@@ -61,7 +67,13 @@ async def global_exception_handler(request: Request, exc: Exception):
     logger.error(f"Unhandled exception on {request.url.path}: {exc}")
     return JSONResponse(
         status_code=500,
-        content={"error_code": "INTERNAL", "message": "An unexpected error occurred."},
+        content={
+            "error_code": "INTERNAL",
+            "message": "An unexpected error occurred.",
+            "stage": None,
+            "retried": False,
+            "learner_message": None
+        },
     )
 
 

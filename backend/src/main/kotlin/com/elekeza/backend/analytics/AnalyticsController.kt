@@ -178,6 +178,7 @@ class AnalyticsController(
     }
 
     @GetMapping("/admin/overview")
+    @PreAuthorize("hasAnyRole('ADMIN','SCHOOL_ADMIN')")
     fun adminOverview(): ResponseEntity<Map<String, Any>> {
         val users = userRepo.count()
         val institutions = institutionRepo.count()
