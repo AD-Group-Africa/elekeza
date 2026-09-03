@@ -174,7 +174,7 @@ docker compose up -d
 
 ## Demo Accounts
 
-Pre-seeded in dev profile with password reset flow ready.
+Pre-seeded in the `dev` profile (DataInitializer) and by the `V2__seed_demo.sql` Flyway migration for pilot databases.
 
 | Role | Email | Password |
 |------|-------|----------|
@@ -184,7 +184,7 @@ Pre-seeded in dev profile with password reset flow ready.
 | **School Admin** | admin@elekeza.app | admin123 |
 | **Super Admin** | superadmin@elekeza.app | superadmin123 |
 
-> Demo accounts are seeded only by the `dev` profile. Do not expose these credentials in a shared deployment.
+> Demo credentials are for pilot/testing only — never use them in a public production launch. Public registration always creates a `STUDENT` account; school admins are created through the institution registration flow, and the platform `ADMIN` (super admin) role is assigned operationally, never through self-registration.
 
 ## Pilot Data Seed
 
@@ -233,8 +233,9 @@ AI_INTERNAL_SECRET=<same value as INTERNAL_SECRET in ai-elewa>
 | `SECURE_COOKIES` | Yes | Send refresh cookies only over HTTPS | `true` |
 | `MPESA_CALLBACK_URL` | If payments enabled | Public Daraja callback endpoint | `https://your-api.fly.dev/api/payments/callback` |
 | `MPESA_CONSUMER_KEY`, `MPESA_CONSUMER_SECRET`, `MPESA_PASSKEY`, `MPESA_SHORTCODE` | If payments enabled | Safaricom Daraja credentials | Production secrets |
-| `MAIL_HOST`, `MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD` | If email enabled | SMTP delivery | Provider credentials |
-| `AFRICASTALKING_USERNAME`, `AFRICASTALKING_API_KEY`, `AFRICASTALKING_SENDER_ID` | If SMS enabled | Africa's Talking notifications | Provider credentials |
+| `MAIL_HOST`, `MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD` | If email enabled (`EMAIL_PROVIDER=javamail`) | SMTP delivery | Provider credentials |
+| `AFRICA_TALKING_API_KEY`, `AFRICA_TALKING_SENDER_ID` | If SMS enabled (`SMS_PROVIDER=africa_talking`) | Africa's Talking notifications | Provider credentials |
+| `CLOUDFLARE_R2_ACCOUNT_ID`, `CLOUDFLARE_R2_BUCKET_NAME`, `CLOUDFLARE_R2_ACCESS_KEY_ID`, `CLOUDFLARE_R2_SECRET_ACCESS_KEY` | If R2 uploads enabled (`STORAGE_PROVIDER=cloudflare_r2`) | Cloudflare R2 object storage | Provider credentials |
 
 Start production explicitly with `SPRING_PROFILES_ACTIVE=prod`. The production profile reads only environment-backed secrets; keep them in Fly.io/Netlify secret stores rather than repository files.
 
@@ -257,9 +258,15 @@ MPESA_API_URL=<Safaricom sandbox/production URL>
 MPESA_CONSUMER_KEY=<Safaricom API consumer key>
 MPESA_CONSUMER_SECRET=<Safaricom API consumer secret>
 
-# SMS (Africa's Talking)
-AFRICAS_TALKING_API_KEY=<Africa's Talking API key>
-AFRICAS_TALKING_USERNAME=<Africa's Talking username>
+# SMS (Africa's Talking) — used when SMS_PROVIDER=africa_talking
+AFRICA_TALKING_API_KEY=<Africa's Talking API key>
+AFRICA_TALKING_SENDER_ID=Elekeza
+
+# Object storage — used when STORAGE_PROVIDER=cloudflare_r2
+CLOUDFLARE_R2_ACCOUNT_ID=<account id>
+CLOUDFLARE_R2_BUCKET_NAME=elekeza-uploads
+CLOUDFLARE_R2_ACCESS_KEY_ID=<access key id>
+CLOUDFLARE_R2_SECRET_ACCESS_KEY=<secret access key>
 
 # Email
 MAIL_HOST=smtp.gmail.com
@@ -287,10 +294,14 @@ flyctl deploy
 Set the backend secrets before the first deployment:
 
 ```bash
-flyctl secrets set SPRING_PROFILES_ACTIVE=prod DB_URL=... DB_USER=... DB_PASSWORD=... JWT_SECRET=... AI_SERVICE_URL=... AI_INTERNAL_SECRET=... SPRING_JPA_HIBERNATE_DDL_AUTO=update CORS_ALLOWED_ORIGINS=https://your-site.netlify.app
+flyctl secrets set SPRING_PROFILES_ACTIVE=prod DB_URL=... DB_USER=... DB_PASSWORD=... JWT_SECRET=... AI_SERVICE_URL=... AI_INTERNAL_SECRET=... CORS_ALLOWED_ORIGINS=https://your-site.netlify.app FRONTEND_URL=https://your-site.netlify.app
 ```
 
-See [Fly.io Docs](https://fly.io/docs/) for full guidance.
+Schema is owned by Flyway (baseline `V1__baseline_schema.sql` + `V2__seed_demo.sql`);
+`ddl-auto` defaults to `validate` in production — never `update`.
+
+See [Fly.io Docs](https://fly.io/docs/) and the production runbooks:
+[`docs/PRODUCTION.md`](docs/PRODUCTION.md) · [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) · [`docs/SMOKE-TEST.md`](docs/SMOKE-TEST.md).
 
 ### Frontend (Netlify)
 
@@ -349,9 +360,10 @@ All endpoints require a valid JWT token (set as `elewa_access` cookie) except `/
 
 | Method | Endpoint | Auth | Description |
 |--------|----------|------|-------------|
-| GET | `/api/quiz/{lessonId}/start` | Bearer | Start quiz |
-| POST | `/api/quiz/{quizId}/answer` | Bearer | Submit answer |
-| GET | `/api/quiz/{quizId}/complete` | Bearer | Finalize, get score |
+| GET | `/api/quiz/{lessonId}/start` | Bearer | Start quiz (returns questions, never the answer key) |
+| POST | `/api/quiz/{quizId}/answer` | Bearer | Submit answer — server-side graded, per-question answer persisted |
+| POST | `/api/quiz/{quizId}/complete` | Bearer | Finalize, get score + post-quiz feedback |
+| GET | `/api/quiz/{quizId}/review` | Bearer | Post-completion review (own completed attempt only) |
 
 ### Teacher & Guardian
 
@@ -360,12 +372,16 @@ All endpoints require a valid JWT token (set as `elewa_access` cookie) except `/
 | GET | `/api/teacher/students` | TEACHER | Teacher's institution students |
 | POST | `/api/teacher/content/assign` | TEACHER | Bulk assign lesson |
 | GET | `/api/guardian/wards` | GUARDIAN | View linked children |
+| GET | `/api/guardian/wards/{id}` | GUARDIAN | Ward detail (progress, recent quizzes) — linked ward only |
+| GET | `/api/guardian/reports` | GUARDIAN | Per-ward progress reports |
+| GET | `/api/guardian/schedule` | GUARDIAN | Wards' pending assigned lessons |
 
 ### Analytics
 
 | Method | Endpoint | Auth | Description |
 |--------|----------|------|-------------|
 | GET | `/api/progress/dashboard` | Bearer | Learner progress dashboard |
+| GET | `/api/analytics/teacher/quiz-results` | TEACHER | Per-question quiz results for the teacher's students (completed attempts only) |
 
 ---
 
@@ -403,11 +419,11 @@ elekeza/
 │   │   ├── teacher/                # Teacher controller (institution‑scoped)
 │   │   ├── guardian/               # Guardian controller (ward linking)
 │   │   ├── institution/            # School registration, CSV import, student mgmt
-│   │   ├── payment/                # M‑Pesa integration (stub)
+│   │   ├── payments/               # M‑Pesa stkPush + callback integration
 │   │   ├── notification/           # Notification service (SMS/email hooks)
 │   │   └── common/                 # Utilities, error handling, interceptors
 │   ├── src/main/resources/
-│   │   ├── db/migration/           # Flyway migrations (V1–V24+)
+│   │   ├── db/migration/           # Flyway migrations (V1 baseline … V5 raw text)
 │   │   ├── application.yaml        # Spring config
 │   │   └── h2-schema.sql           # H2 schema (dev)
 │   ├── build.gradle.kts

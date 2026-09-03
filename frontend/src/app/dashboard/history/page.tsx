@@ -6,25 +6,35 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import SidebarLayout from '@/components/layout/SidebarLayout';
 
+interface HistoryLesson {
+  id: string;
+  title: string;
+  score: number;
+  date: string;
+}
+
 export default function HistoryPage() {
-  const [lessons, setLessons] = useState<any[]>([]);
+  const [lessons, setLessons] = useState<HistoryLesson[]>([]);
   const router = useRouter();
 
   useEffect(() => {
-    const saved = localStorage.getItem('elekeza-progress');
-    if (saved) {
-      const progress = JSON.parse(saved);
-      const lessonData = [];
-      if (progress['demo-lesson']) {
-        lessonData.push({
-          id: 'demo-lesson',
-          title: 'The Water Cycle',
-          score: progress['demo-lesson'].score,
-          date: progress['demo-lesson'].date,
-        });
+    const t = setTimeout(() => {
+      const saved = localStorage.getItem('elekeza-progress');
+      if (saved) {
+        const progress = JSON.parse(saved) as Record<string, { score: number; date: string }>;
+        const lessonData: HistoryLesson[] = [];
+        if (progress['demo-lesson']) {
+          lessonData.push({
+            id: 'demo-lesson',
+            title: 'The Water Cycle',
+            score: progress['demo-lesson'].score,
+            date: progress['demo-lesson'].date,
+          });
+        }
+        setLessons(lessonData);
       }
-      setLessons(lessonData);
-    }
+    }, 0);
+    return () => clearTimeout(t);
   }, []);
 
   return (
@@ -48,7 +58,7 @@ export default function HistoryPage() {
         </div>
       ) : (
         <div className="space-y-4">
-          {lessons.map((lesson: any) => (
+          {lessons.map((lesson: HistoryLesson) => (
             <div
               key={lesson.id}
               className="card glass-card rounded-2xl p-6 flex justify-between items-center cursor-pointer hover:bg-blue-50 transition"

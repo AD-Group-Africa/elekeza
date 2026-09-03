@@ -10,6 +10,7 @@ export default function UploadPage() {
   const [file, setFile] = useState<File | null>(null);
   const [title, setTitle] = useState('');
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   const router = useRouter();
 
   const handleUpload = async (e: React.FormEvent) => {
@@ -39,8 +40,8 @@ export default function UploadPage() {
       if (lessonId) {
         router.push(`/lesson/${lessonId}`);
       }
-    } catch (err: any) {
-      alert('Upload failed. Ensure you are logged in and the backend is running.');
+    } catch {
+      setError('Upload failed. Ensure you are logged in and the backend is running.');
     } finally {
       setLoading(false);
     }
@@ -53,6 +54,7 @@ export default function UploadPage() {
       </div>
 
       <form onSubmit={handleUpload} className="card max-w-2xl space-y-6">
+        {error && <p role="alert" className="text-sm text-red-600">{error}</p>}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Lesson Title (optional)</label>
           <input
@@ -108,5 +110,9 @@ export default function UploadPage() {
     </SidebarLayout>
   );
 }
+
+
+
+
 
 

@@ -8,18 +8,7 @@ export const api: AxiosInstance = axios.create({
   withCredentials: true,   // send HttpOnly cookies (refresh token)
 })
 
-// Attach in-memory access token on every request if present
-api.interceptors.request.use(config => {
-  const token = typeof window !== 'undefined'
-    ? sessionStorage.getItem('elekeza_access')
-    : null
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`
-  }
-  return config
-})
-
-// On 401: attempt token refresh, then retry original request once
+// On 401: rotate the HTTP-only access cookie, then retry once.
 api.interceptors.response.use(
   res => res,
   async error => {
@@ -27,13 +16,9 @@ api.interceptors.response.use(
     if (error.response?.status === 401 && !original._retried) {
       original._retried = true
       try {
-        const refreshRes = await axios.post(`${BASE_URL}/auth/refresh`, {}, { withCredentials: true })
-        const token = refreshRes.data?.accessToken
-        if (token) sessionStorage.setItem('elekeza_access', token)
+        await axios.post(`${BASE_URL}/auth/refresh`, {}, { withCredentials: true })
         return api(original)
-      } catch {
-        sessionStorage.removeItem('elekeza_access')
-      }
+      } catch { /* the caller will handle the unauthenticated response */ }
     }
     return Promise.reject(error)
   }

@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import api from '@/lib/axios';
-import { MessageSquare, Send, Users, CheckSquare, Calendar } from 'lucide-react';
+import { MessageSquare, Send, Users, Calendar } from 'lucide-react';
+import Toast from '@/components/Toast';
 
 interface Student {
   id: string;
@@ -18,11 +19,12 @@ export default function TeacherCommunication() {
   const [sent, setSent] = useState(false);
   const [loading, setLoading] = useState(true);
   const [meeting, setMeeting] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [toast, setToast] = useState('');
 
   useEffect(() => {
     api.get('/teacher/students').then(res => {
-      // mock guardian data for now
-      const list = res.data.map((s: any) => ({
+      const list = res.data.map((s: Record<string, unknown>) => ({
         ...s,
         guardianName: s.guardianName || 'Guardian of ' + s.name,
         guardianEmail: s.guardianEmail || 'parent@example.com',
@@ -43,7 +45,8 @@ export default function TeacherCommunication() {
   };
 
   const handleSend = async () => {
-    if (!message.trim() || selectedIds.size === 0) return;
+    if (!message.trim() || selectedIds.size === 0 || sending) return;
+    setSending(true);
     try {
       await api.post('/notifications/send', {
         recipient: Array.from(selectedIds).join(','),
@@ -52,9 +55,12 @@ export default function TeacherCommunication() {
       });
       setSent(true);
       setMessage('');
+      setToast('Message sent!');
       setTimeout(() => setSent(false), 3000);
     } catch (err) {
-      console.error(err);
+      setToast('Failed to send message.');
+    } finally {
+      setSending(false);
     }
   };
 
@@ -105,13 +111,14 @@ export default function TeacherCommunication() {
         />
         <button
           onClick={handleSend}
-          disabled={!message.trim() || selectedIds.size === 0}
+          disabled={!message.trim() || selectedIds.size === 0 || sending}
           className="mt-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-2 rounded-lg flex items-center gap-2 disabled:opacity-50"
         >
-          <Send size={18} /> {meeting ? 'Send Meeting Request' : 'Send Message'}
+          <Send size={18} /> {sending ? 'Sending…' : meeting ? 'Send Meeting Request' : 'Send Message'}
         </button>
         {sent && <p className="text-green-400 text-sm mt-2">Sent successfully!</p>}
       </div>
+      {toast && <Toast message={toast} onClose={() => setToast('')} />}
     </div>
   );
 }

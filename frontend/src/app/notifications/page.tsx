@@ -53,13 +53,16 @@ export default function NotificationsPage() {
           <div className="card text-center py-16">
             <div className="text-5xl mb-4">📭</div>
             <p className="text-gray-600 text-lg">No notifications yet</p>
-            <p className="text-purple-200 text-sm mt-2">You'll see quiz results and lesson updates here</p>
+            <p className="text-purple-200 text-sm mt-2">You&apos;ll see quiz results and lesson updates here</p>
           </div>
         )}
 
         <div className="space-y-3">
           {notifs.map(n => (
-            <div key={n.id} onClick={() => markRead(n.id)}
+            <div key={n.id} role="button" tabIndex={0}
+              onClick={() => markRead(n.id)}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); markRead(n.id); } }}
+              aria-label={n.read ? `Notification: ${n.title}` : `Mark as read: ${n.title}`}
               className={`card cursor-pointer flex items-start gap-4 transition hover:shadow-lg ${!n.read ? 'border-l-4 border-purple-500' : 'opacity-75'}`}>
               <span className="text-2xl flex-shrink-0 mt-0.5">{TYPE_ICON[n.type] ?? '🔔'}</span>
               <div className="flex-1 min-w-0">

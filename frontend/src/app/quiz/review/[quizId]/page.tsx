@@ -7,9 +7,21 @@ import SidebarLayout from '@/components/layout/SidebarLayout';
 import { ArrowLeft, Check, X } from 'lucide-react';
 import Link from 'next/link';
 
+interface ReviewQuestion {
+  correct: boolean;
+  question: string;
+  userAnswer: string;
+  correctAnswer?: string;
+  explanation?: string;
+}
+
+interface ReviewData {
+  questions: ReviewQuestion[];
+}
+
 export default function QuizReview() {
   const { quizId } = useParams();
-  const [review, setReview] = useState<any>(null);
+  const [review, setReview] = useState<ReviewData | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -28,7 +40,7 @@ export default function QuizReview() {
           <ArrowLeft size={18} /> Back
         </Link>
         <h1 className="text-2xl font-bold text-purple-200">Quiz Review</h1>
-        {review?.questions.map((q: any, idx: number) => (
+        {review?.questions.map((q: ReviewQuestion, idx: number) => (
           <div key={idx} className="glass-card p-4">
             <div className="flex items-start gap-2">
               {q.correct ? (

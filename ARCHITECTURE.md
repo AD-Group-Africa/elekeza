@@ -26,7 +26,7 @@ Elekeza is a modular, multi‑school learning platform composed of four main ser
 │ │
 ┌───────▼──────────┐ ┌───────▼──────────────────┐
 │ PostgreSQL 16 │ │ FastAPI AI Service │
-│ Flyway V1‑V24 │ │ Groq/OpenAI/Anthropic │
+│ Flyway V1‑V5 │ │ Groq/OpenAI/Anthropic │
 │ Redis 7 (cache) │ │ 4‑Stage Simplification │
 └──────────────────┘ └──────────────────────────┘
 
@@ -100,10 +100,10 @@ text
 
 | Area | Current | Future |
 |------|---------|--------|
-| Notifications | Service skeleton; in‑app only | SMS/WhatsApp (Africa's Talking) |
-| Analytics | WIP module (needs package fix) | Full dashboards |
+| Notifications | In-app + provider abstractions (mock/JavaMail/Africa's Talking) | Live SMS/WhatsApp |
+| Analytics | Institution-scoped dashboards for guardian/student/teacher/admin | Full dashboards |
 | CBT Exams | Not started | KNEC‑compatible exam module |
-| Payments | Stub only | M‑Pesa integration |
+| Payments | M-Pesa stkPush/callback endpoints (sandbox/prod config) | Live Daraja credentials |
 | Multi‑language | AI prompts ready | Kiswahili, French, Amharic |
 | Offline AI | Cloud‑dependent | Edge‑deployed models |
 

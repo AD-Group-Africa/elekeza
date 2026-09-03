@@ -6,8 +6,19 @@ import SidebarLayout from '@/components/layout/SidebarLayout';
 import { BookOpen, ClipboardCheck, TrendingUp, Star, Award, Zap, ChevronRight, Play, BrainCircuit, Target } from 'lucide-react';
 import Link from 'next/link';
 
+interface ProgressData {
+  name?: string;
+  streak?: number;
+  completedLessons?: number;
+  quizzesTaken?: number;
+  averageScore?: number;
+  upcomingQuizzes?: { title: string; lessonId: number }[];
+  recentLessons?: { id: number; title: string }[];
+  quizHistory?: { score: number; date?: string }[];
+}
+
 export default function StudentHome() {
-  const [progress, setProgress] = useState<any>(null);
+  const [progress, setProgress] = useState<ProgressData | null>(null);
   const [loading, setLoading] = useState(true);
   const [mood, setMood] = useState<string | null>(null);
 
@@ -56,7 +67,7 @@ export default function StudentHome() {
             <h1 className="text-2xl md:text-3xl font-bold text-purple-200">
               {greeting}, {name} 👋
             </h1>
-            <p className="text-purple-300 mt-1">You're doing great today.</p>
+            <p className="text-purple-300 mt-1">You&apos;re doing great today.</p>
             {badge && (
               <span className={'inline-block mt-2 px-3 py-1 rounded-full text-xs font-semibold ' + badgeColor + ' bg-white/10'}>
                 {badge}
@@ -118,7 +129,7 @@ export default function StudentHome() {
         {/* Today's Goal */}
         <div className="glass-card p-4">
           <h3 className="text-lg font-semibold text-purple-200 mb-3 flex items-center gap-2">
-            <Star size={20} className="text-yellow-400" /> Today's Goal
+            <Star size={20} className="text-yellow-400" /> Today&apos;s Goal
           </h3>
           <div className="grid grid-cols-3 gap-3 text-center">
             <div className="bg-white/5 p-3 rounded-lg">
@@ -144,7 +155,7 @@ export default function StudentHome() {
           <div className="glass-card p-4">
             <h3 className="text-lg font-semibold text-purple-200 mb-3">Progress</h3>
             <div className="h-40 flex items-end gap-2">
-              {progress.quizHistory.slice(-7).map((entry: any, i: number) => (
+              {progress.quizHistory.slice(-7).map((entry, i: number) => (
                 <div key={i} className="flex-1 flex flex-col items-center">
                   <div className="w-full bg-purple-600/50 rounded-t" style={{ height: (entry.score || 0) * 1.5 + 'px' }} />
                   <span className="text-purple-400 text-xs mt-1">{entry.date?.substring(5)}</span>

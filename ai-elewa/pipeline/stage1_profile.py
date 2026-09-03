@@ -12,6 +12,7 @@ logger = logging.getLogger(__name__)
 PROMPTS_DIR = Path(__file__).parent.parent / "prompts"
 
 PROFILE_FILES = {
+    "none":                   "none.txt",   # neutral — no SNE-specific constraints
     "dyslexia":               "dyslexia.txt",
     "adhd":                   "adhd.txt",
     "autism":                 "autism.txt",

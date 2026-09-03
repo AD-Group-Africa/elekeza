@@ -4,8 +4,15 @@ import { useState } from 'react';
 import { Plus, BookOpen } from 'lucide-react';
 import Link from 'next/link';
 
+interface LessonPlan {
+  id: number;
+  title: string;
+  subject: string;
+  lessons: unknown[];
+}
+
 export default function LessonPlans() {
-  const [plans, setPlans] = useState<any[]>([]);
+  const [plans, setPlans] = useState<LessonPlan[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [title, setTitle] = useState('');
   const [subject, setSubject] = useState('');

@@ -3,6 +3,8 @@
 import com.elekeza.backend.auth.User
 import com.elekeza.backend.auth.UserRepository
 import com.elekeza.backend.auth.UserRole
+import com.elekeza.backend.learner.LessonProgress
+import com.elekeza.backend.learner.LessonProgressRepository
 import com.elekeza.backend.learner.LearnerProfile
 import com.elekeza.backend.learner.LearnerProfileRepository
 import com.elekeza.backend.auth.SneType
@@ -14,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.multipart.MultipartFile
 import java.io.InputStreamReader
 import java.time.Instant
+import java.time.LocalDateTime
 import java.util.UUID
 
 @Service
@@ -22,6 +25,7 @@ class InstitutionService(
     private val userRepo: UserRepository,
     private val learnerProfileRepo: LearnerProfileRepository,
     private val guardianLinkRepo: GuardianLinkRepository,
+    private val lessonProgressRepo: LessonProgressRepository,
     private val passwordEncoder: PasswordEncoder,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
@@ -34,6 +38,7 @@ class InstitutionService(
         val adminEmail: String,
         val adminFirstName: String,
         val adminLastName: String,
+        val adminPassword: String,
         val contactPhone: String? = null,
     )
 
@@ -71,11 +76,14 @@ class InstitutionService(
         val gradeLevel: String?,
         val lessonsCompleted: Int,
         val averageScore: Double?,
-        val lastActive: Instant?,
+        val lastActive: LocalDateTime?,
     )
 
     @Transactional
     fun registerInstitution(request: InstitutionRegistrationRequest): Institution {
+        require(request.adminPassword.length >= 8) {
+            "adminPassword must be at least 8 characters"
+        }
         val institution = institutionRepo.save(Institution(
             name = request.name,
             type = request.type,
@@ -85,18 +93,16 @@ class InstitutionService(
             contactPhone = request.contactPhone,
         ))
 
-        val tempPassword = generateTempPassword()
         userRepo.save(User(
             email = request.adminEmail,
-            password = passwordEncoder.encode(tempPassword),
+            password = passwordEncoder.encode(request.adminPassword),
             name = "${request.adminFirstName} ${request.adminLastName}",
             role = UserRole.SCHOOL_ADMIN,
             institutionId = institution.id,
         ))
 
         log.info("Institution registered: name={}, admin={}", institution.name, request.adminEmail)
-        return institution
-    }
+        return institution    }
 
     @Transactional
     fun importStudentsFromCsv(institutionId: Long, file: MultipartFile): ImportResult {
@@ -185,10 +191,16 @@ class InstitutionService(
         return ImportResult(total = rows.size, succeeded = succeeded, failed = failed, rows = results)
     }
 
+    fun listInstitutions(): List<Institution> {
+        return institutionRepo.findAll().sortedBy { it.name.lowercase() }
+    }
+
     fun getStudents(institutionId: Long): List<StudentSummary> {
         val students = userRepo.findByInstitutionIdAndRole(institutionId, UserRole.STUDENT)
         return students.map { student ->
             val profile = learnerProfileRepo.findByUserId(student.id)
+            val progress = lessonProgressRepo.findByUserIdOrderByCreatedAtDesc(student.id)
+            val completed = progress.filter { it.completed }
             StudentSummary(
                 userId = student.id,
                 firstName = student.name.split(" ").firstOrNull() ?: student.name,
@@ -196,9 +208,9 @@ class InstitutionService(
                 email = student.email,
                 sneType = profile?.sneType?.name,
                 gradeLevel = null,
-                lessonsCompleted = 0,
-                averageScore = null,
-                lastActive = null,
+                lessonsCompleted = completed.size,
+                averageScore = if (completed.isNotEmpty()) completed.mapNotNull { it.quizScore }.average() else null,
+                lastActive = progress.firstOrNull()?.completedAt,
             )
         }
     }

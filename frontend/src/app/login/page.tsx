@@ -56,7 +56,7 @@ export default function LoginPage() {
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-purple-300 hover:text-white"
+                className="absolute right-1 top-1/2 -translate-y-1/2 p-2 text-purple-300 hover:text-white"
                 aria-label={showPassword ? 'Hide password' : 'Show password'}
               >
                 {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
@@ -66,7 +66,7 @@ export default function LoginPage() {
           <div className="text-right">
             <a href="/forgot-password" className="text-sm text-purple-300 hover:text-purple-200">Forgot password?</a>
           </div>
-          {error && <p className="text-red-400 text-sm">{error}</p>}
+          {error && <p role="alert" className="text-red-400 text-sm">{error}</p>}
           <button
             type="submit"
             className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold py-3 rounded-lg shadow-md hover:opacity-90 transition"

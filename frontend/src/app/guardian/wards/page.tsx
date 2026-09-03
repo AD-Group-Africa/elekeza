@@ -5,8 +5,14 @@ import api from '@/lib/axios';
 import { User } from 'lucide-react';
 import Link from 'next/link';
 
+interface WardRow {
+  id: number;
+  name: string;
+  progress?: number;
+}
+
 export default function GuardianWards() {
-  const [children, setChildren] = useState<any[]>([]);
+  const [children, setChildren] = useState<WardRow[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

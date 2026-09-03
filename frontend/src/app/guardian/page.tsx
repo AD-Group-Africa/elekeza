@@ -5,8 +5,19 @@ import api from '@/lib/axios';
 import { User, TrendingUp, BookOpen, Calendar, MessageSquare, Award } from 'lucide-react';
 import Link from 'next/link';
 
+interface ChildRow {
+  id: number;
+  name?: string;
+  sneType?: string;
+  grade?: string;
+  lessonsCompleted?: number;
+  lessonsPending?: number;
+  averageScore?: number;
+  lastActive?: string;
+}
+
 export default function GuardianDashboard() {
-  const [children, setChildren] = useState<any[]>([]);
+  const [children, setChildren] = useState<ChildRow[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -16,14 +27,14 @@ export default function GuardianDashboard() {
       .finally(() => setLoading(false));
   }, []);
 
-  if (loading) return <div className="p-6 text-purple-200 animate-pulse">Loading your children's progress…</div>;
+  if (loading) return <div className="p-6 text-purple-200 animate-pulse">Loading your children&apos;s progress…</div>;
 
   if (children.length === 0) {
     return (
       <div className="glass-card p-6 text-center max-w-md mx-auto mt-10">
         <User size={48} className="text-purple-400 mx-auto mb-4" />
         <p className="text-purple-200">No linked children yet.</p>
-        <p className="text-purple-300 text-sm mt-2">Contact your school to link your child's account.</p>
+        <p className="text-purple-300 text-sm mt-2">Contact your school to link your child&apos;s account.</p>
       </div>
     );
   }

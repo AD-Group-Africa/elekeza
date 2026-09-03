@@ -7,14 +7,7 @@ export default function Home() {
   const router = useRouter();
 
   useEffect(() => {
-    const token = localStorage.getItem('accessToken');
-    if (token) {
-      // If token exists, try to go to dashboard based on role
-      // For simplicity, redirect to teacher dashboard
-      router.push('/teacher');
-    } else {
-      router.push('/login');
-    }
+    router.replace('/login');
   }, [router]);
 
   return (

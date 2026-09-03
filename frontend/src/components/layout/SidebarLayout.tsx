@@ -6,8 +6,9 @@ import { usePathname } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import {
   LayoutDashboard, Users, BookOpen, ClipboardCheck, Upload, TrendingUp,
-  Calendar, User, Settings, FileText, MessageSquare, Menu, X, Building2, BrainCircuit
+  Calendar, User, Settings, FileText, MessageSquare, Menu, X, Building2, BrainCircuit, AlertTriangle
 } from 'lucide-react';
+import NotificationBell from '@/components/layout/NotificationBell';
 
 const teacherItems = [
   { href: '/teacher', label: 'Dashboard', icon: LayoutDashboard },
@@ -15,11 +16,13 @@ const teacherItems = [
   { href: '/teacher/lessons', label: 'Lessons', icon: BookOpen },
   { href: '/teacher/assignments', label: 'Assignments', icon: ClipboardCheck },
   { href: '/teacher/content', label: 'Content', icon: Upload },
+  { href: '/teacher/quiz-results', label: 'Quiz Results', icon: ClipboardCheck },
+  { href: '/teacher/support', label: 'Support Signals', icon: AlertTriangle },
   { href: '/teacher/progress', label: 'Progress', icon: TrendingUp },
   { href: '/teacher/plans', label: 'Lesson Plans', icon: BookOpen },
   { href: '/teacher/timetable', label: 'Timetable', icon: Calendar },
   { href: '/teacher/communication', label: 'Communication', icon: MessageSquare },
-    { href: '/teacher/schedule', label: 'Schedule', icon: Calendar },
+  { href: '/teacher/schedule', label: 'Schedule', icon: Calendar },
 ];
 
 const studentItems = [
@@ -73,7 +76,7 @@ export default function SidebarLayout({ children }: { children: React.ReactNode 
       <div className="flex items-center justify-between mb-6">
         {!collapsed && <Link href={role === 'STUDENT' ? '/student-home' : '/' + role.toLowerCase().replace
         ('_', '-')} className="text-xl font-bold text-purple-200 hover:text-white transition">Elekeza</Link>}
-        <button onClick={() => setCollapsed(!collapsed)} className="text-purple-300 hover:text-white">
+        <button onClick={() => setCollapsed(!collapsed)} className="text-purple-300 hover:text-white" aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}>
           {collapsed ? <Menu size={20} /> : <X size={20} />}
         </button>
       </div>
@@ -105,6 +108,7 @@ export default function SidebarLayout({ children }: { children: React.ReactNode 
         <button
           onClick={logout}
           className="flex items-center gap-3 p-2 rounded-lg text-purple-200 hover:bg-white/10 w-full text-left"
+          aria-label="Logout"
         >
           <LogOutIcon size={20} />
           {!collapsed && <span className="text-sm font-medium">Logout</span>}
@@ -134,12 +138,16 @@ export default function SidebarLayout({ children }: { children: React.ReactNode 
       <button
         onClick={() => setMobileOpen(true)}
         className="md:hidden fixed top-4 left-4 z-40 p-2 glass-card rounded-lg text-purple-200"
+        aria-label="Open menu"
       >
         <Menu size={24} />
       </button>
 
       {/* Main content */}
       <main className="flex-1 overflow-auto p-4 md:p-6">
+        <div className="flex justify-end mb-2">
+          <NotificationBell />
+        </div>
         {children}
       </main>
     </div>

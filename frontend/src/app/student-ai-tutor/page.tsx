@@ -43,11 +43,12 @@ export default function AITutorPage() {
         {/* Suggestions */}
         {messages.length === 0 && (
           <div className="grid grid-cols-2 gap-3">
-            {suggestions.map(s => (
+            {suggestions.map((s, i) => (
               <button
                 key={s}
                 onClick={() => { setInput(s); }}
                 className="glass-card p-3 text-left text-purple-200 hover:bg-white/10 transition text-sm"
+                aria-label={s}
               >
                 <Sparkles size={14} className="inline mr-1 text-purple-400" /> {s}
               </button>
@@ -64,13 +65,13 @@ export default function AITutorPage() {
               </div>
             </div>
           ))}
-          {loading && <div className="text-purple-400 text-sm animate-pulse">Thinking…</div>}
+          {loading && <div role="status" aria-live="polite" className="text-purple-400 text-sm animate-pulse">Thinking…</div>}
         </div>
 
         {/* Input Bar */}
         <div className="flex gap-2">
-          <button className="p-3 glass-card rounded-lg text-purple-300 hover:text-white"><Image size={20} /></button>
-          <button className="p-3 glass-card rounded-lg text-purple-300 hover:text-white"><Mic size={20} /></button>
+          <button className="p-3 glass-card rounded-lg text-purple-300 hover:text-white" aria-label="AI tutor"></button>
+          <button className="p-3 glass-card rounded-lg text-purple-300 hover:text-white"><Mic size={20} aria-label="Record voice message" /></button>
           <input
             type="text"
             value={input}

@@ -14,7 +14,7 @@ export function useQuizAdaptive(quizId: string) {
         message: null,
         difficultyLevel: 2,
     })
-    const questionStartTime = useRef<number>(Date.now())
+    const questionStartTime = useRef<number>(0)
 
     const startTimer = useCallback(() => {
         questionStartTime.current = Date.now()

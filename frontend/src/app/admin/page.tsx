@@ -3,20 +3,34 @@
 import { useEffect, useState } from 'react';
 import api from '@/lib/axios';
 import SidebarLayout from '@/components/layout/SidebarLayout';
+import Toast from '@/components/Toast';
 import { Users, BookOpen, GraduationCap, Plus, Upload } from 'lucide-react';
 import Link from 'next/link';
 
+interface AdminStats {
+  totalTeachers?: number;
+  totalStudents?: number;
+  totalLessons?: number;
+}
+
+interface StudentRow {
+  id: number;
+  name: string;
+  grade?: string;
+}
+
 export default function SchoolAdminDashboard() {
-  const [stats, setStats] = useState<any>({});
-  const [students, setStudents] = useState<any[]>([]);
-  const [grouped, setGrouped] = useState<Record<string, any[]>>({});
+  const [stats, setStats] = useState<AdminStats>({});
+  const [students, setStudents] = useState<StudentRow[]>([]);
+  const [grouped, setGrouped] = useState<Record<string, StudentRow[]>>({});
+  const [toast, setToast] = useState('');
 
   useEffect(() => {
     api.get('/analytics/admin').then(res => setStats(res.data)).catch(() => {});
     api.get('/teacher/students').then(res => {
       setStudents(res.data);
-      const grp: Record<string, any[]> = {};
-      res.data.forEach((s: any) => {
+      const grp: Record<string, StudentRow[]> = {};
+      res.data.forEach((s: StudentRow) => {
         const grade = s.grade || 'Unassigned';
         if (!grp[grade]) grp[grade] = [];
         grp[grade].push(s);
@@ -54,13 +68,13 @@ export default function SchoolAdminDashboard() {
             <h2 className="text-lg font-semibold text-purple-200 mb-3">Quick Actions</h2>
             <div className="grid grid-cols-2 gap-2">
               <Link href="/teacher/students" className="bg-purple-600/40 text-white p-3 rounded-lg text-center">Add Student</Link>
-              <button onClick={() => alert('Add Teacher form under development')} className="bg-purple-600/40 text-white p-3 rounded-lg">Add Teacher</button>
               <Link href="/school/import" className="bg-purple-600/40 text-white p-3 rounded-lg text-center">Import CSV</Link>
-              <button onClick={() => alert('Coming soon')} className="bg-purple-600/40 text-white p-3 rounded-lg">Reports</button>
+              <button onClick={() => setToast('Reports module coming soon')} className="bg-purple-600/40 text-white p-3 rounded-lg">Reports</button>
             </div>
           </div>
         </div>
       </div>
+      {toast && <Toast message={toast} onClose={() => setToast('')} />}
     </SidebarLayout>
   );
 }

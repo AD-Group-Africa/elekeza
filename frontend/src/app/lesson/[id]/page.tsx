@@ -8,9 +8,21 @@ import { ArrowLeft, BookOpen, Volume2 } from 'lucide-react';
 import Link from 'next/link';
 import { useAuth } from '@/hooks/useAuth';
 
+interface LessonSection {
+  heading?: string;
+  body: string | { text?: string; content?: string };
+}
+
+interface LessonData {
+  title?: string;
+  status?: string;
+  sections?: LessonSection[];
+  keyTerms?: Record<string, string>;
+}
+
 export default function LessonPage() {
   const { id } = useParams();
-  const [lesson, setLesson] = useState<any>(null);
+  const [lesson, setLesson] = useState<LessonData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const { user } = useAuth();
@@ -47,7 +59,7 @@ export default function LessonPage() {
 
         {sections.length > 0 ? (
           <div className="space-y-4">
-            {sections.map((section: any, idx: number) => {
+            {sections.map((section: LessonSection, idx: number) => {
               const bodyText = typeof section.body === 'object' ? (section.body.text || section.body.content || '') : section.body;
               return (
                 <div key={idx} className="glass-card p-4">
@@ -68,7 +80,7 @@ export default function LessonPage() {
           <div className="glass-card p-4">
             <h3 className="text-lg font-semibold text-purple-200 mb-2">Key Terms</h3>
             <div className="flex flex-wrap gap-2">
-              {Object.entries(keyTerms).map(([term, definition]: any) => (
+              {Object.entries(keyTerms).map(([term, definition]) => (
                 <span key={term} className="px-3 py-1 bg-purple-600/30 rounded-full text-sm text-purple-200" title={definition}>{term}</span>
               ))}
             </div>

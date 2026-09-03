@@ -39,6 +39,9 @@ data class Content(
     @Column(name = "simplified_text", columnDefinition = "TEXT")
     val simplifiedText: String? = null,
 
+    @Column(name = "raw_text", columnDefinition = "TEXT")
+    val rawText: String? = null,
+
     @Column(name = "word_count")
     val wordCount: Int? = null,
 
@@ -66,6 +69,22 @@ data class Content(
         status           = status.name,
         wordCount        = wordCount,
         createdAt        = createdAt
+    )
+
+    /** Full-field copy for updating an immutable row without losing columns. */
+    fun withSimplified(
+        newSimplifiedText: String?,
+        newRawText: String? = rawText,
+        newTitle: String? = title,
+        newStatus: ContentStatus = status,
+        newWordCount: Int? = wordCount
+    ) = copy(
+        title = newTitle,
+        status = newStatus,
+        simplifiedText = newSimplifiedText,
+        rawText = newRawText,
+        wordCount = newWordCount,
+        updatedAt = LocalDateTime.now()
     )
 }
 

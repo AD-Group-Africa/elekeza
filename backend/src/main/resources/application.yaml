@@ -47,19 +47,44 @@ jwt:
 
 ai:
   base-url: ${AI_SERVICE_URL:http://ai-service:8000}
-  internal-secret: ${AI_INTERNAL_SECRET:change-me}
+  internal-secret: ${AI_INTERNAL_SECRET}
   timeout-seconds: 60
   client:
     type: ${AI_CLIENT_TYPE:real}
+
+# External provider backends. Mock is the safe default (no credentials
+# required, messages/uploads recorded in memory); override with env vars
+# (SMS_PROVIDER=africa_talking, EMAIL_PROVIDER=javamail,
+# STORAGE_PROVIDER=cloudflare_r2) once real credentials exist.
+sms:
+  provider: ${SMS_PROVIDER:mock}
+email:
+  provider: ${EMAIL_PROVIDER:mock}
+storage:
+  provider: ${STORAGE_PROVIDER:mock}
+
+# Credentials for the real providers — read from the environment only.
+africa_talking:
+  api_key: ${AFRICA_TALKING_API_KEY:}
+  sender_id: ${AFRICA_TALKING_SENDER_ID:Elekeza}
+
+cloudflare:
+  r2:
+    account_id: ${CLOUDFLARE_R2_ACCOUNT_ID:}
+    bucket_name: ${CLOUDFLARE_R2_BUCKET_NAME:}
+    access_key_id: ${CLOUDFLARE_R2_ACCESS_KEY_ID:}
+    secret_access_key: ${CLOUDFLARE_R2_SECRET_ACCESS_KEY:}
+    endpoint: ${R2_ENDPOINT:}
 
 google:
   client-id: ${GOOGLE_CLIENT_ID:442000591516-2c4fkqj14727fjooo1vtjue768ociucd.apps.googleusercontent.com}
 
 app:
   cors:
-    allowed-origins: ${CORS_ALLOWED_ORIGINS:*}
-  frontend-url: ${FRONTEND_URL:http://localhost:3000}
+    allowed-origins: ${CORS_ALLOWED_ORIGINS}
+  frontend-url: ${FRONTEND_URL}
   upload-dir: ${UPLOAD_DIR:uploads}
+  max-upload-bytes: ${MAX_UPLOAD_BYTES:10485760}
   secure-cookies: ${SECURE_COOKIES:true}
 
 
@@ -76,6 +101,5 @@ logging:
   level:
     root: INFO
     com.elekeza: INFO
-
 
 

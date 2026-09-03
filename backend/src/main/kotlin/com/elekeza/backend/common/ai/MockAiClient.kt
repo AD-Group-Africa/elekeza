@@ -13,8 +13,9 @@ class MockAiClient : AiClient {
         log.info("Mock: simplifyText")
         return LessonJSON(
             title    = "Mock Lesson",
-            sections = listOf(AiSection(header = "Introduction", content = "Mock simplified text.")),
-            terms    = listOf(AiKeyTerm(term = "Mock Term", definition = "A mock definition"))
+            sections = listOf(AiSection(heading = "Introduction", body = "Mock simplified text.")),
+            keyTerms = listOf(AiKeyTerm(term = "Mock Term", definition = "A mock definition")),
+            profile  = request.learnerContext.cognitiveProfiles.firstOrNull() ?: "dyslexia"
         )
     }
 
@@ -22,8 +23,8 @@ class MockAiClient : AiClient {
         log.info("Mock: simplifyImage")
         return LessonJSON(
             title    = "Mock Image Lesson",
-            sections = listOf(AiSection(header = "Image Description", content = "Mock image description.")),
-            terms    = emptyList()
+            sections = listOf(AiSection(heading = "Image Description", body = "Mock image description.")),
+            profile  = request.learnerContext.cognitiveProfiles.firstOrNull() ?: "dyslexia"
         )
     }
 
@@ -32,11 +33,16 @@ class MockAiClient : AiClient {
         return QuizJSON(
             questions = listOf(
                 AiQuizQuestion(
-                    question = "What is the main idea?",
-                    options  = listOf(
-                        AiQuizOption(text = "Option A", isCorrect = true),
-                        AiQuizOption(text = "Option B", isCorrect = false)
-                    )
+                    id          = "q1",
+                    text        = "What is the main idea?",
+                    options     = listOf(
+                        AiQuizOption(id = "a", text = "Option A"),
+                        AiQuizOption(id = "b", text = "Option B"),
+                        AiQuizOption(id = "c", text = "Option C"),
+                        AiQuizOption(id = "d", text = "Option D")
+                    ),
+                    correctId   = "a",
+                    explanation = "The main idea is the central point of the lesson."
                 )
             )
         )
@@ -44,11 +50,14 @@ class MockAiClient : AiClient {
 
     override fun adaptiveResponse(request: AdaptiveResponseRequest): AdaptiveResponseJSON {
         log.info("Mock: adaptiveResponse")
-        return AdaptiveResponseJSON(response = "Good try! Keep going.")
+        return AdaptiveResponseJSON(learnerMessage = "Good try! Keep going.", directive = "same")
     }
 
     override fun wrongAnswerFlow(request: WrongAnswerFlowRequest): WrongAnswerFlowJSON {
         log.info("Mock: wrongAnswerFlow")
-        return WrongAnswerFlowJSON(feedback = "Let us review.", hint = "Think carefully.")
+        return WrongAnswerFlowJSON(
+            reExplanation    = "Let us review the concept together.",
+            reattemptQuestion = ""
+        )
     }
 }

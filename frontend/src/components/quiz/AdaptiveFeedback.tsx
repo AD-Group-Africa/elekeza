@@ -9,14 +9,21 @@ interface Props {
 
 export function AdaptiveFeedback({ directive, message, isVisible }: Props) {
     const [show, setShow] = useState(false)
+    const [prevMessage, setPrevMessage] = useState(message)
 
+    // Adjust state during render when a new message arrives (React-approved
+    // pattern — avoids a synchronous setState in the effect).
+    if (isVisible && message && message !== prevMessage) {
+        setPrevMessage(message)
+        setShow(true)
+    }
+
+    // Auto-hide after 4s.
     useEffect(() => {
-        if (isVisible && message) {
-            setShow(true)
-            const timer = setTimeout(() => setShow(false), 4000)
-            return () => clearTimeout(timer)
-        }
-    }, [isVisible, message])
+        if (!show) return
+        const timer = setTimeout(() => setShow(false), 4000)
+        return () => clearTimeout(timer)
+    }, [show])
 
     if (!show || !message) return null
 

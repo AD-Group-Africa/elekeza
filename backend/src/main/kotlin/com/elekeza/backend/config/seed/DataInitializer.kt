@@ -39,6 +39,13 @@ class DataInitializer(
         userRepository.save(teacher)
 
         val student = createUserIfAbsent("student@elekeza.app", "student123", "Juma Ali", UserRole.STUDENT)
+        // The student must belong to the same institution as the teacher, or
+        // every teacher-scoped query (support signals, analytics, interventions)
+        // would silently return nothing for the demo learner.
+        if (student.institutionId != teacher.institutionId) {
+            student.institutionId = teacher.institutionId
+            userRepository.save(student)
+        }
         val parent  = createUserIfAbsent("parent@elekeza.app",  "parent123",  "Fatima Ali", UserRole.GUARDIAN)
 
         // Link guardian to student

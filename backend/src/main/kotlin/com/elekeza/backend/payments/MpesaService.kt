@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.*
 import org.springframework.stereotype.Service
 import org.springframework.web.client.RestTemplate
+import org.springframework.web.server.ResponseStatusException
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -27,6 +28,12 @@ class MpesaService(
     private val baseUrl = if (environment == "production") "https://api.safaricom.co.ke" else "https://sandbox.safaricom.co.ke"
 
     fun stkPush(phoneNumber: String, amount: Double, reference: String, description: String): Map<String, Any> {
+        if (consumerKey.isBlank() || consumerSecret.isBlank()) {
+            throw ResponseStatusException(
+                HttpStatus.SERVICE_UNAVAILABLE,
+                "M-Pesa payments are not configured for this deployment."
+            )
+        }
         val token = getAccessToken()
         val timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"))
         val password = Base64.getEncoder().encodeToString("$shortcode$passkey$timestamp".toByteArray())

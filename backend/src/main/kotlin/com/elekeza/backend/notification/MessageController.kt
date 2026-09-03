@@ -3,12 +3,14 @@ package com.elekeza.backend.notification
 import com.elekeza.backend.auth.User
 import com.elekeza.backend.auth.UserRepository
 import org.springframework.http.ResponseEntity
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.*
 
 data class SendNotificationRequest(
     val recipient: String,
-    val message: String
+    val message: String,
+    val type: String? = null
 )
 
 @RestController
@@ -23,11 +25,10 @@ class MessageController(
         @AuthenticationPrincipal sender: User,
         @RequestBody req: SendNotificationRequest
     ): ResponseEntity<Map<String, String>> {
-        // For simplicity, we create a notification for the sender (could be extended to send to recipient)
         notificationRepo.save(
             Notification(
                 userId = sender.id,
-                type = "MESSAGE",
+                type = req.type ?: "MESSAGE",
                 title = "Message sent",
                 body = req.message
             )
@@ -35,8 +36,8 @@ class MessageController(
         return ResponseEntity.ok(mapOf("status" to "sent"))
     }
 
-    // Guardian messages (if needed by guardian communication page)
     @PostMapping("/guardian/messages")
+    @PreAuthorize("hasAnyRole('GUARDIAN', 'ADMIN')")
     fun guardianSendMessage(
         @AuthenticationPrincipal sender: User,
         @RequestBody req: SendNotificationRequest
@@ -53,6 +54,7 @@ class MessageController(
     }
 
     @GetMapping("/guardian/messages")
+    @PreAuthorize("hasAnyRole('GUARDIAN', 'ADMIN')")
     fun guardianGetMessages(@AuthenticationPrincipal user: User): ResponseEntity<List<NotificationDto>> {
         return ResponseEntity.ok(
             notificationRepo.findByUserIdOrderByCreatedAtDesc(user.id)

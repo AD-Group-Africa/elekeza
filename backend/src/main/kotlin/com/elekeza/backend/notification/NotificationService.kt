@@ -71,8 +71,9 @@ fun Notification.toDto() = NotificationDto(id, type, title, body, read, createdA
 class NotificationService(
     private val repo: NotificationRepository,
     private val userRepo: UserRepository,
-    private val guardianRepo: GuardianRepository,
-    private val contentRepo: ContentRepository
+    private val guardianLinkRepo: com.elekeza.backend.institution.GuardianLinkRepository,
+    private val contentRepo: ContentRepository,
+    private val smsService: com.elekeza.backend.common.SmsService
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -88,17 +89,37 @@ class NotificationService(
             else        -> "${student.name} scored $scoreStr on \"$title\". They may need a little extra support."
         }
 
-        // Find all guardians linked to this student
-        val guardians = guardianRepo.findAllByEmail(student.email)
-        guardians.forEach { g ->
-            g.email?.let { email ->
-                userRepo.findByEmail(email)?.let { guardianUser ->
-                    repo.save(Notification(
-                        userId = guardianUser.id, type = "QUIZ_COMPLETED",
-                        title = "${student.name} completed a quiz", body = body
-                    ))
-                    log.debug("Notified guardian={} for student={} score={}", email, student.email, scoreStr)
-                }
+        // Find guardians via guardian_links (learner -> guardian), not by email.
+        val guardianUserIds = guardianLinkRepo.findByLearnerId(studentId).map { it.guardianId }.toSet()
+        guardianUserIds.forEach { guardianUserId ->
+            val guardianUser = userRepo.findById(guardianUserId).orElse(null) ?: return@forEach
+            repo.save(Notification(
+                userId = guardianUser.id, type = "QUIZ_COMPLETED",
+                title = "${student.name} completed a quiz", body = body
+            ))
+            // Also send SMS to guardian if phone number is available
+            val guardianPhone = guardianUser.phone ?: return@forEach
+            smsService.sendSms(guardianPhone, body)?.let { smsResult ->
+                log.debug("SMS sent to guardian for student quiz completion: ${smsResult.messageId}")
+            }
+            log.debug("Notified guardian={} for student={} score={}", guardianUser.email, student.email, scoreStr)
+        }
+    }
+
+    /** Notifies a teacher when a support signal is raised for one of their learners */
+    @Async("taskExecutor")
+    fun notifyTeacherOnSupportFlag(teacherId: Long, learnerName: String, signalType: String) {
+        repo.save(Notification(
+            userId = teacherId, type = "SUPPORT_SIGNAL",
+            title = "Potential support required",
+            body  = "$learnerName was flagged for review ($signalType). Open the support signals page to review."
+        ))
+        // Also send SMS to teacher if phone number is available
+        val teacherUser = userRepo.findById(teacherId).orElse(null) ?: return
+        val teacherPhone = teacherUser.phone
+        if (teacherPhone != null && teacherPhone.isNotBlank()) {
+            smsService.sendSms(teacherPhone, "$learnerName was flagged for review ($signalType). Open the support signals page to review.")?.let { smsResult ->
+                log.debug("SMS sent to teacher for support flag: ${smsResult.messageId}")
             }
         }
     }
@@ -107,11 +128,19 @@ class NotificationService(
     @Async("taskExecutor")
     fun notifyStudentOnAssignment(studentId: Long, contentId: Long) {
         val lessonTitle = contentRepo.findById(contentId).map { it.title ?: "a new lesson" }.orElse("a new lesson")
+        val studentUser = userRepo.findById(studentId).orElse(null) ?: return
         repo.save(Notification(
             userId = studentId, type = "LESSON_ASSIGNED",
             title = "New lesson assigned",
             body  = "Your teacher assigned you: \"$lessonTitle\". Open it from your home screen."
         ))
+        // Also send SMS to student if phone number is available
+        val studentPhone = studentUser.phone
+        if (studentPhone != null && studentPhone.isNotBlank()) {
+            smsService.sendSms(studentPhone, "Your teacher assigned you: \"$lessonTitle\". Open it from your home screen.")?.let { smsResult ->
+                log.debug("SMS sent to student for lesson assignment: ${smsResult.messageId}")
+            }
+        }
     }
 
     fun getAll(userId: Long): List<NotificationDto> =

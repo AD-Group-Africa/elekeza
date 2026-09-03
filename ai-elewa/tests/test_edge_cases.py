@@ -9,12 +9,17 @@ Usage:
 """
 import base64
 import json
+import os
 import pytest
 import httpx
 from pathlib import Path
 
+# Key is read from the environment (never hardcoded) — the placeholder below
+# only applies when the operator has not configured a real INTERNAL_SECRET.
+INTERNAL_KEY = os.environ.get("INTERNAL_SECRET", "elekeza-test-internal-key-not-a-secret")
+
 BASE_URL = "http://localhost:8000"
-AUTH_HEADER = {"X-Internal-Key": "AO2xgxEVnV2r6ySzhajgl8M98aSQp3wD"}
+AUTH_HEADER = {"X-Internal-Key": INTERNAL_KEY}
 JSON_HEADER = {**AUTH_HEADER, "Content-Type": "application/json"}
 
 VALID_CONTEXT = {

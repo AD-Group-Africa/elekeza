@@ -15,6 +15,7 @@ from models.responses import (
 )
 from models.errors import AIServiceError, ErrorResponse, ERROR_SCHEMA_INVALID
 from utils.error_handler import error_json_response as _error_response
+from utils.learner_messages import attach_learner_message
 
 logger = structlog.get_logger(__name__)
 router = APIRouter()
@@ -152,14 +153,15 @@ async def quiz_generate(request: QuizGenerateRequest):
         _validate_quiz_completeness(quiz, request.num_questions, stage="quiz_generate")
         return quiz
     except AIServiceError as e:
+        attach_learner_message(e.error_response, request.learner_context.cognitive_profiles)
         return _error_response(e.error_response)
     except Exception as e:
         logger.error(f"Unhandled error in /ai/quiz/generate: {e}", exc_info=True)
-        return _error_response(ErrorResponse(
+        return _error_response(attach_learner_message(ErrorResponse(
             error_code=ERROR_SCHEMA_INVALID,
             message="An unexpected error occurred generating the quiz.",
             stage="quiz_generate",
-        ))
+        ), request.learner_context.cognitive_profiles))
 
 
 # ---------------------------------------------------------------------------
@@ -279,15 +281,16 @@ async def adaptive_response(request: AdaptiveResponseRequest):
         return result
 
     except AIServiceError as e:
+        attach_learner_message(e.error_response, request.learner_context.cognitive_profiles)
         return _error_response(e.error_response)
 
     except Exception as e:
         logger.error(f"Unhandled error in /ai/quiz/adaptive-response: {e}", exc_info=True)
-        return _error_response(ErrorResponse(
+        return _error_response(attach_learner_message(ErrorResponse(
             error_code=ERROR_SCHEMA_INVALID,
             message="An unexpected error occurred in adaptive response.",
             stage="adaptive_response",
-        ))
+        ), request.learner_context.cognitive_profiles))
 
 
 # ---------------------------------------------------------------------------
@@ -405,15 +408,16 @@ Generate a new version of this question testing the same concept.
         )
 
     except AIServiceError as e:
+        attach_learner_message(e.error_response, request.learner_context.cognitive_profiles)
         return _error_response(e.error_response)
 
     except Exception as e:
         logger.error(f"Unhandled error in /ai/quiz/wrong-answer-flow: {e}", exc_info=True)
-        return _error_response(ErrorResponse(
+        return _error_response(attach_learner_message(ErrorResponse(
             error_code=ERROR_SCHEMA_INVALID,
             message="An unexpected error occurred in wrong answer flow.",
             stage="wrong_answer_flow",
-        ))
+        ), request.learner_context.cognitive_profiles))
 
 
 

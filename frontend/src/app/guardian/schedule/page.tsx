@@ -3,10 +3,19 @@
 import { useEffect, useState } from 'react';
 import api from '@/lib/axios';
 import { Calendar } from 'lucide-react';
+import Toast from '@/components/Toast';
+
+interface ScheduleItem {
+  title: string;
+  date: string;
+  time: string;
+  type: string;
+}
 
 export default function GuardianSchedule() {
-  const [schedule, setSchedule] = useState<any[]>([]);
+  const [schedule, setSchedule] = useState<ScheduleItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [toast, setToast] = useState('');
 
   useEffect(() => {
     api.get('/guardian/schedule')
@@ -24,6 +33,7 @@ export default function GuardianSchedule() {
         <div className="glass-card p-6 text-center">
           <Calendar size={48} className="text-purple-400 mx-auto mb-4" />
           <p className="text-purple-200">No upcoming activities.</p>
+          <button onClick={() => setToast('School calendar coming soon')} className="mt-3 bg-purple-600 text-white px-4 py-2 rounded-lg">View School Calendar</button>
         </div>
       ) : (
         <div className="space-y-3">
@@ -38,6 +48,7 @@ export default function GuardianSchedule() {
           ))}
         </div>
       )}
+      {toast && <Toast message={toast} onClose={() => setToast('')} />}
     </div>
   );
 }

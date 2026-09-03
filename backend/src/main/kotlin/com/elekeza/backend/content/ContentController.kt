@@ -1,39 +1,38 @@
 package com.elekeza.backend.content
 
 import com.elekeza.backend.auth.User
-import com.elekeza.backend.common.ai.AiClient
-import com.elekeza.backend.common.ai.SimplifyTextRequest
-import com.elekeza.backend.common.ai.GenerateQuizRequest
 import com.fasterxml.jackson.databind.ObjectMapper
-import org.apache.pdfbox.Loader
-import org.apache.pdfbox.text.PDFTextStripper
-import org.apache.poi.xwpf.usermodel.XWPFDocument
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
 import org.springframework.web.server.ResponseStatusException
-import java.time.LocalDateTime
+import java.io.File
+import java.util.UUID
 
 @RestController
 @RequestMapping("/api/content")
 class ContentController(
     private val contentRepository: ContentRepository,
-    private val aiClient: AiClient,
-    private val objectMapper: ObjectMapper
+    private val processingService: ContentProcessingService,
+    private val textExtractor: TextExtractor,
+    private val objectMapper: ObjectMapper,
+    private val accessGuard: ContentAccessGuard
 ) {
-    private val log = LoggerFactory.getLogger(javaClass)
 
-    data class UploadTextRequest(
-        val title: String? = null,
-        val subject: String? = null,
-        val text: String,
-        val sneType: String? = null
+    private val logger = LoggerFactory.getLogger(javaClass)
+
+    // Allowed file types for upload
+    private val ALLOWED_EXTENSIONS = setOf(
+        "pdf", "doc", "docx", "txt", "rtf", "odt",
+        "png", "jpg", "jpeg", "gif", "svg", "bmp"
     )
 
-    // ── POST /api/content/upload/text ─────────────────────────────────────────
+    private val MAX_FILE_SIZE = 10L * 1024 * 1024 // 10 MB
 
+    // ── POST /api/content/upload/text ──────────────────────────────────────
     @PostMapping("/upload/text")
     fun uploadText(
         @RequestBody req: UploadTextRequest,
@@ -41,133 +40,124 @@ class ContentController(
     ): Map<String, Any> {
         if (req.text.isBlank()) throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Text is required")
 
-        val title     = req.title?.takeIf { it.isNotBlank() } ?: req.text.lines().first().take(60).trim()
-        val aiOutput  = runCatching {
-            val lesson = aiClient.simplifyText(SimplifyTextRequest(text = req.text, level = req.sneType ?: "standard"))
-            val quiz   = aiClient.generateQuiz(GenerateQuizRequest(content = req.text))
-            objectMapper.writeValueAsString(mapOf("lesson" to lesson, "quiz" to quiz))
-        }.onFailure { log.warn("AI failed for text upload: {}", it.message) }
-         .getOrElse  { req.text }
+        val title = req.title?.takeIf { it.isNotBlank() } ?: req.text.lines().firstOrNull { it.isNotBlank() }?.take(60)?.trim() ?: "Untitled"
 
         val content = contentRepository.save(Content(
-            userId = user.id, title = title,
-            status = ContentStatus.READY, simplifiedText = aiOutput,
+            userId = user.id,
+            title = title,
+            status = ContentStatus.UPLOADING,
+            rawText = req.text.trim(),
             wordCount = req.text.split(Regex("\\s+")).size
         ))
-        return mapOf("lessonId" to content.id, "title" to title, "status" to "READY")
-    }
 
-    // ── POST /api/content/upload/file ─────────────────────────────────────────
-
-    @PostMapping("/upload/file")
-    fun uploadFile(
-        @RequestPart("file") file: MultipartFile,
-        @RequestPart("title", required = false) titlePart: String?,
-        @RequestPart("sneType", required = false) sneType: String?,
-        @AuthenticationPrincipal user: User
-    ): Map<String, Any> {
-        val originalName = file.originalFilename ?: "upload"
-        val ext   = originalName.substringAfterLast('.', "").lowercase()
-        val title = titlePart?.takeIf { it.isNotBlank() }
-            ?: originalName.substringBeforeLast('.')
-
-        val extractedText = when (ext) {
-            "txt"  -> String(file.bytes)
-            "pdf"  -> Loader.loadPDF(file.bytes).use { PDFTextStripper().getText(it) }
-            "docx" -> XWPFDocument(file.inputStream).use { doc ->
-                           doc.paragraphs.joinToString("\n") { it.text }
-                       }
-            else   -> throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Unsupported: .$ext")
-        }
-        if (extractedText.isBlank())
-            throw ResponseStatusException(HttpStatus.BAD_REQUEST, "No readable text found in file")
-
-        val aiOutput = runCatching {
-            val lesson = aiClient.simplifyText(SimplifyTextRequest(text = extractedText, level = sneType ?: "standard"))
-            val quiz   = aiClient.generateQuiz(GenerateQuizRequest(content = extractedText))
-            objectMapper.writeValueAsString(mapOf("lesson" to lesson, "quiz" to quiz))
-        }.onFailure { log.warn("AI failed for file upload {}: {}", originalName, it.message) }
-         .getOrElse  { extractedText }
-
-        val content = contentRepository.save(Content(
-            userId = user.id, title = title,
-            originalFilename = originalName, sneType = sneType,
-            status = ContentStatus.READY, simplifiedText = aiOutput,
-            wordCount = extractedText.split(Regex("\\s+")).size
-        ))
-        return mapOf("lessonId" to content.id, "title" to title, "status" to "READY")
-    }
-
-    // ── GET /api/content/lessons/{id} ─────────────────────────────────────────
-
-    @GetMapping("/lessons/{lessonId}")
-    fun getLesson(@PathVariable lessonId: Long): Map<String, Any> {
-        val c    = contentRepository.findById(lessonId)
-            .orElseThrow { ResponseStatusException(HttpStatus.NOT_FOUND, "Lesson not found") }
-        val text = c.simplifiedText ?: ""
-
-        val (sections, keyTerms) = parseLessonJson(text)
-
+        // Adapt synchronously: in mock mode this is instant; with a real AI
+        // service it is the actual simplify + quiz-generation pipeline. Either
+        // way content ends up READY and readable.
+        val result = processingService.process(content.id, req.sneType)
+        val current = contentRepository.findById(content.id).orElseThrow()
         return mapOf(
-            "id"       to c.id,
-            "title"    to (c.title ?: "Untitled"),
-            "status"   to c.status.name,
-            "sections" to sections,
-            "keyTerms" to keyTerms
+            "lessonId" to current.id,
+            "title" to (current.title ?: title),
+            "status" to current.status.name,
+            "adapted" to result.adapted,
+            "message" to result.message
         )
     }
 
-    // ── GET /api/content/list ─────────────────────────────────────────────────
+    // Data class for the request
+    data class UploadTextRequest(
+        val title: String? = null,
+        val text: String,
+        val sneType: String? = null
+    )
 
+    // ── POST /api/content/upload/file ──────────────────────────────────────
+    @PostMapping("/upload/file")
+    @PreAuthorize("hasAnyRole('TEACHER', 'SCHOOL_ADMIN', 'ADMIN')")
+    fun uploadFile(
+        @RequestParam("file") file: MultipartFile,
+        @AuthenticationPrincipal user: User
+    ): Map<String, Any> {
+        // 1. Validate file size
+        if (file.isEmpty) throw ResponseStatusException(HttpStatus.BAD_REQUEST, "File is empty")
+        if (file.size > MAX_FILE_SIZE) throw ResponseStatusException(
+            HttpStatus.REQUEST_ENTITY_TOO_LARGE,
+            "File size exceeds maximum limit of ${MAX_FILE_SIZE / 1024 / 1024}MB"
+        )
+
+        // 2. Validate extension
+        val originalFilename = file.originalFilename ?: "unknown"
+        val extension = originalFilename.substringAfterLast(".").lowercase()
+        if (extension !in ALLOWED_EXTENSIONS) {
+            throw ResponseStatusException(
+                HttpStatus.UNSUPPORTED_MEDIA_TYPE,
+                "File type '$extension' is not allowed. Allowed types: ${ALLOWED_EXTENSIONS.joinToString(", ")}"
+            )
+        }
+
+        // 3. Generate storage name (UUID + sanitized original name) and save to local storage
+        val sanitizedName = originalFilename.replace(" ", "-").replace("\\", "-")
+        val storageName = UUID.randomUUID().toString() + "-" + sanitizedName
+        val uploadDir = File("uploads")
+        uploadDir.mkdirs()
+        val targetPath = java.nio.file.Paths.get(uploadDir.path, storageName)
+        file.transferTo(targetPath.toFile())
+
+        // 4. Extract readable text where the format allows it (txt/pdf/docx/doc)
+        val rawText = textExtractor.extract(file, extension)
+        val content = contentRepository.save(Content(
+            userId = user.id,
+            title = originalFilename.take(255),
+            originalFilename = originalFilename,
+            filePath = storageName,
+            status = ContentStatus.UPLOADING,
+            rawText = rawText,
+            wordCount = rawText?.split(Regex("\\s+"))?.size ?: 0
+        ))
+
+        val result = processingService.process(content.id, sneType = null)
+        val current = contentRepository.findById(content.id).orElseThrow()
+        return mapOf(
+            "lessonId" to current.id,
+            "fileId" to current.id,
+            "storageName" to storageName,
+            "originalName" to originalFilename,
+            "size" to file.size,
+            "title" to (current.title ?: originalFilename),
+            "status" to current.status.name,
+            "adapted" to result.adapted,
+            "message" to result.message
+        )
+    }
+
+    // ── GET /api/content/list ───────────────────────────────────────────────
     @GetMapping("/list")
     fun listAll(@AuthenticationPrincipal user: User): List<Map<String, Any>> =
         contentRepository.findAll()
-            // Teachers see only their own; admins see all
             .filter { user.role.name == "ADMIN" || it.userId == user.id }
             .sortedByDescending { it.createdAt }
             .map { c -> mapOf(
-                "id"     to c.id,
-                "title"  to (c.title ?: "Untitled"),
-                "status" to c.status.name,
-                "sneType" to (c.sneType ?: "NONE")
+                "id" to c.id,
+                "title" to (c.title ?: "Untitled"),
+                "status" to c.status.name
             )}
 
-    // ── GET /api/content/status/{id} ──────────────────────────────────────────
+    // ── GET /api/content/lessons/{id} ───────────────────────────────────────
+    /** Lesson page payload — adapted sections/key terms, or the raw source text. */
+    @GetMapping("/lessons/{id}")
+    fun getLesson(@PathVariable id: Long, @AuthenticationPrincipal user: User): Map<String, Any?> {
+        val content = contentRepository.findById(id)
+            .orElseThrow { ResponseStatusException(HttpStatus.NOT_FOUND, "Lesson not found") }
+        accessGuard.requireAccess(user, content)
+        return LessonView.render(content, objectMapper)
+    }
 
+    // ── GET /api/content/status/{id} ────────────────────────────────────────
     @GetMapping("/status/{id}")
-    fun getStatus(@PathVariable id: Long): Map<String, Any> {
+    fun getStatus(@PathVariable id: Long, @AuthenticationPrincipal user: User): Map<String, Any> {
         val c = contentRepository.findById(id)
             .orElseThrow { ResponseStatusException(HttpStatus.NOT_FOUND, "Not found") }
+        accessGuard.requireAccess(user, c)
         return mapOf("id" to c.id, "status" to c.status.name)
     }
-
-    // ── Private ───────────────────────────────────────────────────────────────
-
-    private fun parseLessonJson(text: String): Pair<List<Map<String, Any>>, List<Map<String, Any>>> {
-        if (!text.trimStart().startsWith("{"))
-            return fallbackSections(text) to emptyList()
-
-        return runCatching {
-            val tree   = objectMapper.readTree(text)
-            val lesson = tree["lesson"] ?: tree
-
-            val sections = lesson["sections"]?.map { s ->
-                mapOf(
-                    "heading" to (s["header"]?.asText() ?: s["heading"]?.asText() ?: ""),
-                    "body"    to (s["content"]?.asText() ?: s["body"]?.asText() ?: "")
-                )
-            } ?: emptyList()
-
-            val keyTerms = lesson["terms"]?.map { t ->
-                mapOf("term" to (t["term"]?.asText() ?: ""), "definition" to (t["definition"]?.asText() ?: ""))
-            } ?: emptyList()
-
-            (sections.ifEmpty { fallbackSections(lesson["rawText"]?.asText() ?: text) }) to keyTerms
-        }.getOrElse { fallbackSections(text) to emptyList() }
-    }
-
-    private fun fallbackSections(text: String): List<Map<String, Any>> =
-        text.split(Regex("(?<=[.!?])\\s+"))
-            .filter { it.isNotBlank() }
-            .mapIndexed { i, p -> mapOf("heading" to "Part ${i + 1}", "body" to p.trim()) }
 }

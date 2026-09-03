@@ -5,12 +5,37 @@ from typing import Literal, Optional
 # LessonJSON building blocks
 # ---------------------------------------------------------------------------
 
+class RhythmScore(BaseModel):
+    score: float                        # 0.0–1.0, higher is better
+    profile_rule: str                   # human-readable rule description
+    violations: list[str] = []
+
+
+class ReadabilityScore(BaseModel):
+    flesch_reading_ease: float
+    flesch_kincaid_grade: float
+    smog_grade: float
+    rhythm: Optional[RhythmScore] = None
+
+
+class ReadabilitySummary(BaseModel):
+    avg_flesch_reading_ease: float
+    avg_flesch_kincaid_grade: float
+    avg_smog_grade: float
+    within_target: bool
+    target_flesch_min: float
+    target_flesch_max: float
+
+
 class Section(BaseModel):
     heading: str
     body: str
     visual_hint: Optional[str] = None
     reading_level: int
     mermaid: str = ""  # Mermaid.js diagram for this section
+    readability: Optional[ReadabilityScore] = None
+    rhythm_score: Optional[float] = None
+    visual_hint_type: Optional[str] = None
 
 
 class KeyTerm(BaseModel):
@@ -22,6 +47,7 @@ class StageFlags(BaseModel):
     verification_triggered: bool = False
     correction_applied: bool = False
     profile_merged: bool = False
+    readability_warnings: list[str] = []
 
 
 # ---------------------------------------------------------------------------
@@ -37,6 +63,7 @@ class LessonJSON(BaseModel):
     estimated_minutes: int
     profile: str                    # the active profile string e.g. "dyslexia"
     stage_flags: StageFlags
+    readability_summary: Optional[ReadabilitySummary] = None
 
 
 # ---------------------------------------------------------------------------

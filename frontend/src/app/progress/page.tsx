@@ -5,8 +5,16 @@ import api from '@/lib/axios';
 import SidebarLayout from '@/components/layout/SidebarLayout';
 import { TrendingUp, Award, Download, BookOpen, BrainCircuit } from 'lucide-react';
 
+interface ProgressData {
+  name?: string;
+  completedLessons?: number;
+  quizzesTaken?: number;
+  averageScore?: number;
+  streak?: number;
+}
+
 export default function StudentProgress() {
-  const [progress, setProgress] = useState<any>(null);
+  const [progress, setProgress] = useState<ProgressData | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

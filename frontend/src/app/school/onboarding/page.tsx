@@ -7,7 +7,7 @@ const SCHOOL_TYPES = ['Primary School','Secondary School','SNE School','Special 
 const COUNTIES = ['Baringo','Bomet','Bungoma','Busia','Elgeyo-Marakwet','Embu','Garissa','Homa Bay',
   'Isiolo','Kajiado','Kakamega','Kericho','Kiambu','Kilifi','Kirinyaga','Kisii','Kisumu','Kitui',
   'Kwale','Laikipia','Lamu','Machakos','Makueni','Mandera','Marsabit','Meru','Migori','Mombasa',
-  'Murang\'a','Nairobi','Nakuru','Nandi','Narok','Nyamira','Nyandarua','Nyeri','Samburu','Siaya',
+  "Murang'a",'Nairobi','Nakuru','Nandi','Narok','Nyamira','Nyandarua','Nyeri','Samburu','Siaya',
   'Taita-Taveta','Tana River','Tharaka-Nithi','Trans-Nzoia','Turkana','Uasin Gishu','Vihiga',
   'Wajir','West Pokot'].sort();
 
@@ -35,8 +35,9 @@ export default function SchoolOnboarding() {
         adminPassword: f.adminPassword, contactPhone: f.phone || undefined
       });
       router.push(`/login?welcome=1&email=${encodeURIComponent(f.adminEmail)}`);
-    } catch(e:any){
-      setErr(e.response?.data?.message || 'Registration failed — please try again.');
+    } catch (e) {
+      const axiosErr = e as { response?: { data?: { message?: string } } };
+      setErr(axiosErr.response?.data?.message || 'Registration failed — please try again.');
     } finally { setBusy(false); }
   };
 
@@ -101,7 +102,7 @@ export default function SchoolOnboarding() {
           {/* Step 2 — Admin account */}
           {step===2 && <div>
             <h2 className="text-xl font-semibold text-gray-900 mb-1">Create admin account</h2>
-            <p className="text-purple-200 text-sm mb-5">You'll manage teachers and students from this account</p>
+            <p className="text-purple-200 text-sm mb-5">You&apos;ll manage teachers and students from this account</p>
             <div className="space-y-4">
               <div>
                 <label className="label">Your full name *</label>

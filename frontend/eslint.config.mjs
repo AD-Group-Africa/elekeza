@@ -11,7 +11,13 @@ const eslintConfig = defineConfig([
     ".next/**",
     "out/**",
     "build/**",
+    "android/**",
+    "public/sw.js",
+    "public/workbox-*.js",
+    "generate-icons.cjs",
     "next-env.d.ts",
+    // Local Netlify build output — never lint generated bundles.
+    ".netlify/**",
   ]),
 ]);
 

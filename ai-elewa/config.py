@@ -13,14 +13,14 @@ SUPPORTED_PROVIDERS = {"groq", "openai", "anthropic", "google"}
 
 if AI_PROVIDER not in SUPPORTED_PROVIDERS:
     raise ValueError(
-        f"❌ AI_PROVIDER='{AI_PROVIDER}' is not supported. "
+        f"AI_PROVIDER='{AI_PROVIDER}' is not supported. "
         f"Must be one of: {', '.join(sorted(SUPPORTED_PROVIDERS))}. "
         f"Check your .env file."
     )
 
 AI_API_KEY = os.getenv("AI_API_KEY", "")
 if not AI_API_KEY:
-    raise ValueError("❌ AI_API_KEY is missing or empty. Check your .env file.")
+    raise ValueError("AI_API_KEY is missing or empty. Check your .env file.")
 
 # ---------------------------------------------------------------------------
 # Model names per provider and per stage
@@ -74,5 +74,5 @@ TEMPERATURE_ADAPTIVE = 0.7   # creative — personalised responses
 MAX_WORDS = 5000              # requests above this return OVERSIZED error
 MIN_CHARS = 1                 # below this return EMPTY_CONTENT error
 
-print(f"✅ Config loaded — provider: {AI_PROVIDER} | stage2: {STAGE2_MODEL} | stage3: {STAGE3_MODEL}")
+print(f"Config loaded — provider: {AI_PROVIDER} | stage2: {STAGE2_MODEL} | stage3: {STAGE3_MODEL}")
 

@@ -76,7 +76,7 @@ export default function LessonsPage() {
         ) : lessons.length === 0 ? (
           <div className="text-center py-8">
             <BookOpen size={48} className="text-purple-400 mx-auto mb-4" />
-            <p className="text-purple-200">No lessons created yet.</p>
+            <p className="text-purple-200">No lessons created yet.</p><Link href="/teacher/content" className="mt-3 inline-block bg-purple-600 text-white px-4 py-2 rounded-lg">Upload Lesson</Link>
             <p className="text-purple-300 text-sm">Upload a PDF, DOCX, or TXT file to generate your first lesson.</p>
           </div>
         ) : (

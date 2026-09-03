@@ -3,8 +3,15 @@
 import { useState } from 'react';
 import { Calendar, Plus } from 'lucide-react';
 
+interface ScheduleEvent {
+  id: number;
+  title: string;
+  date: string;
+  time: string;
+}
+
 export default function TeacherSchedule() {
-  const [events, setEvents] = useState<any[]>([]);
+  const [events, setEvents] = useState<ScheduleEvent[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [title, setTitle] = useState('');
   const [date, setDate] = useState('');

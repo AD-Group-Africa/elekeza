@@ -8,8 +8,10 @@ import org.springframework.security.authentication.BadCredentialsException
 import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
+import org.springframework.web.HttpRequestMethodNotSupportedException
 import org.springframework.web.multipart.MaxUploadSizeExceededException
 import org.springframework.web.server.ResponseStatusException
+import org.springframework.web.servlet.resource.NoResourceFoundException
 
 @RestControllerAdvice
 class GlobalExceptionHandler {
@@ -46,6 +48,17 @@ class GlobalExceptionHandler {
     fun handleFileTooLarge(ex: MaxUploadSizeExceededException): ResponseEntity<*> =
         ResponseEntity.status(HttpStatus.BAD_REQUEST)
             .body(mapOf("error" to "File too large. Maximum size is 10MB."))
+
+    // ── Unknown routes / bad methods → proper 4xx, not 500 ───────────────────
+    @ExceptionHandler(NoResourceFoundException::class)
+    fun handleNotFound(ex: NoResourceFoundException): ResponseEntity<*> =
+        ResponseEntity.status(HttpStatus.NOT_FOUND)
+            .body(mapOf("error" to "Resource not found"))
+
+    @ExceptionHandler(HttpRequestMethodNotSupportedException::class)
+    fun handleMethodNotSupported(ex: HttpRequestMethodNotSupportedException): ResponseEntity<*> =
+        ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED)
+            .body(mapOf("error" to "Method not allowed"))
 
     // ── Catch-all — never expose stack traces to clients ─────────────────────
     @ExceptionHandler(Exception::class)

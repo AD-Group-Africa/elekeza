@@ -37,8 +37,18 @@ export default function StudentLessons() {
     return matchFilter && matchSearch;
   });
 
-  // Mock offline status – replace with real check
-  const offline = false;
+  // Real connectivity status – reflects navigator.onLine, not a mock.
+  const [offline, setOffline] = useState(() => typeof navigator === 'undefined' ? false : !navigator.onLine);
+  useEffect(() => {
+    const online = () => setOffline(false);
+    const goneOffline = () => setOffline(true);
+    window.addEventListener('online', online);
+    window.addEventListener('offline', goneOffline);
+    return () => {
+      window.removeEventListener('online', online);
+      window.removeEventListener('offline', goneOffline);
+    };
+  }, []);
 
   return (
     <SidebarLayout>
@@ -58,7 +68,8 @@ export default function StudentLessons() {
           </div>
           <select
             value={filter}
-            onChange={e => setFilter(e.target.value as any)}
+            onChange={e => setFilter(e.target.value as 'all' | 'inProgress' | 'completed')}
+            aria-label="Filter lessons"
             className="px-4 py-3 bg-white/10 border border-purple-300/30 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
           >
             <option value="all">All</option>

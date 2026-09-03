@@ -1,0 +1,29 @@
+spring:
+  main:
+    web-application-type: servlet
+
+  # Inline test data configuration
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    validate-on-migrate: true
+
+  # Test-specific settings
+  jpa:
+    hibernate:
+      ddl-auto: none
+    show-sql: false
+    open-in-view: false
+
+  # Mock M-Pesa configuration for tests
+  profiles:
+    active: default
+
+# M-Pesa test mode
+mpesa:
+  environment: test
+  consumer-key: test-key
+  consumer-secret: test-secret
+  passkey: test-passkey
+  shortcode: 174379
+  callback-url: http://localhost:8080/api/payments/callback

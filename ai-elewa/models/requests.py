@@ -7,6 +7,7 @@ from typing import Literal, Optional
 # ---------------------------------------------------------------------------
 
 CognitiveProfile = Literal[
+    "none",
     "dyslexia",
     "adhd",
     "autism",

@@ -6,8 +6,14 @@ import SidebarLayout from '@/components/layout/SidebarLayout';
 import { ClipboardCheck } from 'lucide-react';
 import Link from 'next/link';
 
+interface QuizRow {
+  id: number;
+  lessonId: number;
+  title: string;
+}
+
 export default function StudentQuizzes() {
-  const [quizzes, setQuizzes] = useState<any[]>([]);
+  const [quizzes, setQuizzes] = useState<QuizRow[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -27,11 +33,11 @@ export default function StudentQuizzes() {
         ) : quizzes.length === 0 ? (
           <div className="glass-card p-6 text-center">
             <ClipboardCheck size={48} className="text-purple-400 mx-auto mb-4" />
-            <p className="text-purple-200">No quizzes available.</p>
+            <p className="text-purple-200">No quizzes available.</p><Link href="/student-lessons" className="mt-3 inline-block bg-purple-600 text-white px-4 py-2 rounded-lg">Browse Lessons</Link>
           </div>
         ) : (
           <div className="grid gap-4">
-            {quizzes.map((q: any) => (
+            {quizzes.map((q: QuizRow) => (
               <Link key={q.id} href={'/quiz/' + q.lessonId} className="glass-card p-4 hover:bg-white/5 transition flex justify-between items-center">
                 <div>
                   <h3 className="text-purple-200 font-semibold">{q.title}</h3>

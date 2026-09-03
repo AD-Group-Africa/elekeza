@@ -38,12 +38,15 @@ export function ReadingToolbar({ contentRef }: { contentRef: React.RefObject<HTM
     const [isOpen, setIsOpen] = useState(false)
     const { speak, stop, isSpeaking } = useTextToSpeech({ rate: prefs.ttsRate, pitch: prefs.ttsPitch })
 
-    // Load saved preferences
+    // Load saved preferences (deferred so the effect body stays synchronous-free)
     useEffect(() => {
-        const saved = localStorage.getItem('reading-prefs')
-        if (saved) {
-            try { setPrefs({ ...DEFAULTS, ...JSON.parse(saved) }) } catch {}
-        }
+        const t = setTimeout(() => {
+            const saved = localStorage.getItem('reading-prefs')
+            if (saved) {
+                try { setPrefs({ ...DEFAULTS, ...JSON.parse(saved) }) } catch {}
+            }
+        }, 0)
+        return () => clearTimeout(t)
     }, [])
 
     // Apply preferences to document
@@ -100,7 +103,7 @@ export function ReadingToolbar({ contentRef }: { contentRef: React.RefObject<HTM
                         <span className="text-xs text-gray-600">Font</span>
                         <select
                             value={prefs.fontFamily}
-                            onChange={(e) => update({ fontFamily: e.target.value as any })}
+                            onChange={(e) => update({ fontFamily: e.target.value as ReadingPreferences['fontFamily'] })}
                             className="text-sm border rounded p-1"
                         >
                             <option value="atkinson">Atkinson Hyperlegible</option>
@@ -143,7 +146,7 @@ export function ReadingToolbar({ contentRef }: { contentRef: React.RefObject<HTM
                         <span className="text-xs text-gray-600">Background</span>
                         <select
                             value={prefs.backgroundColor}
-                            onChange={(e) => update({ backgroundColor: e.target.value as any })}
+                            onChange={(e) => update({ backgroundColor: e.target.value as ReadingPreferences['backgroundColor'] })}
                             className="text-sm border rounded p-1"
                         >
                             <option value="white">White</option>

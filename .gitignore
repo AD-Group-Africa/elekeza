@@ -30,3 +30,18 @@ login-prod.json
 student-create.json
 school-create.json
 update-teacher.js
+*.keystore
+*.jks
+frontend/android/app/release/
+
+# Agent / local tooling artifacts
+.freebuff/
+opencode.json.txt
+backend/.gradle-user/
+frontend/android/.gradle/
+frontend/android/app/build/
+frontend/android/build/
+frontend/android/local.properties
+
+# Local Netlify folder
+.netlify

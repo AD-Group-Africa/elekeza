@@ -6,9 +6,20 @@ import api from '@/lib/axios';
 import { ArrowLeft, BookOpen, ClipboardCheck, TrendingUp, Calendar } from 'lucide-react';
 import Link from 'next/link';
 
+interface WardData {
+  name?: string;
+  sneType?: string;
+  lessonsCompleted?: number;
+  lessonsPending?: number;
+  averageScore?: number;
+  lastActive?: string;
+  recentQuizzes?: { lessonId?: number; score?: number; date?: string }[];
+  progressHistory?: { date?: string; score?: number }[];
+}
+
 export default function WardDetail() {
   const { id } = useParams();
-  const [ward, setWard] = useState<any>(null);
+  const [ward, setWard] = useState<WardData | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -61,28 +72,28 @@ export default function WardDetail() {
           </div>
         </div>
 
-        {ward.recentQuizzes && Object.keys(ward.recentQuizzes).length > 0 && (
+        {ward.recentQuizzes && ward.recentQuizzes.length > 0 && (
           <div className="mb-6">
             <h3 className="text-lg font-semibold text-purple-200 mb-2">Recent Quizzes</h3>
             <div className="space-y-1">
-              {Object.entries(ward.recentQuizzes).map(([key, val]: any) => (
-                <div key={key} className="flex justify-between text-purple-300 text-sm">
-                  <span>{key}</span>
-                  <span>{val}%</span>
+              {ward.recentQuizzes.map((q, i) => (
+                <div key={i} className="flex justify-between text-purple-300 text-sm">
+                  <span>Lesson {q.lessonId ?? i + 1}</span>
+                  <span>{q.score ?? 0}%</span>
                 </div>
               ))}
             </div>
           </div>
         )}
 
-        {ward.progressHistory && Object.keys(ward.progressHistory).length > 0 && (
+        {ward.progressHistory && ward.progressHistory.length > 0 && (
           <div>
             <h3 className="text-lg font-semibold text-purple-200 mb-2">Progress History</h3>
             <div className="space-y-1">
-              {Object.entries(ward.progressHistory).map(([key, val]: any) => (
-                <div key={key} className="flex justify-between text-purple-300 text-sm">
-                  <span>{key}</span>
-                  <span>{val}%</span>
+              {ward.progressHistory.map((p, i) => (
+                <div key={i} className="flex justify-between text-purple-300 text-sm">
+                  <span>{p.date?.substring(0, 10) || `Entry ${i + 1}`}</span>
+                  <span>{p.score ?? 0}%</span>
                 </div>
               ))}
             </div>

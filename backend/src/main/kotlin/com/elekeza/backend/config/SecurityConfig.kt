@@ -10,11 +10,12 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
-import org.springframework.security.config.http.SessionCreationPolicy
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository
+import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler
 import org.springframework.web.cors.CorsConfiguration
 import org.springframework.web.cors.CorsConfigurationSource
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource
@@ -27,7 +28,8 @@ class SecurityConfig(private val jwtAuthFilter: JwtAuthFilter) {
     @Value("\${app.cors.allowed-origins}")
     private lateinit var allowedOriginsRaw: String
 
-    @Bean fun passwordEncoder(): PasswordEncoder = BCryptPasswordEncoder()
+    @Bean
+    fun passwordEncoder(): PasswordEncoder = BCryptPasswordEncoder()
 
     @Bean
     fun authenticationManager(cfg: AuthenticationConfiguration): AuthenticationManager =
@@ -37,8 +39,17 @@ class SecurityConfig(private val jwtAuthFilter: JwtAuthFilter) {
     fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {
         http
             .cors { it.configurationSource(corsConfigurationSource()) }
-            .csrf { it.disable() }
-            .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
+            .csrf {
+                it.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+                    // Use the classic (non-XOR) handler so the value in the
+                    // XSRF-TOKEN cookie is the literal token the client must
+                    // echo back. The frontend's axios sends the raw cookie
+                    // value, which Spring Security 6's default
+                    // XorCsrfTokenRequestAttributeHandler would reject.
+                    .csrfTokenRequestHandler(CsrfTokenRequestAttributeHandler())
+                    .ignoringRequestMatchers("/api/auth/login", "/api/auth/register", "/api/auth/refresh", "/api/auth/csrf")
+            }
+            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter::class.java)
             .authorizeHttpRequests { auth ->
                 auth.requestMatchers(
                     "/api/auth/**",
@@ -46,13 +57,18 @@ class SecurityConfig(private val jwtAuthFilter: JwtAuthFilter) {
                     "/api/payments/callback",
                     "/api/waitlist/**",
                     "/actuator/health",
-                    "/h2-console/**"
+                    "/api/auth/csrf"
                 ).permitAll()
                 auth.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
-                // Allow school admin to access analytics and admin endpoints
-                auth.requestMatchers("/api/analytics/teacher").hasAnyRole("TEACHER", "SCHOOL_ADMIN", "ADMIN")
+                // Analytics: filter-level rules must not shadow the method-level
+                // annotations. /student, /guardian and /dashboard are principal-
+                // scoped (or role-gated by @PreAuthorize); only the catch-all
+                // below is ADMIN-only.
+                auth.requestMatchers("/api/analytics/teacher", "/api/analytics/teacher/**").hasAnyRole("TEACHER", "SCHOOL_ADMIN", "ADMIN")
                 auth.requestMatchers("/api/analytics/admin", "/api/analytics/admin/overview").hasAnyRole("SCHOOL_ADMIN", "ADMIN")
+                auth.requestMatchers("/api/analytics/guardian").hasAnyRole("GUARDIAN", "ADMIN")
+                auth.requestMatchers("/api/analytics/student", "/api/analytics/dashboard").authenticated()
                 auth.requestMatchers("/api/analytics/**").hasAnyRole("ADMIN")
 
                 auth.requestMatchers("/api/teacher/**").hasAnyRole("TEACHER", "SCHOOL_ADMIN", "ADMIN")
@@ -62,15 +78,15 @@ class SecurityConfig(private val jwtAuthFilter: JwtAuthFilter) {
             }
             .formLogin { it.disable() }
             .httpBasic { it.disable() }
-            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter::class.java)
         return http.build()
     }
 
     @Bean
     fun corsConfigurationSource(): CorsConfigurationSource {
         val origins = allowedOriginsRaw.split(",").map { it.trim() }.filter { it.isNotBlank() }
+        require(origins.none { it == "*" }) { "CORS origins must be explicit when credentials are enabled" }
         val config = CorsConfiguration().apply {
-            allowedOriginPatterns = origins
+            allowedOrigins = origins
             allowedMethods = listOf("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
             allowedHeaders = listOf("*")
             allowCredentials = true

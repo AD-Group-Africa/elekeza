@@ -2,7 +2,12 @@ import withPWA from 'next-pwa';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8080';
 
+if (process.env.NODE_ENV === 'production' && !process.env.NEXT_PUBLIC_API_URL) {
+  throw new Error('NEXT_PUBLIC_API_URL must be set when building for production');
+}
+
 const nextConfig = {
+  turbopack: {},
   rewrites: async () => [
     { source: '/api/:path*', destination: `${API_BASE}/api/:path*` }
   ],

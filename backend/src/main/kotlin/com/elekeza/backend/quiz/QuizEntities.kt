@@ -52,6 +52,20 @@ data class QuizAttempt(
     @Column(name = "completed_at") val completedAt: LocalDateTime? = null
 )
 
+@Entity
+@Table(name = "quiz_answers", indexes = [
+    Index(name = "idx_quiz_answer_attempt", columnList = "attempt_id"),
+    Index(name = "idx_quiz_answer_question", columnList = "question_id")
+])
+data class QuizAnswer(
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY) val id: Long = 0,
+    @Column(name = "attempt_id",  nullable = false) val attemptId:     Long,
+    @Column(name = "question_id", nullable = false) val questionId:    Long,
+    @Column(name = "selected_option", length = 1)   val selectedOption: String,
+    @Column(name = "is_correct", nullable = false)  val isCorrect:     Boolean,
+    @Column(name = "answered_at")                   val answeredAt:    LocalDateTime = LocalDateTime.now()
+)
+
 // ── Repositories ──────────────────────────────────────────────────────────────
 
 @Repository
@@ -68,6 +82,13 @@ interface QuizQuestionRepository : JpaRepository<QuizQuestion, Long> {
 @Repository
 interface QuizAttemptRepository : JpaRepository<QuizAttempt, Long> {
     fun findByQuizIdAndUserId(quizId: Long, userId: Long): List<QuizAttempt>
+}
+
+@Repository
+interface QuizAnswerRepository : JpaRepository<QuizAnswer, Long> {
+    fun findByAttemptId(attemptId: Long): List<QuizAnswer>
+    fun findByAttemptIdAndQuestionId(attemptId: Long, questionId: Long): QuizAnswer?
+    fun findByAttemptIdIn(attemptIds: Collection<Long>): List<QuizAnswer>
 }
 
 // ── DTOs ──────────────────────────────────────────────────────────────────────

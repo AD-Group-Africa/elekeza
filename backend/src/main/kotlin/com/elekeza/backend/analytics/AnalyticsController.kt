@@ -6,7 +6,11 @@ import com.elekeza.backend.auth.UserRole
 import com.elekeza.backend.content.ContentRepository
 import com.elekeza.backend.learner.LearnerProfileRepository
 import com.elekeza.backend.learner.LessonProgressRepository
+import com.elekeza.backend.quiz.QuizAnswerRepository
 import com.elekeza.backend.quiz.QuizAttemptRepository
+import com.elekeza.backend.quiz.QuizQuestionRepository
+import com.elekeza.backend.quiz.QuizRepository
+import com.elekeza.backend.institution.GuardianLinkRepository
 import com.elekeza.backend.institution.InstitutionRepository
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
@@ -21,8 +25,12 @@ class AnalyticsController(
     private val contentRepo: ContentRepository,
     private val lessonProgressRepo: LessonProgressRepository,
     private val quizAttemptRepo: QuizAttemptRepository,
+    private val quizAnswerRepo: QuizAnswerRepository,
+    private val quizQuestionRepo: QuizQuestionRepository,
+    private val quizRepo: QuizRepository,
     private val learnerProfileRepo: LearnerProfileRepository,
-    private val institutionRepo: InstitutionRepository
+    private val institutionRepo: InstitutionRepository,
+    private val guardianLinkRepo: GuardianLinkRepository
 ) {
     @GetMapping("/teacher")
     @PreAuthorize("hasAnyRole('TEACHER','ADMIN','SCHOOL_ADMIN')")
@@ -84,6 +92,52 @@ class AnalyticsController(
         ))
     }
 
+    /**
+     * Per-question quiz results for the teacher's students (same institution),
+     * sourced from the persisted quiz_answers rows. Reveals the answer key
+     * only for COMPLETED attempts — post-quiz review data, not live answers.
+     */
+    @GetMapping("/teacher/quiz-results")
+    @PreAuthorize("hasAnyRole('TEACHER','ADMIN','SCHOOL_ADMIN')")
+    fun teacherQuizResults(@AuthenticationPrincipal teacher: User): ResponseEntity<List<Map<String, Any>>> {
+        val institutionId = teacher.institutionId
+        val students = if (institutionId != null) {
+            userRepo.findByInstitutionIdAndRole(institutionId, UserRole.STUDENT)
+        } else emptyList()
+        val studentIds = students.map { it.id }.toSet()
+
+        val attemptsById = quizAttemptRepo.findAll()
+            .filter { it.userId in studentIds && it.completed }
+            .associateBy { it.id }
+        if (attemptsById.isEmpty()) return ResponseEntity.ok(emptyList())
+
+        val questionsById = quizQuestionRepo.findAll().associateBy { it.id }
+        val quizzesById = quizRepo.findAll().associateBy { it.id }
+        val contentsById = contentRepo.findAll().associateBy { it.id }
+
+        val results = quizAnswerRepo.findByAttemptIdIn(attemptsById.keys)
+            .map { a ->
+                val attempt = attemptsById.getValue(a.attemptId)
+                val q = questionsById[a.questionId]
+                val content = quizzesById[attempt.quizId]?.let { contentsById[it.contentId] }
+                val student = students.find { it.id == attempt.userId }
+                mapOf(
+                    "studentName" to (student?.name ?: "Unknown"),
+                    "studentId" to attempt.userId,
+                    "lessonTitle" to (content?.title ?: "Unknown"),
+                    "lessonId" to (quizzesById[attempt.quizId]?.contentId ?: -1),
+                    "question" to (q?.question ?: ""),
+                    "userAnswer" to a.selectedOption,
+                    "correctAnswer" to (q?.correctOption ?: ""),
+                    "correct" to a.isCorrect,
+                    "answeredAt" to a.answeredAt.toString()
+                )
+            }
+            .sortedByDescending { it["answeredAt"] as String }
+            .take(100)
+        return ResponseEntity.ok(results)
+    }
+
     @GetMapping("/student")
     fun studentAnalytics(@AuthenticationPrincipal student: User): ResponseEntity<Map<String, Any>> {
         val progress = lessonProgressRepo.findByUserIdOrderByCreatedAtDesc(student.id)
@@ -127,8 +181,11 @@ class AnalyticsController(
     @GetMapping("/guardian")
     @PreAuthorize("hasRole('GUARDIAN')")
     fun guardianAnalytics(@AuthenticationPrincipal guardian: User): ResponseEntity<Map<String, Any>> {
-        val allStudents = userRepo.findAll().filter { it.role == UserRole.STUDENT }
-        val wardData = allStudents.map { child ->
+        // A guardian may only ever see their explicitly linked wards — never
+        // the platform's full student population.
+        val linkedLearnerIds = guardianLinkRepo.findByGuardianId(guardian.id).map { it.learnerId }.toSet()
+        val wardData = linkedLearnerIds.mapNotNull { childId ->
+            val child = userRepo.findById(childId).orElse(null) ?: return@mapNotNull null
             val progress = lessonProgressRepo.findByUserIdOrderByCreatedAtDesc(child.id)
             val completed = progress.filter { it.completed }
             val avgScore = if (completed.isNotEmpty()) completed.mapNotNull { it.quizScore }.average() else 0.0
@@ -178,6 +235,7 @@ class AnalyticsController(
     }
 
     @GetMapping("/admin/overview")
+    @PreAuthorize("hasRole('ADMIN')")
     fun adminOverview(): ResponseEntity<Map<String, Any>> {
         val users = userRepo.count()
         val institutions = institutionRepo.count()

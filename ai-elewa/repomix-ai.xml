@@ -119,16 +119,16 @@ This section contains the contents of the repository's files.
 
 <file path=".env.backup">
 AI_PROVIDER=groq
-AI_API_KEY=REDACTED4DT3DMkAp4k8HufhybjdWGdyb3FYEqe452zvCw2BvNp6bIDFVBOU
-INTERNAL_SECRET=AO2xgxEVnV2r6ySzhajgl8M98aSQp3wD
+AI_API_KEY=REDACTED<replace-with-valid-groq-api-key>
+INTERNAL_SECRET=elekeza-test-internal-key-not-a-secret
 </file>
 
 <file path=".env.example">
 AI_PROVIDER=groq
-AI_API_KEY=REDACTED4DT3DMkAp4k8HufhybjdWGdyb3FYEqe452zvCw2BvNp6bIDFVBOU
+AI_API_KEY=REDACTED<replace-with-valid-groq-api-key>
 
 # Internal security — shared with Harrison (Spring Boot)
-INTERNAL_SECRET=AO2xgxEVnV2r6ySzhajgl8M98aSQp3wD
+INTERNAL_SECRET=elekeza-test-internal-key-not-a-secret
 
 LANGFUSE_PUBLIC_KEY=
 LANGFUSE_SECRET_KEY=
@@ -3779,7 +3779,7 @@ import httpx
 from pathlib import Path
 
 BASE_URL = "http://localhost:8000"
-AUTH_HEADER = {"X-Internal-Key": "AO2xgxEVnV2r6ySzhajgl8M98aSQp3wD"}
+AUTH_HEADER = {"X-Internal-Key": "elekeza-test-internal-key-not-a-secret"}
 JSON_HEADER = {**AUTH_HEADER, "Content-Type": "application/json"}
 
 VALID_CONTEXT = {
@@ -4296,7 +4296,7 @@ from httpx import AsyncClient, ASGITransport
 from main import app
 
 BASE_URL = "http://test"
-AUTH_HEADER = {"X-Internal-Key": "AO2xgxEVnV2r6ySzhajgl8M98aSQp3wD"}
+AUTH_HEADER = {"X-Internal-Key": "elekeza-test-internal-key-not-a-secret"}
 JSON_HEADER = {**AUTH_HEADER, "Content-Type": "application/json"}
 
 
@@ -4901,7 +4901,7 @@ import httpx
 import time
 
 BASE_URL = "http://localhost:8000"
-AUTH_HEADER = {"X-Internal-Key": "AO2xgxEVnV2r6ySzhajgl8M98aSQp3wD"}
+AUTH_HEADER = {"X-Internal-Key": "elekeza-test-internal-key-not-a-secret"}
 JSON_HEADER = {**AUTH_HEADER, "Content-Type": "application/json"}
 
 @pytest.fixture(autouse=True)
@@ -7640,7 +7640,7 @@ from datetime import datetime
 from pathlib import Path
 
 BASE_URL = "http://localhost:8000"
-AUTH_HEADER = {"X-Internal-Key": "AO2xgxEVnV2r6ySzhajgl8M98aSQp3wD"}
+AUTH_HEADER = {"X-Internal-Key": "elekeza-test-internal-key-not-a-secret"}
 JSON_HEADER = {**AUTH_HEADER, "Content-Type": "application/json"}
 
 SAMPLES = 5          # requests per scenario
@@ -8484,7 +8484,7 @@ from pathlib import Path
 from datetime import datetime
 
 BASE_URL = "http://localhost:8000"
-AUTH_HEADER = {"X-Internal-Key": "AO2xgxEVnV2r6ySzhajgl8M98aSQp3wD"}
+AUTH_HEADER = {"X-Internal-Key": "elekeza-test-internal-key-not-a-secret"}
 JSON_HEADER = {**AUTH_HEADER, "Content-Type": "application/json"}
 
 TEXTS = {

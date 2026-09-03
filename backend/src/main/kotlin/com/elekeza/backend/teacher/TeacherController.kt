@@ -9,6 +9,7 @@ import com.elekeza.backend.content.ContentRepository
 import com.elekeza.backend.institution.GuardianLink
 import com.elekeza.backend.institution.GuardianLinkRepository
 import com.elekeza.backend.learner.LessonProgress
+import com.elekeza.backend.notification.NotificationService
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.annotation.AuthenticationPrincipal
@@ -23,7 +24,8 @@ class TeacherController(
     private val lessonProgressRepo: LessonProgressRepository,
     private val contentRepo: ContentRepository,
     private val guardianLinkRepo: GuardianLinkRepository,
-    private val passwordEncoder: PasswordEncoder
+    private val passwordEncoder: PasswordEncoder,
+    private val notificationService: NotificationService,
 ) {
     data class StudentDto(val id: String, val name: String, val email: String, val sneType: String)
     data class CreateStudentRequest(val email: String, val fullName: String, val password: String, val sneType: String)
@@ -53,11 +55,14 @@ class TeacherController(
 
     @PostMapping("/content/assign")
     fun assignContent(@AuthenticationPrincipal teacher: User, @RequestBody req: AssignContentRequest): ResponseEntity<Map<String, Any>> {
+        val content = contentRepo.findById(req.contentId).orElseThrow { IllegalArgumentException("Content not found") }
+        if (teacher.role != UserRole.ADMIN && content.userId != teacher.id) throw SecurityException("Content is not owned by this teacher")
         req.studentIds.forEach { studentId ->
             val student = userRepo.findById(studentId).orElseThrow { IllegalArgumentException("Student not found") }
             if (student.institutionId != teacher.institutionId) throw SecurityException("Student not in your institution")
             val progress = LessonProgress(user = student, contentId = req.contentId)
             lessonProgressRepo.save(progress)
+            notificationService.notifyStudentOnAssignment(studentId, req.contentId)
         }
         return ResponseEntity.ok(mapOf("assigned" to req.studentIds.size))
     }
@@ -80,6 +85,9 @@ class TeacherController(
     @GetMapping("/student/{studentId}/progress")
     fun getStudentProgress(@AuthenticationPrincipal teacher: User, @PathVariable studentId: Long): ResponseEntity<Map<String, Any>> {
         val student = userRepo.findById(studentId).orElseThrow()
+        if (teacher.role != UserRole.ADMIN && (teacher.institutionId == null || student.institutionId != teacher.institutionId)) {
+            throw SecurityException("Student not in your institution")
+        }
         val completed = lessonProgressRepo.countByUserIdAndCompleted(studentId, true)
         val avgScore = lessonProgressRepo.avgQuizScore(studentId)
         return ResponseEntity.ok(mapOf("studentName" to student.name, "completedLessons" to completed, "averageScore" to (avgScore ?: 0.0)))

@@ -5,9 +5,20 @@ import api from '@/lib/axios';
 import SidebarLayout from '@/components/layout/SidebarLayout';
 import { Building2, Users, GraduationCap, Plus, Search } from 'lucide-react';
 
+interface AdminOverview {
+  totalSchools?: number;
+  totalUsers?: number;
+  activeLearners?: number;
+}
+
+interface SchoolRow {
+  id: number;
+  name: string;
+}
+
 export default function SuperAdminDashboard() {
-  const [stats, setStats] = useState<any>(null);
-  const [schools, setSchools] = useState<any[]>([]);
+  const [stats, setStats] = useState<AdminOverview | null>(null);
+  const [schools, setSchools] = useState<SchoolRow[]>([]);
   const [selectedSchool, setSelectedSchool] = useState('all');
 
   useEffect(() => {
@@ -53,9 +64,9 @@ export default function SuperAdminDashboard() {
 
         <div className="glass-card p-4">
           <h2 className="text-lg font-semibold text-purple-200 mb-3">Select School</h2>
-          <select className="w-full px-4 py-3 bg-white/10 border border-purple-300/30 rounded-lg text-white" value={selectedSchool} onChange={e => setSelectedSchool(e.target.value)}>
+          <select aria-label="Select school" className="w-full px-4 py-3 bg-white/10 border border-purple-300/30 rounded-lg text-white" value={selectedSchool} onChange={e => setSelectedSchool(e.target.value)}>
             <option value="all" className="bg-gray-800">All Schools</option>
-            {schools.map((s: any) => (
+            {schools.map((s: SchoolRow) => (
               <option key={s.id} value={s.id} className="bg-gray-800">{s.name}</option>
             ))}
           </select>

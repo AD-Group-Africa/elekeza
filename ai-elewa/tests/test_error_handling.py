@@ -1,9 +1,16 @@
+import os
+
+# The in-process test server reads INTERNAL_SECRET at import time. Set it
+# explicitly so these tests are self-contained and never depend on a
+# committed secret value.
+os.environ.setdefault("INTERNAL_SECRET", "elekeza-test-internal-key-not-a-secret")
+
 import pytest
 from httpx import AsyncClient, ASGITransport
 from main import app
 
 BASE_URL = "http://test"
-AUTH_HEADER = {"X-Internal-Key": "AO2xgxEVnV2r6ySzhajgl8M98aSQp3wD"}
+AUTH_HEADER = {"X-Internal-Key": os.environ["INTERNAL_SECRET"]}
 JSON_HEADER = {**AUTH_HEADER, "Content-Type": "application/json"}
 
 

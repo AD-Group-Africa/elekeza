@@ -301,6 +301,30 @@ def get_learner_message(
     return message
 
 
+def attach_learner_message(
+    error: "ErrorResponse",
+    profiles: Optional[list[str]],
+) -> "ErrorResponse":
+    """
+    Populate the learner_message field on an ErrorResponse.
+
+    Called at the endpoint layer when an AIServiceError is caught, so every
+    error that reaches the frontend carries a profile-appropriate message.
+    Existing learner_message values are preserved.
+
+    Args:
+        error: the ErrorResponse to enrich (mutated in place and returned)
+        profiles: cognitive profiles from the request's LearnerContext,
+                  or None when no learner context is available
+
+    Returns:
+        the same ErrorResponse with learner_message set
+    """
+    if error.learner_message is None:
+        error.learner_message = get_learner_message(error.error_code, profiles)
+    return error
+
+
 def get_all_messages_for_profile(profile: str) -> dict[str, Optional[str]]:
     """
     Return all error messages for a given profile.

@@ -25,10 +25,11 @@ const BODY_MODE_CLASSES: Record<CognitiveMode, string> = {
 }
 
 function resolveActiveMode(profiles: CognitiveProfile[]): CognitiveMode {
-  if (profiles.includes('DYSLEXIA')) return 'dyslexia'
-  if (profiles.includes('ADHD')) return 'adhd'
-  if (profiles.includes('AUTISM')) return 'autism'
-  if (profiles.includes('INTELLECTUAL_DISABILITY')) return 'intellectualDisability'
+  const upper = profiles.map(p => p.toUpperCase())
+  if (upper.includes('DYSLEXIA')) return 'dyslexia'
+  if (upper.includes('ADHD')) return 'adhd'
+  if (upper.includes('AUTISM')) return 'autism'
+  if (upper.includes('INTELLECTUAL_DISABILITY')) return 'intellectualDisability'
   return 'default'
 }
 
@@ -80,12 +81,3 @@ export function useCognitiveProfile() {
   }
   return context
 }
-
-
-
-
-
-
-
-
-

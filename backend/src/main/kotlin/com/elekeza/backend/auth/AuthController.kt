@@ -2,13 +2,15 @@ package com.elekeza.backend.auth
 
 import com.elekeza.backend.auth.dto.LoginRequest
 import com.elekeza.backend.auth.dto.RegisterRequest
-import jakarta.servlet.http.Cookie
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.http.ResponseCookie
+import org.springframework.security.web.csrf.CsrfToken
 import org.springframework.security.core.annotation.AuthenticationPrincipal
+import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.server.ResponseStatusException
 import java.security.MessageDigest
@@ -62,6 +64,7 @@ class AuthController(
     }
 
     @PostMapping("/logout")
+    @Transactional
     fun logout(
         request: HttpServletRequest,
         response: HttpServletResponse,
@@ -79,6 +82,10 @@ class AuthController(
         return ResponseEntity.ok(mapOf("message" to "Logged out successfully"))
     }
 
+    @GetMapping("/csrf")
+    fun csrf(@RequestAttribute("_csrf") csrfToken: CsrfToken): Map<String, String> =
+        mapOf("token" to csrfToken.token)
+
     private fun issueTokensAndRespond(
         user: User,
         response: HttpServletResponse,
@@ -93,11 +100,12 @@ class AuthController(
             this.expiresAt = expiresAt
         }
         refreshTokenRepository.save(entity)
+        setAccessCookie(response, accessToken)
         setRefreshCookie(response, refreshToken)
-        return ResponseEntity.status(status).body(buildAuthPayload(user, accessToken))
+        return ResponseEntity.status(status).body(buildAuthPayload(user))
     }
 
-    private fun buildAuthPayload(user: User, accessToken: String? = null): Map<String, Any> =
+    private fun buildAuthPayload(user: User): Map<String, Any> =
         buildMap {
             put("learnerId", user.id)
             put("email", user.email)
@@ -105,27 +113,25 @@ class AuthController(
             put("role", user.role.name)
             put("title", user.title)
             put("gender", user.gender ?: "")
-            accessToken?.let { put("accessToken", it) }
         }
 
+    private fun setAccessCookie(response: HttpServletResponse, token: String) {
+        response.addHeader("Set-Cookie", ResponseCookie.from("elekeza_access", token)
+            .httpOnly(true).secure(secureCookies).sameSite("Lax").path("/")
+            .maxAge(900).build().toString())
+    }
+
     private fun setRefreshCookie(response: HttpServletResponse, token: String) {
-        val cookie = Cookie("elekeza_refresh", token).apply {
-            isHttpOnly = true
-            secure = secureCookies
-            path = "/api/auth"
-            maxAge = (refreshExpirationMs / 1000).toInt()
-        }
-        response.addCookie(cookie)
+        response.addHeader("Set-Cookie", ResponseCookie.from("elekeza_refresh", token)
+            .httpOnly(true).secure(secureCookies).sameSite("Strict").path("/api/auth")
+            .maxAge(refreshExpirationMs / 1000).build().toString())
     }
 
     private fun clearRefreshCookie(response: HttpServletResponse) {
-        val cookie = Cookie("elekeza_refresh", "").apply {
-            isHttpOnly = true
-            secure = secureCookies
-            path = "/api/auth"
-            maxAge = 0
-        }
-        response.addCookie(cookie)
+        response.addHeader("Set-Cookie", ResponseCookie.from("elekeza_refresh", "")
+            .httpOnly(true).secure(secureCookies).sameSite("Strict").path("/api/auth").maxAge(0).build().toString())
+        response.addHeader("Set-Cookie", ResponseCookie.from("elekeza_access", "")
+            .httpOnly(true).secure(secureCookies).sameSite("Lax").path("/").maxAge(0).build().toString())
     }
 
     private fun resolveRefreshToken(request: HttpServletRequest): String? {

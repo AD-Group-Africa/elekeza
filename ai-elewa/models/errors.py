@@ -24,6 +24,7 @@ class ErrorResponse(BaseModel):
     message: str
     stage: Optional[str] = None
     retried: bool = False
+    learner_message: Optional[str] = None
 
 
 class AIServiceError(Exception):

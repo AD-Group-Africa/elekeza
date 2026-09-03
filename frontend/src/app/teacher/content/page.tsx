@@ -20,19 +20,21 @@ export default function ContentPage() {
   const handleUpload = async () => {
     setUploading(true);
     try {
+      let res: { data?: { lessonId?: number; adapted?: boolean; message?: string } };
       if (file) {
         const formData = new FormData();
         formData.append('file', file);
         formData.append('topic', topic);
         formData.append('subject', subject);
-        const res = await api.post('/content/upload/file', formData);
-        setLessonId(res.data.lessonId);
+        res = await api.post('/content/upload/file', formData);
       } else {
-        const res = await api.post('/content/upload/text', { title: topic, text: textContent, subject });
-        setLessonId(res.data.lessonId);
+        res = await api.post('/content/upload/text', { title: topic, text: textContent, subject });
       }
+      setLessonId(res.data?.lessonId ?? null);
       setStep(3);
-      setMessage('AI has simplified your lesson. Review below.');
+      // The backend reports whether AI adaptation actually ran (mock/offline
+      // AI stores the raw text and flags adapted=false with a reason).
+      setMessage(res.data?.adapted ? 'AI has simplified your lesson. Review below.' : (res.data?.message || 'Content saved — review it below.'));
     } catch (err) {
       setMessage('Upload failed. Please try again.');
     } finally {
@@ -131,3 +133,4 @@ export default function ContentPage() {
     </div>
   );
 }
+

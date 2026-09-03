@@ -34,8 +34,8 @@ export default function RegisterPage() {
     try {
       await register(email, password, fullName, phone, role, termsAccepted, gender);
       router.push('/onboarding/profile');
-    } catch (err: any) {
-      setError(err?.message || 'Registration failed. Please try again.');
+    } catch (err) {
+      setError((err as Error)?.message || 'Registration failed. Please try again.');
     }
   };
 
@@ -46,22 +46,28 @@ export default function RegisterPage() {
         <h2 className="text-xl font-semibold text-purple-200 text-center mb-6">Create Account</h2>
         
         <form onSubmit={handleSubmit} className="space-y-4">
-          <input type="text" value={fullName} onChange={e => setFullName(e.target.value)} placeholder="Full Name" className="w-full px-4 py-3 bg-white/10 border border-purple-300/30 rounded-lg text-white placeholder-purple-200/50 focus:outline-none focus:ring-2 focus:ring-purple-500" required />
-          <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="Email" className="w-full px-4 py-3 bg-white/10 border border-purple-300/30 rounded-lg text-white placeholder-purple-200/50 focus:outline-none focus:ring-2 focus:ring-purple-500" required />
-          <input type="tel" value={phone} onChange={e => setPhone(e.target.value)} placeholder="Phone (07XX XXX XXX)" className="w-full px-4 py-3 bg-white/10 border border-purple-300/30 rounded-lg text-white placeholder-purple-200/50 focus:outline-none focus:ring-2 focus:ring-purple-500" />
+          <label htmlFor="reg-fullName" className="block text-sm font-medium text-purple-200 mb-1">Full Name</label>
+          <input id="reg-fullName" type="text" value={fullName} onChange={e => setFullName(e.target.value)} placeholder="Full Name" className="w-full px-4 py-3 bg-white/10 border border-purple-300/30 rounded-lg text-white placeholder-purple-200/50 focus:outline-none focus:ring-2 focus:ring-purple-500" required />
+          <label htmlFor="reg-email" className="block text-sm font-medium text-purple-200 mb-1">Email</label>
+          <input id="reg-email" type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="Email" className="w-full px-4 py-3 bg-white/10 border border-purple-300/30 rounded-lg text-white placeholder-purple-200/50 focus:outline-none focus:ring-2 focus:ring-purple-500" required />
+          <label htmlFor="reg-phone" className="block text-sm font-medium text-purple-200 mb-1">Phone (optional)</label>
+          <input id="reg-phone" type="tel" value={phone} onChange={e => setPhone(e.target.value)} placeholder="07XX XXX XXX" className="w-full px-4 py-3 bg-white/10 border border-purple-300/30 rounded-lg text-white placeholder-purple-200/50 focus:outline-none focus:ring-2 focus:ring-purple-500" />
           
-          <select value={gender} onChange={e => setGender(e.target.value)} className="w-full px-4 py-3 bg-white/10 border border-purple-300/30 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500">
+          <label htmlFor="reg-gender" className="block text-sm font-medium text-purple-200 mb-1">Gender</label>
+          <select id="reg-gender" value={gender} onChange={e => setGender(e.target.value)} className="w-full px-4 py-3 bg-white/10 border border-purple-300/30 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500">
             <option value="MALE" className="bg-gray-800">Male</option>
             <option value="FEMALE" className="bg-gray-800">Female</option>
           </select>
 
-          <select value={role} onChange={e => setRole(e.target.value)} className="w-full px-4 py-3 bg-white/10 border border-purple-300/30 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500">
+          <label htmlFor="reg-role" className="block text-sm font-medium text-purple-200 mb-1">I am a</label>
+          <select id="reg-role" value={role} onChange={e => setRole(e.target.value)} className="w-full px-4 py-3 bg-white/10 border border-purple-300/30 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500">
             {ROLES.map(r => <option key={r.value} value={r.value} className="bg-gray-800">{r.label}</option>)}
           </select>
 
           <div className="relative">
-            <input type={showPassword ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)} placeholder="Password (min 8 chars)" className="w-full px-4 py-3 bg-white/10 border border-purple-300/30 rounded-lg text-white placeholder-purple-200/50 pr-12 focus:outline-none focus:ring-2 focus:ring-purple-500" required />
-            <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-purple-300 hover:text-white" aria-label="Toggle password">
+            <label htmlFor="reg-password" className="block text-sm font-medium text-purple-200 mb-1">Password (min 8 chars)</label>
+            <input id="reg-password" type={showPassword ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)} placeholder="Password" className="w-full px-4 py-3 bg-white/10 border border-purple-300/30 rounded-lg text-white placeholder-purple-200/50 pr-12 focus:outline-none focus:ring-2 focus:ring-purple-500" required />
+            <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-1 top-1/2 -translate-y-1/2 p-2 text-purple-300 hover:text-white" aria-label="Toggle password">
               {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
             </button>
           </div>
@@ -71,7 +77,7 @@ export default function RegisterPage() {
             <label htmlFor="terms" className="text-sm text-purple-200/80">I accept the <a href="/terms" className="text-purple-300 underline">Terms</a> and <a href="/privacy" className="text-purple-300 underline">Privacy Policy</a>.</label>
           </div>
 
-          {error && <p className="text-red-400 text-sm">{error}</p>}
+          {error && <p role="alert" className="text-red-400 text-sm">{error}</p>}
           <button type="submit" className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold py-3 rounded-lg shadow-md hover:opacity-90 transition">Register</button>
         </form>
 

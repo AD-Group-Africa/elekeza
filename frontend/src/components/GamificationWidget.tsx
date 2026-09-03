@@ -4,8 +4,15 @@ import { Trophy } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { api } from '@/lib/api';
 
+interface GamificationData {
+  level: number;
+  points: number;
+  nextLevelPoints: number;
+  achievements?: string[];
+}
+
 export default function GamificationWidget() {
-  const [data, setData] = useState<any>(null);
+  const [data, setData] = useState<GamificationData | null>(null);
 
   useEffect(() => {
     api.get('/gamification/student')
@@ -25,9 +32,9 @@ export default function GamificationWidget() {
       </div>
       <div className="text-4xl font-extrabold mb-2">{data.points} pts</div>
       <div className="text-sm opacity-80 mb-3">{data.nextLevelPoints} pts to next level</div>
-      {data.achievements?.length > 0 && (
+      {data.achievements && data.achievements.length > 0 && (
         <div className="flex flex-wrap gap-2 mt-2">
-          {data.achievements.map((a: string) => (
+          {(data.achievements as string[]).map((a: string) => (
             <span key={a} className="bg-white/20 rounded-full px-2 py-1 text-xs font-medium">?? {a}</span>
           ))}
         </div>

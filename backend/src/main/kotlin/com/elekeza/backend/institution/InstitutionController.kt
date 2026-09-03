@@ -27,6 +27,12 @@ class InstitutionController(
         return ResponseEntity.ok(result)
     }
 
+    @GetMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    fun listInstitutions(): ResponseEntity<List<Institution>> {
+        return ResponseEntity.ok(institutionService.listInstitutions())
+    }
+
     @GetMapping("/{institutionId}/students")
     @PreAuthorize("hasAnyRole('ADMIN', 'SCHOOL_ADMIN')")
     fun getStudents(@PathVariable institutionId: Long): ResponseEntity<List<InstitutionService.StudentSummary>> {

@@ -40,12 +40,12 @@ class LessonPersistenceService(
             LessonSection().apply {
                 this.lesson         = savedLesson
                 this.sequenceNumber = idx + 1
-                this.content        = "${aiSection.header}\n\n${aiSection.content}"
+                this.content        = "${aiSection.heading}\n\n${aiSection.body}"
             }
         }
         lessonSectionRepository.saveAll(sections)
 
-        val keyTerms = lessonJson.terms.map { aiTerm ->
+        val keyTerms = lessonJson.keyTerms.map { aiTerm ->
             KeyTerm().apply {
                 this.lesson     = savedLesson
                 this.term       = aiTerm.term

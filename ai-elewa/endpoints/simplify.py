@@ -6,11 +6,12 @@ from models.requests import SimplifyTextRequest, SimplifyImageRequest
 from models.responses import LessonJSON
 from models.errors import AIServiceError, ErrorResponse, ERROR_EMPTY_CONTENT, ERROR_OVERSIZED, ERROR_NON_ENGLISH
 from utils.error_handler import error_json_response
+from utils.learner_messages import attach_learner_message
 import config
 from pipeline.stage1_profile import build_system_prompt
 from pipeline.stage2_simplify import simplify
 from pipeline.stage3_verify import verify
-from pipeline.stage4_concepts import extract_concepts
+from pipeline.stage4_concepts import extract_concepts, measure_readability, standardise_visual_hints
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -59,6 +60,8 @@ async def _run_pipeline(raw_text: str, learner_context) -> LessonJSON:
         learner_context=learner_context,
     )
     lesson = extract_concepts(lesson)
+    lesson = measure_readability(lesson, learner_context)
+    lesson = standardise_visual_hints(lesson, learner_context)
     return lesson
 
 
@@ -70,15 +73,16 @@ async def simplify_text(request: SimplifyTextRequest):
         return lesson
 
     except AIServiceError as e:
+        attach_learner_message(e.error_response, request.learner_context.cognitive_profiles)
         return error_json_response(e.error_response)
 
     except Exception as e:
         logger.error(f"Unhandled error in /ai/simplify/text: {e}", exc_info=True)
-        return error_json_response(ErrorResponse(
+        return error_json_response(attach_learner_message(ErrorResponse(
             error_code="SCHEMA_INVALID",
             message="An unexpected error occurred. Please try again.",
             stage="simplify_text",
-        ))
+        ), request.learner_context.cognitive_profiles))
 
 
 @router.post("/ai/simplify/image", response_model=LessonJSON)
@@ -94,13 +98,14 @@ async def simplify_image(request: SimplifyImageRequest):
         return lesson
 
     except AIServiceError as e:
+        attach_learner_message(e.error_response, request.learner_context.cognitive_profiles)
         return error_json_response(e.error_response)
 
     except Exception as e:
         logger.error(f"Unhandled error in /ai/simplify/image: {e}", exc_info=True)
-        return error_json_response(ErrorResponse(
+        return error_json_response(attach_learner_message(ErrorResponse(
             error_code="SCHEMA_INVALID",
             message="An unexpected error occurred. Please try again.",
             stage="simplify_image",
-        ))
+        ), request.learner_context.cognitive_profiles))
 

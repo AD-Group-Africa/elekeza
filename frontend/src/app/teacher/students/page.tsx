@@ -20,7 +20,7 @@ export default function StudentsPage() {
   const [newName, setNewName] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [newSneType, setNewSneType] = useState('NONE');
-  const [message, setMessage] = useState('');
+  const [message, setMessage] = useState(''); const [adding, setAdding] = useState(false);
 
   const fetchStudents = async () => {
     try {
@@ -37,7 +37,7 @@ export default function StudentsPage() {
     fetchStudents();
   }, []);
 
-  const handleAdd = async (e: React.FormEvent) => {
+  const handleAdd = async (e: React.FormEvent) => { if (adding) return; setAdding(true);
     e.preventDefault();
     try {
       await api.post('/teacher/student', {
@@ -51,10 +51,10 @@ export default function StudentsPage() {
       setNewPassword('');
       setNewSneType('NONE');
       setShowForm(false);
-      setMessage('Student added successfully!');
+      setAdding(false); setMessage('Student added successfully!');
       fetchStudents();
     } catch (err) {
-      setMessage('Failed to add student.');
+      setAdding(false); setMessage('Failed to add student.');
     }
   };
 
@@ -88,7 +88,7 @@ export default function StudentsPage() {
               <option value="AUTISM">Autism</option>
               <option value="INTELLECTUAL">Intellectual Disability</option>
             </select>
-            <button type="submit" className="bg-purple-600 text-white px-6 py-2 rounded-lg">Add</button>
+            <button type="submit" disabled={adding} className="bg-purple-600 text-white px-6 py-2 rounded-lg disabled:opacity-50">{adding ? "Adding…" : "Add"}</button>
           </form>
           {message && <p className="text-purple-300 text-sm">{message}</p>}
         </div>
@@ -106,11 +106,11 @@ export default function StudentsPage() {
           />
         </div>
         {loading ? (
-          <p className="text-purple-300">Loading…</p>
+          <p className="text-purple-300">Loadingâ€¦</p>
         ) : filtered.length === 0 ? (
           <div className="text-center py-8">
             <User size={48} className="text-purple-400 mx-auto mb-4" />
-            <p className="text-purple-200">No students found.</p>
+            <p className="text-purple-200">No students found.</p><button onClick={() => setShowForm(true)} className="mt-3 bg-purple-600 text-white px-4 py-2 rounded-lg">Add Student</button>
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -140,3 +140,8 @@ export default function StudentsPage() {
     </div>
   );
 }
+
+
+
+
+

@@ -159,3 +159,15 @@ body {
   --text-muted: #A98467;
   --accent: #F4845F;
 }
+
+/* Chart tooltip contrast (WCAG 1.4.3) */
+.recharts-default-tooltip {
+  background-color: #1e1b2e !important;
+  border: 1px solid rgba(167, 139, 250, 0.35) !important;
+}
+.recharts-default-tooltip .recharts-tooltip-label {
+  color: #e9d5ff !important;
+}
+.recharts-default-tooltip .recharts-tooltip-item {
+  color: #c4b5fd !important;
+}

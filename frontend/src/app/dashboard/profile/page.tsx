@@ -6,8 +6,15 @@ import SidebarLayout from '@/components/layout/SidebarLayout';
 import { User, Mail, Shield, BookOpen, Clock, Settings, Activity } from 'lucide-react';
 import Link from 'next/link';
 
+interface ProfileData {
+  name: string;
+  email: string;
+  role: string;
+  learnerId?: string | number;
+}
+
 export default function ProfilePage() {
-  const [profile, setProfile] = useState<any>(null);
+  const [profile, setProfile] = useState<ProfileData | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

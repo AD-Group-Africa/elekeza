@@ -22,12 +22,14 @@ class AuthService(
         if (userRepository.existsByEmail(emailClean)) {
             throw ResponseStatusException(HttpStatus.CONFLICT, "Email already registered")
         }
-        val role = try { UserRole.valueOf(req.role?.uppercase() ?: "STUDENT") } catch (e: Exception) { UserRole.STUDENT }
+        if (!req.termsAccepted) {
+            throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Terms must be accepted")
+        }
         val user = User(
             email = emailClean,
             name = req.name.trim(),
             password = passwordEncoder.encode(req.password),
-            role = role,
+            role = UserRole.STUDENT,
             gender = req.gender,
             phone = req.phone
         )

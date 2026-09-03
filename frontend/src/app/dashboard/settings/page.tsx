@@ -105,13 +105,16 @@ export default function SettingsPage() {
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
-    const saved = localStorage.getItem('elekeza-settings');
-    if (saved) {
-      try {
-        setSettings({ ...defaultSettings, ...JSON.parse(saved) });
-      } catch {}
-    }
-    setMounted(true);
+    const t = setTimeout(() => {
+      const saved = localStorage.getItem('elekeza-settings');
+      if (saved) {
+        try {
+          setSettings({ ...defaultSettings, ...JSON.parse(saved) });
+        } catch {}
+      }
+      setMounted(true);
+    }, 0);
+    return () => clearTimeout(t);
   }, []);
 
   useEffect(() => {

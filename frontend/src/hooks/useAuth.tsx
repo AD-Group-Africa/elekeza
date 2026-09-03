@@ -9,7 +9,6 @@ interface User {
   email: string;
   name: string;
   role: string;
-  accessToken: string;
   title?: string;
   gender?: string;
   cognitiveProfiles?: string[];
@@ -32,21 +31,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
 
   useEffect(() => {
-    const token = localStorage.getItem('accessToken');
-    if (token) {
-      api.get('/auth/me')
-        .then(res => setUser({ ...res.data, accessToken: token }))
-        .catch(() => localStorage.removeItem('accessToken'))
-        .finally(() => setLoading(false));
-    } else {
-      setLoading(false);
-    }
+    void api.get('/auth/csrf').finally(() => {
+      api.get('/auth/me').then(res => setUser(res.data)).catch(() => undefined).finally(() => setLoading(false));
+    });
   }, []);
 
   const login = useCallback(async (email: string, password: string) => {
     const res = await api.post('/auth/login', { email, password });
     const userData = res.data;
-    localStorage.setItem('accessToken', userData.accessToken);
     setUser(userData);
     switch (userData.role) {
       case 'TEACHER': router.push('/teacher'); break;
@@ -60,17 +52,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [router]);
 
   const register = useCallback(async (email: string, password: string, name: string, phone: string, role: string, termsAccepted: boolean, gender?: string) => {
-    await api.post('/auth/register', { email, password, name, phone, role, termsAccepted, gender });
+    await api.post('/auth/register', { email, password, name, phone, termsAccepted, gender });
     await login(email, password);
   }, [login]);
 
   const loginWithGoogle = useCallback(async () => {
-    alert('Google Sign-In coming soon');
+    // Google Sign-In will be available in a future release;
   }, []);
 
   const logout = useCallback(async () => {
     try { await api.post('/auth/logout'); } catch {}
-    localStorage.removeItem('accessToken');
     setUser(null);
     router.push('/login');
   }, [router]);
@@ -83,4 +74,5 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 }
 
 export const useAuth = () => useContext(AuthContext);
+
 

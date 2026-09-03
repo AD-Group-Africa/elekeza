@@ -3,10 +3,19 @@
 import { useState, useEffect } from 'react';
 import api from '@/lib/axios';
 import { MessageSquare, Send } from 'lucide-react';
+import Toast from '@/components/Toast';
+
+interface MessageRow {
+  sender: string;
+  message: string;
+  timestamp: string;
+}
 
 export default function GuardianCommunication() {
-  const [messages, setMessages] = useState<any[]>([]);
+  const [messages, setMessages] = useState<MessageRow[]>([]);
   const [newMsg, setNewMsg] = useState('');
+  const [sending, setSending] = useState(false);
+  const [toast, setToast] = useState('');
 
   const fetchMessages = async () => {
     try {
@@ -22,13 +31,17 @@ export default function GuardianCommunication() {
   }, []);
 
   const handleSend = async () => {
-    if (!newMsg.trim()) return;
+    if (!newMsg.trim() || sending) return;
+    setSending(true);
     try {
       await api.post('/guardian/messages', { recipient: 'teacher', message: newMsg });
       setNewMsg('');
+      setToast('Message sent!');
       fetchMessages();
     } catch (err) {
-      console.error(err);
+      setToast('Failed to send message.');
+    } finally {
+      setSending(false);
     }
   };
 
@@ -60,10 +73,15 @@ export default function GuardianCommunication() {
           placeholder="Type a message to the teacher…"
           className="flex-1 px-4 py-3 bg-white/10 border border-purple-300/30 rounded-lg text-white placeholder-purple-200/50 focus:outline-none focus:ring-2 focus:ring-purple-500"
         />
-        <button onClick={handleSend} className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-2 rounded-lg">
-          <Send size={18} />
+        <button
+          onClick={handleSend}
+          disabled={sending || !newMsg.trim()}
+          className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-2 rounded-lg disabled:opacity-50"
+        >
+          {sending ? 'Sending…' : <Send size={18} />}
         </button>
       </div>
+      {toast && <Toast message={toast} onClose={() => setToast('')} />}
     </div>
   );
 }

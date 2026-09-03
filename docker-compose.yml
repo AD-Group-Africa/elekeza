@@ -1,13 +1,11 @@
-﻿version: "3.9"
-
-x-logging: &default-logging
+﻿x-logging: &default-logging
   driver: json-file
   options:
     max-size: "50m"
     max-file: "3"
 
-  services:
-    postgres:
+services:
+  postgres:
       image: postgres:16-alpine
       restart: unless-stopped
       environment:
@@ -15,22 +13,22 @@ x-logging: &default-logging
         POSTGRES_USER: ${DB_USER}
         POSTGRES_PASSWORD: ${DB_PASSWORD}
       volumes:
-      - postgres_data:/var/lib/postgresql/data
-    ports:
-      - "127.0.0.1:5432:5432"
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    deploy:
-      resources:
-        limits:
-          cpus: "2"
-          memory: 4G
-        reservations:
-          memory: 1G
-    logging: *default-logging
+        - postgres_data:/var/lib/postgresql/data
+      ports:
+        - "127.0.0.1:5432:5432"
+      healthcheck:
+        test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+        interval: 10s
+        timeout: 5s
+        retries: 5
+      deploy:
+        resources:
+          limits:
+            cpus: "2"
+            memory: 4G
+          reservations:
+            memory: 1G
+      logging: *default-logging
 
   redis:
     image: redis:7-alpine
@@ -67,9 +65,12 @@ x-logging: &default-logging
       REDIS_HOST: redis
       REDIS_PASSWORD: ${REDIS_PASSWORD}
       R2_ENDPOINT: ${R2_ENDPOINT}
-      R2_ACCESS_KEY: ${R2_ACCESS_KEY}
-      R2_SECRET_KEY: ${R2_SECRET_KEY}
-      R2_BUCKET: elekeza-uploads
+      CLOUDFLARE_R2_ACCOUNT_ID: ${CLOUDFLARE_R2_ACCOUNT_ID}
+      CLOUDFLARE_R2_BUCKET_NAME: ${CLOUDFLARE_R2_BUCKET_NAME}
+      CLOUDFLARE_R2_ACCESS_KEY_ID: ${CLOUDFLARE_R2_ACCESS_KEY_ID}
+      CLOUDFLARE_R2_SECRET_ACCESS_KEY: ${CLOUDFLARE_R2_SECRET_ACCESS_KEY}
+      AFRICA_TALKING_API_KEY: ${AFRICA_TALKING_API_KEY}
+      AFRICA_TALKING_SENDER_ID: ${AFRICA_TALKING_SENDER_ID}
       MAIL_HOST: ${MAIL_HOST}
       MAIL_PORT: ${MAIL_PORT}
       MAIL_USERNAME: ${MAIL_USERNAME}
@@ -109,7 +110,7 @@ x-logging: &default-logging
     environment:
       AI_PROVIDER: ${AI_PROVIDER}
       AI_API_KEY: ${AI_API_KEY}
-      AI_INTERNAL_KEY: ${AI_INTERNAL_SECRET}
+      INTERNAL_SECRET: ${AI_INTERNAL_SECRET}
       LANGFUSE_SECRET_KEY: ${LANGFUSE_SECRET_KEY}
       LANGFUSE_PUBLIC_KEY: ${LANGFUSE_PUBLIC_KEY}
       LANGFUSE_HOST: ${LANGFUSE_HOST}

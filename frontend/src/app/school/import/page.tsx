@@ -15,7 +15,7 @@ export default function ImportPage() {
   const [err, setErr]   = useState('');
   const ref = useRef<HTMLInputElement>(null);
 
-  const institutionId = (user as any)?.institutionId ?? 1;
+  const institutionId = (user as { institutionId?: number } | null)?.institutionId ?? 1;
 
   const onDrop = (e:React.DragEvent) => {
     e.preventDefault(); setOver(false);
@@ -33,8 +33,9 @@ export default function ImportPage() {
       const res = await api.post(`/institutions/${institutionId}/students/import`, fd,
         { headers: {'Content-Type':'multipart/form-data'} });
       setResult(res.data);
-    } catch(e:any) {
-      setErr(e.response?.data?.message || 'Import failed — check your CSV format and try again.');
+    } catch (e) {
+      const axiosErr = e as { response?: { data?: { message?: string } } };
+      setErr(axiosErr.response?.data?.message || 'Import failed — check your CSV format and try again.');
     } finally { setBusy(false); }
   };
 

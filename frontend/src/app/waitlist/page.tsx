@@ -25,7 +25,7 @@ export default function WaitlistPage() {
         {submitted ? (
           <div className="text-center text-purple-200">
             <h2 className="text-2xl font-bold mb-2">Thank you!</h2>
-            <p>We'll be in touch.</p>
+            <p>We&apos;ll be in touch.</p>
           </div>
         ) : (
           <>

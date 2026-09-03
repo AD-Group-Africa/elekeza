@@ -4,9 +4,20 @@ import { useEffect, useState } from 'react';
 import SidebarLayout from '@/components/layout/SidebarLayout';
 import { api } from '@/lib/api';
 
+interface DashboardProgress {
+  completedCount: number;
+  averageScore: number;
+}
+
+interface LessonRow {
+  id: number;
+  title: string;
+  status: string;
+}
+
 export default function StudentDashboard() {
-  const [progress, setProgress] = useState<any>(null);
-  const [lessons, setLessons] = useState<any[]>([]);
+  const [progress, setProgress] = useState<DashboardProgress | null>(null);
+  const [lessons, setLessons] = useState<LessonRow[]>([]);
 
   useEffect(() => {
     api.get('/progress/dashboard')
@@ -47,7 +58,7 @@ export default function StudentDashboard() {
 
       <h2 className="text-2xl font-bold text-white mb-4">Recent Lessons</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {lessons.map((lesson: any) => (
+        {lessons.map((lesson: LessonRow) => (
           <div key={lesson.id} className="card cursor-pointer hover:shadow-xl transition"
                onClick={() => window.location.href = `/lesson/${lesson.id}`}>
             <h3 className="text-lg font-semibold text-blue-900">{lesson.title}</h3>
