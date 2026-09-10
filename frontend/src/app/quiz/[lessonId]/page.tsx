@@ -6,6 +6,8 @@ import api from '@/lib/axios';
 import SidebarLayout from '@/components/layout/SidebarLayout';
 import { useOfflineSync } from '@/hooks/useOfflineSync';
 import { ChevronRight, ChevronLeft, SkipForward, Check, X, Award, RefreshCw, WifiOff } from 'lucide-react';
+import Celebration, { CelebrationData } from '@/components/learner/Celebration';
+import LearningCompanion from '@/components/learner/LearningCompanion';
 
 interface QuizQuestion {
   id: string | number;
@@ -45,6 +47,7 @@ export default function QuizPage() {
   const [feedback, setFeedback] = useState<FeedbackRow[]>([]);
   const [showReview, setShowReview] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [celebration, setCelebration] = useState<CelebrationData | null>(null);
   const [offlineNotice, setOfflineNotice] = useState(false);
   const { isOnline, pendingCount, queueAnswer } = useOfflineSync();
   const questionStart = useRef(Date.now());
@@ -85,7 +88,11 @@ export default function QuizPage() {
         },
       }));
       setTimeout(() => {
-        if (currentQ < (quiz?.questions?.length || 1) - 1) setCurrentQ(prev => prev + 1);
+        setCurrentQ(prev => {
+          // If the learner already navigated (Next/Skip), don't double-advance.
+          if (prev !== currentQ) return prev;
+          return Math.min(prev + 1, (quiz?.questions?.length || 1) - 1);
+        });
       }, 700);
       return;
     }
@@ -107,9 +114,12 @@ export default function QuizPage() {
       console.error(err);
       setResults(prev => ({ ...prev, [currentQ]: { correct: false } }));
     }
-    // Auto-advance after the server responds.
+    // Auto-advance after the server responds (skip if the learner already navigated).
     setTimeout(() => {
-      if (currentQ < (quiz?.questions?.length || 1) - 1) setCurrentQ(prev => prev + 1);
+      setCurrentQ(prev => {
+        if (prev !== currentQ) return prev;
+        return Math.min(prev + 1, (quiz?.questions?.length || 1) - 1);
+      });
     }, 700);
   };
 
@@ -131,6 +141,27 @@ export default function QuizPage() {
       setScore(res.data.score);
       setFeedback(res.data.feedback || []);
       setSubmitted(true);
+      // Reward moment: fetch the learner's (already updated) gamification
+      // state and celebrate. The XP shown matches the backend economy
+      // (GamificationController: 10 points per completed quiz). Never blocks
+      // on failure — celebration is enhancement, not requirement.
+      try {
+        const g = (await api.get('/gamification/student')).data;
+        const stars = res.data.score >= 90 ? 5 : res.data.score >= 75 ? 4 : res.data.score >= 60 ? 3 : res.data.score >= 40 ? 2 : 1;
+        const prevLevel = Math.floor((g.points - 10) / 50) + 1;
+        setCelebration({
+          score: res.data.score,
+          stars,
+          xpEarned: 10,
+          newAchievements: (g.achievements || []).slice(-2),
+          levelUp: g.level > prevLevel ? { level: g.level, levelName: g.levelName } : null,
+          companionMessage: res.data.score >= 90
+            ? 'Wow! You really know this. Shall we try another adventure?'
+            : res.data.score >= 60
+              ? 'Strong work! Every try makes you stronger.'
+              : 'Well done for finishing — that is how learning grows!',
+        });
+      } catch { /* celebration is optional */ }
     } catch (err) {
       console.error(err);
     } finally {
@@ -153,6 +184,7 @@ export default function QuizPage() {
 
   return (
     <SidebarLayout>
+      {celebration && <Celebration data={celebration} />}
       <div className="max-w-2xl mx-auto space-y-8">
         {!isOnline && (
           <div role="status" className="flex items-center gap-2 text-sm px-4 py-2 rounded-lg bg-amber-500/20 text-amber-200">
@@ -173,7 +205,7 @@ export default function QuizPage() {
 
         {submitted ? (
           <div className="glass-card p-8 text-center">
-            <Award size={64} className="text-yellow-400 mx-auto mb-4" />
+            <LearningCompanion state="success" size={96} className="mx-auto" />
             <h2 className="text-2xl font-bold text-purple-200 mb-2">Quiz Complete!</h2>
             <p className="text-3xl font-bold text-purple-100">{score}%</p>
             <p className="text-purple-300 mt-2">Great effort! Keep up the good work.</p>

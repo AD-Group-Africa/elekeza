@@ -58,6 +58,16 @@ body {
 .reduced-motion * { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
 .large-text { font-size: 1.25rem; }
 
+/* Per-student reading presentation (server-backed profile) */
+.elekeza-spacious .glass-card p {
+  max-width: 68ch;
+  line-height: 1.9;
+  margin-bottom: 1rem;
+}
+.elekeza-spacious .glass-card {
+  padding: 1.5rem;
+}
+
 /* Accessibility: focus indicators */
 *:focus-visible { outline: 2px solid #a78bfa; outline-offset: 2px; }
 

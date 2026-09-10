@@ -4,7 +4,7 @@ import SidebarLayout from '@/components/layout/SidebarLayout';
 import { api } from '@/lib/api';
 import { useAuth } from '@/hooks/useAuth';
 
-interface Result { status:string; totalRows:number; succeededRows:number; failedRows:number; errors:{row:number;error:string}[]; }
+interface Result { status:string; totalRows:number; succeededRows:number; failedRows:number; errors:{row:number;error:string}[]; guardianCredentials?:{email:string;tempPassword:string;relationship:string;studentEmail:string}[]; }
 
 export default function ImportPage() {
   const { user }    = useAuth();
@@ -15,7 +15,8 @@ export default function ImportPage() {
   const [err, setErr]   = useState('');
   const ref = useRef<HTMLInputElement>(null);
 
-  const institutionId = (user as { institutionId?: number } | null)?.institutionId ?? 1;
+  // The backend must provide the tenant context; no hardcoded fallback.
+  const institutionId = (user as { institutionId?: number } | null)?.institutionId;
 
   const onDrop = (e:React.DragEvent) => {
     e.preventDefault(); setOver(false);
@@ -54,6 +55,12 @@ export default function ImportPage() {
   return (
     <SidebarLayout>
       <div className="max-w-3xl mx-auto">
+        {institutionId === undefined && (
+          <div className="card mb-6 border-amber-400/40 bg-amber-50 text-amber-900 p-4">
+            <p className="font-semibold">Your account is not linked to a school.</p>
+            <p className="text-sm mt-1">Student imports belong to a school. Register or sign in with a school admin account to import students.</p>
+          </div>
+        )}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-white">Import Students</h1>
           <p className="text-blue-200 mt-1">Add multiple learners at once from a spreadsheet</p>
@@ -124,7 +131,7 @@ export default function ImportPage() {
             </div>
             {err && <p className="text-red-600 text-sm mt-2">{err}</p>}
             {file && (
-              <button onClick={upload} disabled={busy}
+              <button onClick={upload} disabled={busy || institutionId === undefined}
                 className="btn-primary w-full mt-4 disabled:opacity-60">
                 {busy?'Importing…':`Import ${file.name}`}
               </button>
@@ -135,6 +142,21 @@ export default function ImportPage() {
         {/* Results */}
         {result && (
           <div className="card mt-4">
+            {result.guardianCredentials && result.guardianCredentials.length > 0 && (
+              <div className="mb-5 border border-purple-200 rounded-xl p-4 bg-purple-50">
+                <h3 className="font-semibold text-purple-900 mb-1">Guardian logins created</h3>
+                <p className="text-xs text-purple-300 mb-3">Share these one-time credentials with each guardian. They can change their password after signing in.</p>
+                <ul className="space-y-2">
+                  {result.guardianCredentials.map(g => (
+                    <li key={g.email + g.studentEmail} className="text-sm bg-white/70 rounded-lg px-3 py-2 flex flex-wrap gap-x-4 gap-y-1">
+                      <span className="font-medium text-gray-800">{g.email}</span>
+                      <span className="font-mono text-purple-700">temp password: {g.tempPassword}</span>
+                      <span className="text-purple-400 text-xs">{g.relationship.toLowerCase().replace('_', ' ')} of {g.studentEmail}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
             <div className="flex items-center gap-3 mb-5">
               <span className="text-4xl">{result.failedRows===0?'✅':'⚠️'}</span>
               <div>

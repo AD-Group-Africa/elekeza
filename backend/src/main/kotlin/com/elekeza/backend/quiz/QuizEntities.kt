@@ -2,6 +2,8 @@
 
 import jakarta.persistence.*
 import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.data.jpa.repository.Query
+import org.springframework.data.repository.query.Param
 import org.springframework.stereotype.Repository
 import java.time.LocalDateTime
 
@@ -72,6 +74,7 @@ data class QuizAnswer(
 interface QuizRepository : JpaRepository<Quiz, Long> {
     fun findByContentId(contentId: Long): Quiz?
     fun findByContentIdAndUserId(contentId: Long, userId: Long): Quiz?
+    fun findByContentIdIn(contentIds: Collection<Long>): List<Quiz>
 }
 
 @Repository
@@ -82,6 +85,13 @@ interface QuizQuestionRepository : JpaRepository<QuizQuestion, Long> {
 @Repository
 interface QuizAttemptRepository : JpaRepository<QuizAttempt, Long> {
     fun findByQuizIdAndUserId(quizId: Long, userId: Long): List<QuizAttempt>
+
+    @Query("SELECT COUNT(a) FROM QuizAttempt a WHERE a.userId = :userId AND a.completed = :completed")
+    fun countByUserIdAndCompleted(@Param("userId") userId: Long, @Param("completed") completed: Boolean): Long
+
+    fun findByUserIdIn(ids: Collection<Long>): List<QuizAttempt>
+
+    fun findByUserIdInAndCompletedFalse(ids: Collection<Long>): List<QuizAttempt>
 }
 
 @Repository

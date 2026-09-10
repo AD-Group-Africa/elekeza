@@ -51,7 +51,7 @@ mpesa:
   consumer-key: ${MPESA_CONSUMER_KEY:}
   consumer-secret: ${MPESA_CONSUMER_SECRET:}
   passkey: ${MPESA_PASSKEY:}
-  shortcode: ${MPESA_SHORTCODE:}
+  shortcode: ${MPESA_SHORTCODE:174379}
   callback-url: ${MPESA_CALLBACK_URL:http://localhost:8080/api/payments/callback}
   environment: sandbox
 

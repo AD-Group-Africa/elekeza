@@ -498,11 +498,11 @@ For licensing inquiries, contact the team.
 
 ## Team
 
-| Role | Name | Owns |
-|------|------|------|
-| **Backend & Architecture** | Harrison | Spring Boot, PostgreSQL, REST APIs, JWT auth, DevOps, security |
-| **Frontend & Accessibility** | Victor | Next.js, Tailwind CSS, accessibility suite, mobile UI, PWA |
-| **AI & Pipeline** | Alvin | FastAPI, LLM providers, prompt engineering, 4-stage pipeline |
+| Role | Name         | Owns |
+|------|--------------|------|
+| **Backend & Architecture** | Harrison Muturi| Spring Boot, PostgreSQL, REST APIs, JWT auth, DevOps, security |
+| **Frontend & Accessibility** | Victor Mwaura| Next.js, Tailwind CSS, accessibility suite, mobile UI, PWA |
+| **AI & Pipeline** | Alvin Muchiri| FastAPI, LLM providers, prompt engineering, 4-stage pipeline |
 
 ---
 

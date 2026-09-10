@@ -1,12 +1,38 @@
 ﻿import axios, { AxiosInstance } from 'axios'
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? '/api'
+// Always call the Next.js proxy (same-origin '/api'): next.config.ts rewrites
+// /api/* to the backend. An absolute browser-side base (NEXT_PUBLIC_API_URL)
+// would make these calls cross-origin, so the CSRF cookie issued via the proxy
+// would never reach the API origin and every write would fail with 403.
+const BASE_URL = '/api'
 
 export const api: AxiosInstance = axios.create({
   baseURL:         BASE_URL,
   headers:         { 'Content-Type': 'application/json' },
   withCredentials: true,   // send HttpOnly cookies (refresh token)
 })
+
+// Spring Security's cookie-based CSRF token is single-use: every successful
+// state-changing request consumes it and the server deletes the cookie. Fetch
+// a fresh token before each non-GET request so writes (notifications,
+// uploads, onboarding, quiz answer/complete) work from the browser. CSRF
+// protection is preserved — the attacker still cannot read the token from
+// another origin or forge it. Mirrors the interceptor in src/lib/axios.ts.
+api.interceptors.request.use(async (config) => {
+  const method = (config.method || 'get').toUpperCase();
+  if (method === 'GET' || method === 'HEAD' || method === 'OPTIONS') return config;
+  try {
+    const { data } = await axios.get('/api/auth/csrf', { withCredentials: true });
+    if (data?.token) {
+      config.headers = config.headers || {};
+      config.headers['X-XSRF-TOKEN'] = data.token;
+    }
+  } catch {
+    // If the token cannot be fetched, let the request proceed — the server
+    // rejects with 403 when a token is required.
+  }
+  return config;
+});
 
 // On 401: rotate the HTTP-only access cookie, then retry once.
 api.interceptors.response.use(
@@ -112,6 +138,32 @@ export const analyticsAPI = {
   dashboard: () => api.get('/analytics/dashboard'),
 }
 // Payments
+export const examAPI = {
+  list: () => api.get('/exams'),
+  create: (payload: unknown) => api.post('/exams', payload),
+  get: (id: string | number) => api.get(`/exams/${id}`),
+  update: (id: string | number, payload: unknown) => api.put(`/exams/${id}`, payload),
+  publish: (id: string | number) => api.post(`/exams/${id}/publish`),
+  close: (id: string | number) => api.post(`/exams/${id}/close`),
+  remove: (id: string | number) => api.delete(`/exams/${id}`),
+  results: (id: string | number) => api.get(`/exams/${id}/results`),
+  integrity: (attemptId: string | number) => api.get(`/exams/attempts/${attemptId}/integrity`),
+  mark: (attemptId: string | number, questionId: number, marksAwarded: number, feedback?: string) =>
+    api.post(`/exams/attempts/${attemptId}/mark`, { questionId, marksAwarded, feedback }),
+  available: () => api.get('/exams/available'),
+  start: (id: string | number) => api.post(`/exams/${id}/start`),
+  saveAnswer: (attemptId: string | number, questionId: number, answer: string | null) =>
+    api.post(`/exams/attempts/${attemptId}/answers`, { questionId, answer }),
+  integrityEvent: (attemptId: string | number, eventType: string, detail?: string) =>
+    api.post(`/exams/attempts/${attemptId}/integrity`, { eventType, detail }),
+  submit: (attemptId: string | number, answers: Array<{ questionId: number; answer: string | null }>) =>
+    api.post(`/exams/attempts/${attemptId}/submit`, { answers }),
+  myResults: () => api.get('/exams/results'),
+  myResult: (attemptId: string | number) => api.get(`/exams/results/${attemptId}`),
+  resultDetail: (attemptId: string | number) => api.get(`/exams/results/${attemptId}`),
+  wardResults: (wardId: string | number) => api.get(`/exams/guardian/${wardId}/results`),
+}
+
 export const paymentsAPI = {
   stkPush: (phone: string, amount: number, reference: string) => api.post('/payments/stkpush', { phone, amount, reference }),
   revenue:  () => api.get('/payments/revenue'),

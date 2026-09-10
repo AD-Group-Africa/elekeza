@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.security.crypto.password.PasswordEncoder
+import org.springframework.web.server.ResponseStatusException
 
 /**
  * Regression test: school-admin onboarding must use the password the school
@@ -24,6 +25,12 @@ import org.springframework.security.crypto.password.PasswordEncoder
         "spring.profiles.active=dev",
         "ai.client.type=mock",
         "ai.internal-secret=test-internal-secret",
+        // Tests are authored against the dev profile's in-memory H2 demo seed.
+        // Pin the datasource explicitly so ambient SPRING_DATASOURCE_* env vars
+        // (e.g. GitLab CI's Postgres service) cannot redirect the context.
+        "spring.datasource.url=jdbc:h2:mem:elekeza;DB_CLOSE_DELAY=-1;MODE=PostgreSQL",
+        "spring.datasource.username=sa",
+        "spring.datasource.password=",
     ]
 )
 class InstitutionRegistrationTest {
@@ -78,7 +85,24 @@ class InstitutionRegistrationTest {
                     adminPassword = "short",
                 )
             )
-        }.isInstanceOf(IllegalArgumentException::class.java)
+        }.isInstanceOf(ResponseStatusException::class.java)
+            .extracting("statusCode")
+            .isEqualTo(org.springframework.http.HttpStatus.BAD_REQUEST)
+    }
+
+    @Test
+    fun `registerInstitution admin password error message stays explicit`() {
+        assertThatThrownBy {
+            service.registerInstitution(
+                InstitutionService.InstitutionRegistrationRequest(
+                    name = "Message Check School",
+                    adminEmail = "short-password-msg-test@elekeza.app",
+                    adminFirstName = "Test",
+                    adminLastName = "Principal",
+                    adminPassword = "short",
+                )
+            )
+        }.isInstanceOf(ResponseStatusException::class.java)
             .hasMessageContaining("at least 8 characters")
     }
 }

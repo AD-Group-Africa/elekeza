@@ -3,16 +3,14 @@
 import { useEffect, useState } from 'react';
 import api from '@/lib/axios';
 import SidebarLayout from '@/components/layout/SidebarLayout';
-import { BookOpen, Clock, BarChart3, Filter, Download, Wifi, WifiOff } from 'lucide-react';
+import { BookOpen, Wifi, WifiOff } from 'lucide-react';
 import Link from 'next/link';
 
 interface Lesson {
   id: number;
   title: string;
-  subject: string;
-  grade: string;
-  status: string;
-  // Add more fields as needed
+  score: number;
+  completed: boolean;
 }
 
 export default function StudentLessons() {
@@ -22,18 +20,18 @@ export default function StudentLessons() {
   const [search, setSearch] = useState('');
 
   useEffect(() => {
-    api.get('/content/list')  // Adjust if you have a student‑specific endpoint
+    // Learner-scoped endpoint: lessons the student has been assigned (LessonProgress rows)
+    api.get('/progress/lessons')
       .then(res => setLessons(res.data))
       .catch(console.error)
       .finally(() => setLoading(false));
   }, []);
 
   const filtered = lessons.filter(l => {
-    const matchFilter = filter === 'all' 
-      || (filter === 'inProgress' && l.status !== 'READY')
-      || (filter === 'completed' && l.status === 'COMPLETED');
-    const matchSearch = l.title.toLowerCase().includes(search.toLowerCase())
-      || l.subject.toLowerCase().includes(search.toLowerCase());
+    const matchFilter = filter === 'all'
+      || (filter === 'inProgress' && !l.completed)
+      || (filter === 'completed' && l.completed);
+    const matchSearch = l.title.toLowerCase().includes(search.toLowerCase());
     return matchFilter && matchSearch;
   });
 
@@ -103,19 +101,16 @@ export default function StudentLessons() {
                   <div className="w-full h-1 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full mb-3" />
                   <div className="flex-1">
                     <h3 className="text-lg font-semibold text-purple-200 group-hover:text-white transition">{lesson.title}</h3>
-                    <p className="text-purple-400 text-sm">{lesson.subject} · {lesson.grade}</p>
-                    <div className="flex items-center gap-2 mt-2">
-                      <Clock size={14} className="text-purple-400" />
-                      <span className="text-purple-400 text-xs">15 mins</span>
-                      <span className="text-purple-400 text-xs">·</span>
-                      <BarChart3 size={14} className="text-purple-400" />
-                      <span className="text-purple-400 text-xs">Easy</span>
-                    </div>
+                    <p className="text-purple-400 text-sm">{
+                      lesson.completed
+                        ? 'Completed · Score ' + Math.round(lesson.score) + '%'
+                        : 'In progress — assigned by your teacher'
+                    }</p>
                     <div className="mt-3 w-full bg-white/10 rounded-full h-1.5">
-                      <div className="bg-purple-600 h-1.5 rounded-full" style={{ width: lesson.status === 'COMPLETED' ? '100%' : '40%' }} />
+                      <div className="bg-purple-600 h-1.5 rounded-full" style={{ width: lesson.completed ? '100%' : '25%' }} />
                     </div>
                     <div className="flex items-center justify-between mt-2">
-                      <span className="text-purple-500 text-xs">{lesson.status === 'COMPLETED' ? 'Completed' : '40%'}</span>
+                      <span className="text-purple-500 text-xs">{lesson.completed ? 'Completed' : 'Not started'}</span>
                       {offline ? <WifiOff size={14} className="text-orange-400" /> : <Wifi size={14} className="text-green-400" />}
                     </div>
                   </div>

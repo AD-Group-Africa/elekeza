@@ -11,6 +11,9 @@ import java.time.LocalDateTime
 interface LearnerProfileRepository : JpaRepository<LearnerProfile, Long> {
     @Query("SELECT lp FROM LearnerProfile lp WHERE lp.user.id = :userId")
     fun findByUserId(@Param("userId") userId: Long): LearnerProfile?
+
+    @Query("SELECT lp FROM LearnerProfile lp WHERE lp.user.id IN :ids")
+    fun findByUserIdIn(@Param("ids") ids: Collection<Long>): List<LearnerProfile>
 }
 
 @Repository
@@ -40,4 +43,7 @@ interface LessonProgressRepository : JpaRepository<LessonProgress, Long> {
 
     @Query("SELECT p FROM LessonProgress p WHERE p.user.id = :userId AND p.completed = :completed")
     fun findByUserIdAndCompleted(@Param("userId") userId: Long, completed: Boolean): List<LessonProgress>
+
+    @Query("SELECT p FROM LessonProgress p WHERE p.user.id IN :ids")
+    fun findByUserIdIn(@Param("ids") ids: Collection<Long>): List<LessonProgress>
 }

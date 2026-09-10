@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import {
   LayoutDashboard, Users, BookOpen, ClipboardCheck, Upload, TrendingUp,
-  Calendar, User, Settings, FileText, MessageSquare, Menu, X, Building2, BrainCircuit, AlertTriangle
+  Calendar, User, Settings, FileText, MessageSquare, Menu, X, BrainCircuit, AlertTriangle, SlidersHorizontal
 } from 'lucide-react';
 import NotificationBell from '@/components/layout/NotificationBell';
 
@@ -16,6 +16,7 @@ const teacherItems = [
   { href: '/teacher/lessons', label: 'Lessons', icon: BookOpen },
   { href: '/teacher/assignments', label: 'Assignments', icon: ClipboardCheck },
   { href: '/teacher/content', label: 'Content', icon: Upload },
+  { href: '/teacher/exams', label: 'Exams', icon: FileText },
   { href: '/teacher/quiz-results', label: 'Quiz Results', icon: ClipboardCheck },
   { href: '/teacher/support', label: 'Support Signals', icon: AlertTriangle },
   { href: '/teacher/progress', label: 'Progress', icon: TrendingUp },
@@ -30,7 +31,9 @@ const studentItems = [
   { href: '/student-home', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/student-lessons', label: 'My Lessons', icon: BookOpen },
   { href: '/student-quizzes', label: 'Quizzes', icon: ClipboardCheck },
+  { href: '/student-exams', label: 'Exams', icon: FileText },
   { href: '/progress', label: 'Progress', icon: TrendingUp },
+  { href: '/learner/preferences', label: 'How I Learn', icon: SlidersHorizontal },
 ];
 
 const guardianItems = [

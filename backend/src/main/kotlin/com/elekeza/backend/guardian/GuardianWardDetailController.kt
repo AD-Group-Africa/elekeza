@@ -35,11 +35,14 @@ class GuardianWardDetailController(
         return ResponseEntity.ok(mapOf(
             "id" to learner.id,
             "name" to learner.name,
+            // Relationship label for this guardian-learner bond.
+            "relationship" to link.relationship,
             "sneType" to (profile?.sneType?.name ?: "NONE"),
             "lessonsCompleted" to completed.size,
             "lessonsPending" to (progress.size - completed.size),
             "averageScore" to avgScore,
-            "lastActive" to (progress.firstOrNull()?.completedAt?.toString() ?: ""),
+            // Latest *completed* activity — a pending row has no completedAt.
+            "lastActive" to (progress.mapNotNull { it.completedAt }.maxOrNull()?.toString() ?: ""),
             "recentQuizzes" to completed.takeLast(5).map { q ->
                 mapOf(
                     "lessonId" to q.contentId,

@@ -86,6 +86,9 @@ app:
   upload-dir: ${UPLOAD_DIR:uploads}
   max-upload-bytes: ${MAX_UPLOAD_BYTES:10485760}
   secure-cookies: ${SECURE_COOKIES:true}
+  login-rate-limit:
+    max-attempts: ${LOGIN_MAX_ATTEMPTS:5}
+    window-seconds: ${LOGIN_RATE_LIMIT_WINDOW_SECONDS:60}
 
 
 management:

@@ -33,7 +33,10 @@ class ContentController(
     private val MAX_FILE_SIZE = 10L * 1024 * 1024 // 10 MB
 
     // ── POST /api/content/upload/text ──────────────────────────────────────
+    // Educational content is created by teachers/school admins — learners
+    // consume it. Role-guard matches the file-upload path below.
     @PostMapping("/upload/text")
+    @PreAuthorize("hasAnyRole('TEACHER', 'SCHOOL_ADMIN', 'ADMIN')")
     fun uploadText(
         @RequestBody req: UploadTextRequest,
         @AuthenticationPrincipal user: User
@@ -71,6 +74,24 @@ class ContentController(
         val sneType: String? = null
     )
 
+    companion object {
+        /**
+         * Reduces any client-supplied filename to a flat, filesystem-safe
+         * name: path separators and control characters are removed, runs are
+         * collapsed and a fully-malicious name falls back to "file". The
+         * UUID prefix added by the caller guarantees uniqueness.
+         */
+        internal fun sanitizeStoredFileName(original: String): String {
+            val flattened = original
+                .replace(Regex("[^A-Za-z0-9._-]"), "-")
+                .replace(Regex("-+"), "-")
+                .trim('-')
+            // Never emit a bare-parent or blank segment even when the caller
+            // forgets the UUID prefix.
+            return flattened.takeIf { it.isNotBlank() && it != "." && it != ".." } ?: "file"
+        }
+    }
+
     // ── POST /api/content/upload/file ──────────────────────────────────────
     @PostMapping("/upload/file")
     @PreAuthorize("hasAnyRole('TEACHER', 'SCHOOL_ADMIN', 'ADMIN')")
@@ -95,13 +116,26 @@ class ContentController(
             )
         }
 
-        // 3. Generate storage name (UUID + sanitized original name) and save to local storage
-        val sanitizedName = originalFilename.replace(" ", "-").replace("\\", "-")
+        // 3. Generate storage name (UUID + flattened original name) and save to local storage.
+        // The stored name must never contain path separators or traversal
+        // sequences: it is a single flat filename inside uploadDir, no matter
+        // what the client supplied as the original filename.
+        val sanitizedName = sanitizeStoredFileName(originalFilename)
         val storageName = UUID.randomUUID().toString() + "-" + sanitizedName
         val uploadDir = File("uploads")
         uploadDir.mkdirs()
-        val targetPath = java.nio.file.Paths.get(uploadDir.path, storageName)
-        file.transferTo(targetPath.toFile())
+        // Absolute target: MultipartFile.transferTo resolves relative paths
+        // against Tomcat's temp repository, not the app's working directory.
+        val targetPath = java.nio.file.Paths.get(uploadDir.absolutePath, storageName)
+        try {
+            file.transferTo(targetPath.toFile())
+        } catch (e: java.io.IOException) {
+            logger.warn("Could not store uploaded file '{}': {}", originalFilename, e.message)
+            throw ResponseStatusException(
+                HttpStatus.BAD_REQUEST,
+                "The uploaded file could not be stored. Use a plain filename and try again."
+            )
+        }
 
         // 4. Extract readable text where the format allows it (txt/pdf/docx/doc)
         val rawText = textExtractor.extract(file, extension)

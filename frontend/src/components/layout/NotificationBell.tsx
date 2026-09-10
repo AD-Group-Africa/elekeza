@@ -8,6 +8,7 @@ interface NotificationItem {
   id: number;
   title: string;
   body: string;
+  createdAt?: string;
 }
 
 export default function NotificationBell() {
@@ -31,8 +32,15 @@ export default function NotificationBell() {
     const handler = (e: MouseEvent) => {
       if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
     };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setOpen(false);
+    };
     document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('mousedown', handler);
+      document.removeEventListener('keydown', onKey);
+    };
   }, []);
 
   const markRead = (id: number) => {
@@ -54,7 +62,8 @@ export default function NotificationBell() {
         )}
       </button>
       {open && (
-        <div className="absolute right-0 mt-2 w-80 rounded-xl border p-3 z-50 max-h-96 overflow-auto"
+        <div role="dialog" aria-label="Notifications"
+          className="absolute right-0 mt-2 w-80 rounded-xl border p-3 z-50 max-h-96 overflow-auto shadow-xl"
           style={{ background: 'var(--bg-card)', borderColor: 'var(--border-color)' }}>
           <p className="text-sm font-semibold text-purple-200 mb-2">Notifications</p>
           {items.length === 0 ? (
@@ -64,10 +73,16 @@ export default function NotificationBell() {
               <button
                 key={n.id}
                 onClick={() => markRead(n.id)}
+                title="Mark as read"
                 className="w-full text-left p-2 rounded-lg hover:bg-white/10 transition block"
               >
                 <p className="text-sm text-purple-100 font-medium">{n.title}</p>
                 <p className="text-xs text-purple-300 mt-0.5">{n.body}</p>
+                {n.createdAt && (
+                  <p className="text-[10px] text-purple-400 mt-1">
+                    {new Date(n.createdAt).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })}
+                  </p>
+                )}
               </button>
             ))
           )}

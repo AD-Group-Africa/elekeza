@@ -169,27 +169,33 @@ class QuizController(
         val latest = attempts.maxByOrNull { it.createdAt }
             ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST, "No quiz attempt found — start the quiz before submitting answers")
 
+        // Deduplicate by question id (last submission wins) before scoring: a
+        // client that repeats a question must never be able to inflate the
+        // score — each question counts exactly once, and the denominator is
+        // the real question count.
+        val byQuestion = answers
+            .filter { submission -> questions.any { it.id == submission.questionId } }
+            .associateBy { it.questionId }
+
         var correctCount = 0
         val feedback = mutableListOf<QuizFeedbackItem>()
 
-        answers.forEach { submission ->
-            val question = questions.find { it.id == submission.questionId }
-            if (question != null) {
-                val isCorrect = submission.selectedOption == question.correctOption
-                if (isCorrect) correctCount++
-                feedback.add(QuizFeedbackItem(
-                    questionId = question.id,
-                    correct = isCorrect,
-                    correctOption = question.correctOption,
-                    explanation = question.explanation
-                ))
-            }
+        byQuestion.forEach { (questionId, submission) ->
+            val question = questions.first { it.id == questionId }
+            val isCorrect = submission.selectedOption == question.correctOption
+            if (isCorrect) correctCount++
+            feedback.add(QuizFeedbackItem(
+                questionId = question.id,
+                correct = isCorrect,
+                correctOption = question.correctOption,
+                explanation = question.explanation
+            ))
         }
 
         // Persist any submitted answers that were not recorded via /answer
         // (keeps clients that submit everything at once consistent).
-        answers.forEach { submission ->
-            val q = questions.find { it.id == submission.questionId } ?: return@forEach
+        byQuestion.forEach { (questionId, submission) ->
+            val q = questions.first { it.id == questionId }
             if (answerRepo.findByAttemptIdAndQuestionId(latest.id, q.id) == null) {
                 val isCorrect = submission.selectedOption == q.correctOption
                 answerRepo.save(QuizAnswer(

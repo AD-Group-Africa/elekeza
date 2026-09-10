@@ -28,6 +28,12 @@ import org.springframework.security.core.context.SecurityContextHolder
         "spring.profiles.active=dev",
         "ai.client.type=mock",
         "ai.internal-secret=test-internal-secret",
+        // Tests are authored against the dev profile's in-memory H2 demo seed.
+        // Pin the datasource explicitly so ambient SPRING_DATASOURCE_* env vars
+        // (e.g. GitLab CI's Postgres service) cannot redirect the context.
+        "spring.datasource.url=jdbc:h2:mem:elekeza;DB_CLOSE_DELAY=-1;MODE=PostgreSQL",
+        "spring.datasource.username=sa",
+        "spring.datasource.password=",
     ]
 )
 @Suppress("UNCHECKED_CAST")

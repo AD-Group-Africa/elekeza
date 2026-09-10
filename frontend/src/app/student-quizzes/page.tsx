@@ -32,8 +32,14 @@ export default function StudentQuizzes() {
           <p className="text-purple-300">Loading…</p>
         ) : quizzes.length === 0 ? (
           <div className="glass-card p-6 text-center">
-            <ClipboardCheck size={48} className="text-purple-400 mx-auto mb-4" />
-            <p className="text-purple-200">No quizzes available.</p><Link href="/student-lessons" className="mt-3 inline-block bg-purple-600 text-white px-4 py-2 rounded-lg">Browse Lessons</Link>
+            <ClipboardCheck size={40} className="text-purple-400 mx-auto mb-3" />
+            <p className="text-purple-200">No quizzes here yet.</p>
+            <p className="text-purple-300 text-sm">
+              Quizzes live inside each lesson. Open a lesson from “My Lessons” and start practicing there.
+            </p>
+            <Link href="/student-lessons" className="mt-4 inline-block bg-purple-600 text-white px-4 py-2 rounded-lg">
+              Browse my lessons
+            </Link>
           </div>
         ) : (
           <div className="grid gap-4">
@@ -41,9 +47,9 @@ export default function StudentQuizzes() {
               <Link key={q.id} href={'/quiz/' + q.lessonId} className="glass-card p-4 hover:bg-white/5 transition flex justify-between items-center">
                 <div>
                   <h3 className="text-purple-200 font-semibold">{q.title}</h3>
-                  <p className="text-purple-300 text-sm">Ready</p>
+                  <p className="text-purple-300 text-sm">Open the lesson to practice</p>
                 </div>
-                <span className="text-purple-400">Start</span>
+                <span className="text-purple-400">Open lesson</span>
               </Link>
             ))}
           </div>

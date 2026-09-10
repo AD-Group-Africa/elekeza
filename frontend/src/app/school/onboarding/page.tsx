@@ -31,7 +31,14 @@ export default function SchoolOnboarding() {
       await api.post('/institutions/register',{
         name: f.name, type: f.type.toUpperCase().replace(/\s+/g,'_'),
         county: f.county, subCounty: f.subCounty || undefined,
-        adminName: f.adminName, adminEmail: f.adminEmail,
+        // API contract: the DTO requires adminFirstName + adminLastName.
+        ...(() => {
+          const parts = f.adminName.trim().split(/\s+/);
+          const first = parts[0] || '';
+          const last = parts.slice(1).join(' ') || first;
+          return { adminFirstName: first, adminLastName: last };
+        })(),
+        adminEmail: f.adminEmail,
         adminPassword: f.adminPassword, contactPhone: f.phone || undefined
       });
       router.push(`/login?welcome=1&email=${encodeURIComponent(f.adminEmail)}`);

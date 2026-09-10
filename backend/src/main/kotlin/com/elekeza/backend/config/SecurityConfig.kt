@@ -39,6 +39,13 @@ class SecurityConfig(private val jwtAuthFilter: JwtAuthFilter) {
     fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {
         http
             .cors { it.configurationSource(corsConfigurationSource()) }
+            // Baseline security headers: frame-ancestors denies clickjacking,
+            // no-referrer keeps tokens/URLs out of referrer headers. The rest
+            // of the safe defaults (nosniff, DENY frame options) remain on.
+            .headers { headers ->
+                headers.contentSecurityPolicy("frame-ancestors 'none'")
+                headers.referrerPolicy { referrer -> referrer.policy(org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter.ReferrerPolicy.NO_REFERRER) }
+            }
             .csrf {
                 it.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
                     // Use the classic (non-XOR) handler so the value in the
@@ -47,7 +54,14 @@ class SecurityConfig(private val jwtAuthFilter: JwtAuthFilter) {
                     // value, which Spring Security 6's default
                     // XorCsrfTokenRequestAttributeHandler would reject.
                     .csrfTokenRequestHandler(CsrfTokenRequestAttributeHandler())
-                    .ignoringRequestMatchers("/api/auth/login", "/api/auth/register", "/api/auth/refresh", "/api/auth/csrf")
+                    .ignoringRequestMatchers(
+                        "/api/auth/login", "/api/auth/register", "/api/auth/refresh", "/api/auth/csrf", "/api/auth/forgot-password",
+                        // Server-to-server provider callback: the caller holds no
+                        // browser session and cannot carry a CSRF token. Auth is
+                        // already permitAll here, and the handler validates the
+                        // payload itself (state machine, amount binding, known ids).
+                        "/api/payments/callback"
+                    )
             }
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter::class.java)
             .authorizeHttpRequests { auth ->

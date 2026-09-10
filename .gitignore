@@ -45,3 +45,12 @@ frontend/android/local.properties
 
 # Local Netlify folder
 .netlify
+
+# Build caches and upload artifacts (never commit)
+backend/.gradle-user-home/
+backend/uploads/
+.freebuff/
+backend/.gradle-home/
+backend/.gradle-user-home/
+backend/.gradle-home/
+backend/.gradle-user-home/

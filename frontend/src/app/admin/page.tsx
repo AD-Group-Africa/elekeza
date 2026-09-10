@@ -9,8 +9,8 @@ import Link from 'next/link';
 
 interface AdminStats {
   totalTeachers?: number;
-  totalStudents?: number;
-  totalLessons?: number;
+  totalLearners?: number;
+  totalContent?: number;
 }
 
 interface StudentRow {
@@ -45,8 +45,8 @@ export default function SchoolAdminDashboard() {
         <h1 className="text-2xl font-bold text-purple-200">School Administration</h1>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <KPI icon={<Users size={24} className="text-blue-400 mb-2" />} label="Teachers" value={stats?.totalTeachers || 0} />
-          <KPI icon={<GraduationCap size={24} className="text-green-400 mb-2" />} label="Students" value={stats?.totalStudents || 0} />
-          <KPI icon={<BookOpen size={24} className="text-purple-400 mb-2" />} label="Lessons" value={stats?.totalLessons || 0} />
+          <KPI icon={<GraduationCap size={24} className="text-green-400 mb-2" />} label="Students" value={stats?.totalLearners || 0} />
+          <KPI icon={<BookOpen size={24} className="text-purple-400 mb-2" />} label="Lessons" value={stats?.totalContent || 0} />
           <KPI icon={<Upload size={24} className="text-yellow-400 mb-2" />} label="Imports" value="0" />
         </div>
 

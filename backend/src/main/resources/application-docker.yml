@@ -15,6 +15,10 @@ spring:
 ai:
   base-url: ${AI_SERVICE_URL:http://ai-service:8000}
   internal-secret: ${AI_INTERNAL_SECRET}
+  timeout-seconds: ${AI_TIMEOUT_SECONDS:120}
+  client:
+    # AiClient is a required dependency — without this the app fails to start.
+    type: ${AI_CLIENT_TYPE:real}
 
 app:
   cors:

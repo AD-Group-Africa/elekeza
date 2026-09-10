@@ -42,6 +42,14 @@ export default withPWA({
       urlPattern: /^\/api\/notifications.*/i,
       handler: 'NetworkFirst',
       options: { cacheName: 'notif-cache', expiration: { maxEntries: 20 } }
+    },
+    {
+      // Learner presentation profile — lets the "How I Learn" page and the
+      // lesson page apply the learner's own settings while offline. The
+      // response belongs to the signed-in learner on this device only.
+      urlPattern: /^\/api\/learner\/preferences.*/i,
+      handler: 'NetworkFirst',
+      options: { cacheName: 'prefs-cache', expiration: { maxEntries: 10, maxAgeSeconds: 7 * 24 * 3600 } }
     }
   ]
 })(nextConfig);

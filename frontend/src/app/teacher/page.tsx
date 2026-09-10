@@ -120,10 +120,10 @@ export default function TeacherDashboard() {
         />
         <HubCard
           icon={<FileText size={24} />}
-          title="Exams / CBT"
-          stat="Coming soon"
-          description="Manage exams, question banks, and CBT sessions."
-          href="/teacher/exams"   // we'll build this page later
+          title="Exams"
+          stat="Create & mark"
+          description="Create timed exams, publish them, and view learner results."
+          href="/teacher/exams"
           color="#F59E0B"
         />
         <HubCard

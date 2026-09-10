@@ -1,15 +1,34 @@
 'use client';
-import { AlertTriangle } from 'lucide-react';
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
-import ComingSoon from '@/components/ComingSoon';
-
+/**
+ * Legacy /exam route — the real experiences are role-specific:
+ * students go to /student-exams, staff to /teacher/exams.
+ */
 export default function Page() {
+  const router = useRouter();
+
+  useEffect(() => {
+    let cancelled = false;
+    import('@/lib/axios').then(({ default: api }) => {
+      api.get('/auth/me')
+        .then(res => {
+          if (cancelled) return;
+          const role = res.data?.role;
+          if (role === 'STUDENT') router.replace('/student-exams');
+          else if (role) router.replace('/teacher/exams');
+          else router.replace('/login');
+        })
+        .catch(() => { if (!cancelled) router.replace('/login'); });
+    });
+    return () => { cancelled = true; };
+  }, [router]);
+
   return (
-    <ComingSoon
-      title="Exams & CBT"
-      description="Timed assessments, question banks, auto-grading, and secure browser mode."
-      icon={<AlertTriangle size={20} />}
-    />
+    <div className="min-h-[60vh] flex items-center justify-center">
+      <p className="text-purple-300" role="status">Taking you to Exams…</p>
+    </div>
   );
 }
 

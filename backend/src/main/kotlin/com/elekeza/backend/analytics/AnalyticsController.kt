@@ -42,14 +42,20 @@ class AnalyticsController(
 
         val totalLearners = students.size
         val studentIds = students.map { it.id }
-        val allProgress = studentIds.flatMap { lessonProgressRepo.findByUserIdOrderByCreatedAtDesc(it) }
+        // Batch fetch in ONE query instead of one query per student (N+1).
+        val allProgress = if (studentIds.isEmpty()) emptyList() else lessonProgressRepo.findByUserIdIn(studentIds)
         val completedLessons = allProgress.count { it.completed }
         val assignedLessons = allProgress.size
         val avgScore = allProgress.mapNotNull { it.quizScore }
             .takeIf { it.isNotEmpty() }?.average() ?: 0.0
-        val activeThisWeek = allProgress.count {
-            it.completedAt != null && it.completedAt!!.isAfter(LocalDateTime.now().minusDays(7))
-        }
+        // Active learners = DISTINCT learners with activity in the last 7 days,
+        // never raw progress rows (a learner with several completed lessons is
+        // still one active learner — and the count must never exceed totalLearners).
+        val activeThisWeek = allProgress
+            .filter { it.completedAt != null && it.completedAt!!.isAfter(LocalDateTime.now().minusDays(7)) }
+            .map { it.user.id }
+            .distinct()
+            .size
 
         val weeklyActivity = (6 downTo 0).map { daysAgo ->
             val date = LocalDateTime.now().minusDays(daysAgo.toLong())
@@ -83,8 +89,9 @@ class AnalyticsController(
             "activeLearners" to activeThisWeek,
             "lessonsCreated" to contentRepo.count(),
             "lessonsAssigned" to assignedLessons,
-            "completionRate" to (if (assignedLessons > 0) (completedLessons.toDouble() / assignedLessons) * 100 else 0.0),
-            "averageScore" to avgScore,
+            // Rounded to 1 decimal — UI renders these verbatim.
+            "completionRate" to (if (assignedLessons > 0) Math.round((completedLessons.toDouble() / assignedLessons) * 1000.0) / 10.0 else 0.0),
+            "averageScore" to Math.round(avgScore * 10.0) / 10.0,
             "atRiskStudents" to atRisk,
             "weeklyActivity" to weeklyActivity,
             "recentAssignments" to recentAssignments,
@@ -105,15 +112,21 @@ class AnalyticsController(
             userRepo.findByInstitutionIdAndRole(institutionId, UserRole.STUDENT)
         } else emptyList()
         val studentIds = students.map { it.id }.toSet()
+        if (studentIds.isEmpty()) return ResponseEntity.ok(emptyList())
 
-        val attemptsById = quizAttemptRepo.findAll()
-            .filter { it.userId in studentIds && it.completed }
-            .associateBy { it.id }
+        // Scope every lookup to the institution's students — never scan the
+        // platform-wide tables.
+        val completedAttempts = quizAttemptRepo.findByUserIdIn(studentIds).filter { it.completed }
+        val attemptsById = completedAttempts.associateBy { it.id }
         if (attemptsById.isEmpty()) return ResponseEntity.ok(emptyList())
 
-        val questionsById = quizQuestionRepo.findAll().associateBy { it.id }
-        val quizzesById = quizRepo.findAll().associateBy { it.id }
-        val contentsById = contentRepo.findAll().associateBy { it.id }
+        val quizIds = completedAttempts.map { it.quizId }.distinct()
+        val quizzes = quizRepo.findAllById(quizIds)
+        val contentIds = quizzes.map { it.contentId }.distinct()
+        val contentsById = contentRepo.findAllById(contentIds).associateBy { it.id }
+        val questionIds = quizAnswerRepo.findByAttemptIdIn(attemptsById.keys).map { it.questionId }.distinct()
+        val questionsById = quizQuestionRepo.findAllById(questionIds).associateBy { it.id }
+        val quizzesById = quizzes.associateBy { it.id }
 
         val results = quizAnswerRepo.findByAttemptIdIn(attemptsById.keys)
             .map { a ->
@@ -161,20 +174,16 @@ class AnalyticsController(
             mapOf("lessonId" to it.contentId, "score" to (it.quizScore ?: 0.0), "date" to it.completedAt.toString())
         }
 
-        val competencyAreas = listOf("Reading", "Comprehension", "Vocabulary", "Critical Thinking", "Application")
-        val competencyProgress = competencyAreas.map { area ->
-            val areaScores = completed.mapNotNull { it.quizScore }
-            mapOf("area" to area, "progress" to if (areaScores.isNotEmpty()) areaScores.average() else 0.0)
-        }
-
+        // NOTE: per-competency (CBC) analytics intentionally NOT returned here —
+        // no competency-level measurement exists in the data model yet. Report
+        // real overall progress only; never fabricate per-area breakdowns.
         return ResponseEntity.ok(mapOf(
             "learningStreak" to streak,
             "completedLessons" to completed.size,
             "pendingLessons" to pending.size,
             "averageScore" to avgScore,
             "weeklyActivity" to weeklyActivity,
-            "quizHistory" to quizHistory,
-            "competencyProgress" to competencyProgress
+            "quizHistory" to quizHistory
         ))
     }
 

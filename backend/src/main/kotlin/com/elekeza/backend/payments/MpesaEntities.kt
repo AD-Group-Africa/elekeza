@@ -26,4 +26,6 @@ data class MpesaTransaction(
 )
 
 @Repository
-interface MpesaTransactionRepository : JpaRepository<MpesaTransaction, Long>
+interface MpesaTransactionRepository : JpaRepository<MpesaTransaction, Long> {
+    fun findByCheckoutRequestId(checkoutRequestId: String): MpesaTransaction?
+}

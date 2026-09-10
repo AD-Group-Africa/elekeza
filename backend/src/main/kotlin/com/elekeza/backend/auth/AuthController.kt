@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.*
 import org.springframework.web.server.ResponseStatusException
 import java.security.MessageDigest
 import java.time.OffsetDateTime
+import com.elekeza.backend.auth.dto.ForgotPasswordRequest
 
 @RestController
 @RequestMapping("/api/auth")
@@ -22,6 +23,7 @@ class AuthController(
     private val authService: AuthService,
     private val jwtUtil: JwtUtil,
     private val refreshTokenRepository: RefreshTokenRepository,
+    private val loginRateLimiter: LoginRateLimiter,
     @Value("\${jwt.refresh-expiration:604800000}") private val refreshExpirationMs: Long,
     @Value("\${app.secure-cookies:false}") private val secureCookies: Boolean
 ) {
@@ -33,7 +35,19 @@ class AuthController(
     }
 
     @PostMapping("/login")
-    fun login(@RequestBody req: LoginRequest, response: HttpServletResponse): ResponseEntity<Map<String, Any>> {
+    fun login(
+        @RequestBody req: LoginRequest,
+        request: HttpServletRequest,
+        response: HttpServletResponse
+    ): ResponseEntity<Map<String, Any>> {
+        // Per-account+IP quota so password spraying cannot exhaust real users'
+        // budget and account enumeration stays as hard as guessing. The 429 is
+        // returned before any user lookup, so the response never reveals
+        // whether the email exists.
+        val key = "login:${req.email.lowercase().trim()}:${request.remoteAddr ?: "unknown"}"
+        if (!loginRateLimiter.tryAcquire(key)) {
+            throw ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS, "Too many login attempts. Please try again later.")
+        }
         val user = authService.login(req)
         return issueTokensAndRespond(user, response, HttpStatus.OK)
     }
@@ -55,6 +69,15 @@ class AuthController(
         stored.revoked = true
         refreshTokenRepository.save(stored)
         return issueTokensAndRespond(user, response, HttpStatus.OK)
+    }
+
+    @PostMapping("/forgot-password")
+    fun forgotPassword(@RequestBody @jakarta.validation.Valid req: ForgotPasswordRequest): ResponseEntity<Map<String, Any>> {
+        // Minimal safe endpoint: only confirm whether the email belongs to a
+        // registered account, and queue a reset flow. We never reveal existence
+        // of an account via the response shape.
+        authService.forgotPassword(req.email.trim())
+        return ResponseEntity.ok(mapOf("message" to "If that email is registered, a reset link has been sent."))
     }
 
     @GetMapping("/me")
@@ -113,6 +136,9 @@ class AuthController(
             put("role", user.role.name)
             put("title", user.title)
             put("gender", user.gender ?: "")
+            // Institution context the frontend needs for tenant-scoped calls
+            // (e.g. CSV student import). Absent for platform-level admins.
+            user.institutionId?.let { put("institutionId", it) }
         }
 
     private fun setAccessCookie(response: HttpServletResponse, token: String) {

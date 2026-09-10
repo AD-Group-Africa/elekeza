@@ -22,6 +22,8 @@ class OnboardingService(
     private val learnerRepository:  LearnerRepository,
     private val guardianRepository: GuardianRepository
 ) {
+    /** Resolves a Learner record from the authenticated user's email. */
+    fun findLearnerByEmail(email: String): Learner? = learnerRepository.findByEmail(email).orElse(null)
     @Transactional
     fun saveProfile(learnerId: UUID, request: ProfileRequest): OnboardingResponse {
         val learner = learnerRepository.findById(learnerId).orElseThrow { IllegalArgumentException("Learner not found") }

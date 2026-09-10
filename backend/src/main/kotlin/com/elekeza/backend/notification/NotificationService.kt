@@ -43,7 +43,11 @@ data class Notification(
     @Column var read: Boolean = false,
 
     @Column(name = "created_at")
-    val createdAt: Instant = Instant.now()
+    val createdAt: Instant = Instant.now(),
+
+    /** Optional in-app navigation target (e.g. "/lesson/42") for the recipient. */
+    @Column(name = "link")
+    val link: String? = null
 )
 
 // ── Repository ────────────────────────────────────────────────────────────────
@@ -61,9 +65,10 @@ interface NotificationRepository : JpaRepository<Notification, Long> {
 
 data class NotificationDto(
     val id: Long, val type: String, val title: String,
-    val body: String, val read: Boolean, val createdAt: String
+    val body: String, val read: Boolean, val createdAt: String,
+    val link: String? = null
 )
-fun Notification.toDto() = NotificationDto(id, type, title, body, read, createdAt.toString())
+fun Notification.toDto() = NotificationDto(id, type, title, body, read, createdAt.toString(), link)
 
 // ── Service ───────────────────────────────────────────────────────────────────
 
@@ -132,7 +137,8 @@ class NotificationService(
         repo.save(Notification(
             userId = studentId, type = "LESSON_ASSIGNED",
             title = "New lesson assigned",
-            body  = "Your teacher assigned you: \"$lessonTitle\". Open it from your home screen."
+            body  = "Your teacher assigned you: \"$lessonTitle\". Open it from your home screen.",
+            link  = "/lesson/$contentId"
         ))
         // Also send SMS to student if phone number is available
         val studentPhone = studentUser.phone

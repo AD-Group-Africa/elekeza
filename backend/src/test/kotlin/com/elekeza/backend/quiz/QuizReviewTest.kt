@@ -22,6 +22,12 @@ import org.springframework.web.server.ResponseStatusException
         "spring.profiles.active=dev",
         "ai.client.type=mock",
         "ai.internal-secret=test-internal-secret",
+        // Tests are authored against the dev profile's in-memory H2 demo seed.
+        // Pin the datasource explicitly so ambient SPRING_DATASOURCE_* env vars
+        // (e.g. GitLab CI's Postgres service) cannot redirect the context.
+        "spring.datasource.url=jdbc:h2:mem:elekeza;DB_CLOSE_DELAY=-1;MODE=PostgreSQL",
+        "spring.datasource.username=sa",
+        "spring.datasource.password=",
     ]
 )
 class QuizReviewTest {
@@ -117,6 +123,35 @@ class QuizReviewTest {
         )
 
         val completed = attemptRepo.findByQuizIdAndUserId(quizId, student().id).first { it.completed }
+        assertThat(answerRepo.findByAttemptId(completed.id)).hasSize(2)
+    }
+
+    @Test
+    fun `duplicate question submissions cannot inflate the score`() {
+        val quizId = startQuiz()
+        val questions = questionRepo.findByQuizId(quizId)
+        val first = questions[0] // correct = A
+        val second = questions[1] // correct = B
+
+        // The same question submitted repeatedly (correct answer repeated):
+        // each question must count exactly once toward the score.
+        val result = controller.completeQuiz(
+            quizId,
+            listOf(
+                AnswerSubmission(first.id, "A"),
+                AnswerSubmission(first.id, "A"),
+                AnswerSubmission(first.id, "A"),
+                AnswerSubmission(second.id, "A") // wrong
+            ),
+            student()
+        )
+
+        assertThat(result["correctCount"] as Int).isEqualTo(1)
+        assertThat(result["totalQuestions"] as Int).isEqualTo(2)
+        assertThat(result["score"] as Double).isEqualTo(50.0)
+
+        val completed = attemptRepo.findByQuizIdAndUserId(quizId, student().id).first { it.completed }
+        // Exactly one persisted answer per question — no duplicates.
         assertThat(answerRepo.findByAttemptId(completed.id)).hasSize(2)
     }
 

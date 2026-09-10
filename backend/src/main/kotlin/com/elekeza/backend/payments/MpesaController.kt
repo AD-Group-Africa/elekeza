@@ -19,6 +19,10 @@ data class StkPushRequest(
 class MpesaController(private val mpesaService: MpesaService) {
 
     @PostMapping("/stkpush")
+    // Money movement is limited to school administrators (the school pays for
+    // its account via the school payment page); learners/teachers must never
+    // trigger charges.
+    @PreAuthorize("hasAnyRole('ADMIN', 'SCHOOL_ADMIN')")
     fun stkPush(@RequestBody request: StkPushRequest): ResponseEntity<Map<String, Any>> {
         if (request.phone.isBlank() || request.amount <= 0 || request.reference.isBlank()) {
             throw ResponseStatusException(HttpStatus.BAD_REQUEST, "phone, positive amount, and reference are required")
@@ -38,6 +42,8 @@ class MpesaController(private val mpesaService: MpesaService) {
         ResponseEntity.ok(mpesaService.processCallback(body))
 
     @GetMapping("/revenue")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SCHOOL_ADMIN')")
+    // Transactions are not institution-tagged, so revenue is platform-wide
+    // aggregate data — restricted to platform ADMINs only.
+    @PreAuthorize("hasRole('ADMIN')")
     fun revenue(): ResponseEntity<Map<String, Any>> = ResponseEntity.ok(mpesaService.getRevenue())
 }

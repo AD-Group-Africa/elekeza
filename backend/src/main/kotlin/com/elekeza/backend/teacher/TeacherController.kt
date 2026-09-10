@@ -10,11 +10,13 @@ import com.elekeza.backend.institution.GuardianLink
 import com.elekeza.backend.institution.GuardianLinkRepository
 import com.elekeza.backend.learner.LessonProgress
 import com.elekeza.backend.notification.NotificationService
+import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.web.bind.annotation.*
+import org.springframework.web.server.ResponseStatusException
 
 @RestController
 @RequestMapping("/api/teacher")
@@ -36,7 +38,11 @@ class TeacherController(
     fun getStudents(@AuthenticationPrincipal teacher: User): ResponseEntity<List<StudentDto>> {
         val institutionId = teacher.institutionId ?: return ResponseEntity.ok(emptyList())
         val students = userRepo.findByInstitutionIdAndRole(institutionId, UserRole.STUDENT)
-        val dtos = students.map { s -> StudentDto(s.id.toString(), s.name, s.email, "NONE") }
+        // Surface the learner's real SNE profile so teachers see who needs which
+        // support — hardcoded "NONE" hid Elekeza's core differentiation story.
+        val sneByUser = learnerProfileRepo.findByUserIdIn(students.map { it.id })
+            .associate { it.userId to (it.sneType?.name ?: "NONE") }
+        val dtos = students.map { s -> StudentDto(s.id.toString(), s.name, s.email, sneByUser[s.id] ?: "NONE") }
         return ResponseEntity.ok(dtos)
     }
 
@@ -55,16 +61,27 @@ class TeacherController(
 
     @PostMapping("/content/assign")
     fun assignContent(@AuthenticationPrincipal teacher: User, @RequestBody req: AssignContentRequest): ResponseEntity<Map<String, Any>> {
-        val content = contentRepo.findById(req.contentId).orElseThrow { IllegalArgumentException("Content not found") }
-        if (teacher.role != UserRole.ADMIN && content.userId != teacher.id) throw SecurityException("Content is not owned by this teacher")
-        req.studentIds.forEach { studentId ->
-            val student = userRepo.findById(studentId).orElseThrow { IllegalArgumentException("Student not found") }
-            if (student.institutionId != teacher.institutionId) throw SecurityException("Student not in your institution")
-            val progress = LessonProgress(user = student, contentId = req.contentId)
-            lessonProgressRepo.save(progress)
-            notificationService.notifyStudentOnAssignment(studentId, req.contentId)
+        if (teacher.institutionId == null) throw SecurityException("Teacher has no institution")
+        val content = contentRepo.findById(req.contentId)
+            .orElseThrow { ResponseStatusException(HttpStatus.NOT_FOUND, "Content not found") }
+        if (teacher.role != UserRole.ADMIN && content.userId != teacher.id) {
+            throw SecurityException("Content is not owned by this teacher")
         }
-        return ResponseEntity.ok(mapOf("assigned" to req.studentIds.size))
+        // Deduplicate accidental re-assignments: an existing LessonProgress row
+        // for the same (student, content) is an idempotent no-op, not a duplicate.
+        var assigned = 0
+        req.studentIds.toSet().forEach { studentId ->
+            val student = userRepo.findById(studentId)
+                .orElseThrow { ResponseStatusException(HttpStatus.NOT_FOUND, "Student not found") }
+            if (student.role != UserRole.STUDENT || student.institutionId != teacher.institutionId) {
+                throw SecurityException("Student not in your institution")
+            }
+            if (lessonProgressRepo.findByUserIdAndContentId(student.id, content.id) != null) return@forEach
+            lessonProgressRepo.save(LessonProgress(user = student, contentId = content.id))
+            notificationService.notifyStudentOnAssignment(student.id, content.id)
+            assigned++
+        }
+        return ResponseEntity.ok(mapOf("assigned" to assigned))
     }
 
     @PostMapping("/guardian-link")

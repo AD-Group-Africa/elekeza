@@ -85,29 +85,71 @@ class MpesaService(
         )
     }
 
+    /**
+     * Handles the Safaricom STK callback. The endpoint is intentionally
+     * unauthenticated (the provider cannot hold a session), so this handler
+     * must be defensive on its own:
+     *
+     *  - only transitions a transaction we initiated and that is still
+     *    pending (state machine INITIATED/PENDING → COMPLETED | FAILED);
+     *  - terminal transactions are never re-opened (duplicate callbacks from
+     *    provider retries are ignored, and a FAILED result cannot be flipped
+     *    to COMPLETED by replaying a forged success body);
+     *  - the callback Amount must match the amount we initiated — a mismatch
+     *    means tampering or a provider error, and is rejected without state
+     *    change;
+     *  - unknown checkout ids are rejected and logged.
+     *
+     * Deployments with real Daraja credentials MUST additionally enable
+     * provider signature verification (Safaricom signs callbacks with their
+     * public key) at the edge before this handler runs — see the audit doc.
+     */
     fun processCallback(body: Map<String, Any>): Map<String, Any> {
         val stkCallback = (body["Body"] as? Map<*, *>)?.get("stkCallback") as? Map<String, Any>
-        if (stkCallback != null) {
-            val checkoutRequestId = stkCallback["CheckoutRequestID"] as? String
-            val resultCode = stkCallback["ResultCode"] as? Int
-            val resultDesc = stkCallback["ResultDesc"] as? String
-            val metadata = (stkCallback["CallbackMetadata"] as? Map<*, *>)?.get("Item") as? List<Map<String, Any>>
+        val checkoutRequestId = stkCallback?.get("CheckoutRequestID") as? String
+        if (checkoutRequestId == null) {
+            log.warn("M-Pesa callback without a CheckoutRequestID")
+            return mapOf("ResultCode" to 1, "ResultDesc" to "Failed")
+        }
 
-            val transaction = transactionRepo.findAll().firstOrNull { it.checkoutRequestId == checkoutRequestId }
-            if (transaction != null) {
-                val updated = transaction.copy(
-                    status = if (resultCode == 0) "COMPLETED" else "FAILED",
-                    resultCode = resultCode,
-                    resultDesc = resultDesc,
-                    mpesaReceiptNumber = metadata?.find { it["Name"] == "MpesaReceiptNumber" }?.get("Value") as? String,
-                    transactionDate = Instant.now()
-                )
-                transactionRepo.save(updated)
-                log.info("M-Pesa payment processed: ${updated.mpesaReceiptNumber} - KES ${updated.amount}")
-            }
+        val transaction = transactionRepo.findByCheckoutRequestId(checkoutRequestId)
+        if (transaction == null) {
+            log.warn("M-Pesa callback for unknown CheckoutRequestID {}", checkoutRequestId)
+            return mapOf("ResultCode" to 1, "ResultDesc" to "Failed")
+        }
+
+        // Idempotency: terminal transactions are final. This also blocks
+        // replaying a forged success body after a FAILED result.
+        if (transaction.status == "COMPLETED" || transaction.status == "FAILED") {
+            log.info("Ignoring duplicate M-Pesa callback for terminal transaction {} ({})", checkoutRequestId, transaction.status)
             return mapOf("ResultCode" to 0, "ResultDesc" to "Success")
         }
-        return mapOf("ResultCode" to 1, "ResultDesc" to "Failed")
+
+        val resultCode = stkCallback["ResultCode"] as? Int ?: -1
+        val resultDesc = stkCallback["ResultDesc"] as? String
+        val metadata = (stkCallback["CallbackMetadata"] as? Map<*, *>)?.get("Item") as? List<Map<String, Any>>
+        val callbackAmount = (metadata?.find { it["Name"] == "Amount" }?.get("Value") as? Number)?.toDouble()
+
+        // The amount the provider reports must equal what we initiated.
+        if (callbackAmount != null && Math.abs(callbackAmount - transaction.amount) > 0.001) {
+            log.warn(
+                "M-Pesa callback amount mismatch for {}: initiated KES {} but callback reports KES {}",
+                checkoutRequestId, transaction.amount, callbackAmount
+            )
+            return mapOf("ResultCode" to 1, "ResultDesc" to "Amount mismatch")
+        }
+
+        val updated = transaction.copy(
+            status = if (resultCode == 0) "COMPLETED" else "FAILED",
+            resultCode = resultCode,
+            resultDesc = resultDesc,
+            mpesaReceiptNumber = metadata?.find { it["Name"] == "MpesaReceiptNumber" }?.get("Value") as? String,
+            transactionDate = Instant.now(),
+            updatedAt = Instant.now()
+        )
+        transactionRepo.save(updated)
+        log.info("M-Pesa payment {}: {} - KES {}", updated.status, updated.mpesaReceiptNumber ?: checkoutRequestId, updated.amount)
+        return mapOf("ResultCode" to 0, "ResultDesc" to "Success")
     }
 
     fun getTransactionStatus(checkoutRequestId: String): Map<String, Any> {

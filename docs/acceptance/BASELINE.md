@@ -1,67 +1,83 @@
 # Elekeza Production Acceptance — GATE 1: TEST BASELINE
 
+> **REVISED 2026-09-04** — the original baseline below (dated 2026-08-22) recorded
+> 43 tests / 25 passing / 18 Spring context failures and classified all 18 as
+> "pre-existing infrastructure". That record described an earlier working-tree
+> state. The repository at HEAD (commit `b5c5bbc`, `release/v0.1.0`) contains the
+> AI bean-resolution fix and the complete test suite. Re-verification on
+> 2026-09-04 shows **48/48 tests pass, 0 context failures**. See
+> `TEST_INFRASTRUCTURE_ANALYSIS.md` for the root-cause chain and evidence.
+
+---
+
 ## Baseline Verification Date
-2026-08-22
+
+**2026-09-04** (revised) — original: 2026-08-22 (superseded, see note above)
 
 ## Commands Run
 
-### Backend Test Suite
+```bash
+cd backend
+GRADLE_USER_HOME="$(pwd)/.gradle-user" ./gradlew clean test
 ```
-./gradlew test
+
+(Environment note: the machine-default Gradle cache `C:\Dev\gradle` fails with
+`Failed to create Jar file gradle-api-8.14.4.jar`; the project-local
+`backend/.gradle-user` home is used instead. This is a machine cache issue.)
+
+## Result — 2026-09-04 (HEAD `b5c5bbc`)
+
+```text
+Total tests:      48
+Passed:           48
+Failed:            0
+Skipped:           0
+Context failures:  0
 ```
-**Result:** 43 tests completed
-- **25 PASSING** (58%): All pass in their respective test classes
-- **18 FAILING** (42%): All share identical failure pattern
-- **Duration**: 0.620s
 
-### Passing Tests (Reliable Baseline)
-| Test Class | # Tests | Pass Rate | Type |
+### Per class
+
+| Test Class | # Tests | Result | Type |
 |---|---|---|---|
-| `AiQuizParserTest` | 14 | 100% | Pure unit test — no `@SpringBootTest` |
-| `SignalCalculatorTest` | 11 | 100% | Pure unit test — no `@SpringBootTest` |
+| `AiQuizParserTest` | 14 | 100% PASS | Pure unit test — no `@SpringBootTest` |
+| `SignalCalculatorTest` | 11 | 100% PASS | Pure unit test — no `@SpringBootTest` |
+| `LessonViewTest` | 4 | 100% PASS | Pure unit test — no `@SpringBootTest` |
+| `ContentProcessingFlowTest` | 1 | 100% PASS | `@SpringBootTest` context test |
+| `GuardianAnalyticsAuthorizationTest` | 1 | 100% PASS | `@SpringBootTest` context test |
+| `InstitutionRegistrationTest` | 2 | 100% PASS | `@SpringBootTest` context test |
+| `QuizReviewTest` | 6 | 100% PASS | `@SpringBootTest` context test |
+| `SupportAuthorizationTest` | 9 | 100% PASS | `@SpringBootTest` context test |
+| **Total** | **48** | **100% PASS** | 5 context tests load the full Spring graph |
 
-**Subtotal: 25 tests, 100% pass rate within their classes**
+Every `@SpringBootTest` class loads the complete Spring context
+(`spring.profiles.active=dev` → H2; `ai.client.type=mock` → `MockAiClient`), so the
+context is exercised and healthy, not assumed healthy.
 
-### Failing Tests (Configuration Issues)
-| Test Class | # Failed | Failure Type | Evidence |
-|---|---|---|---|
-| `GuardianAnalyticsAuthorizationTest` | 1 | `UnsatisfiedDependencyException` / `NoSuchBeanDefinitionException` | Spring context fail to load |
-| `InstitutionRegistrationTest` | 2 | `UnsatisfiedDependencyException` / `NoSuchBeanDefinitionException` | Spring context fail to load |
-| `QuizReviewTest` | 6 | `UnsatisfiedDependencyException` / `NoSuchBeanDefinitionException` | Spring context fail to load |
-| `SupportAuthorizationTest` | 9 | `UnsatisfiedDependencyException` / `NoSuchBeanDefinitionException` | Spring context fail to load |
+## Historical failure classification (2026-08-22 record — RESOLVED)
 
-**Subtotal: 18 failures, 100% share identical Spring context error**
+The 18 recorded failures (`GuardianAnalyticsAuthorizationTest` 1,
+`InstitutionRegistrationTest` 2, `QuizReviewTest` 6, `SupportAuthorizationTest` 9)
+were infrastructure failures whose root cause is now identified from repository
+history: the AI client wiring previously depended on a qualified `WebClient` bean
+that did not resolve (`NoSuchBeanDefinitionException` at context init in every
+`@SpringBootTest` class). Commits `99d6997` and `65d2626` (2026-07-09) removed that
+dependency (`RealAiClient` now builds its own `WebClient` lazily), and commit
+`b5c5bbc` added the full suite with deterministic mock-AI test properties. None of
+the 18 reproduced on 2026-09-04.
 
-### Failure Classification
-
-| Category | Count | Description |
-|---|---|---|
-| Application defects | 0 | No code defects found in test failures |
-| Test defects | 0 | Tests are syntactically correct; failures are infrastructure |
-| Environment/configuration issues | 18 | All: `UnsatisfiedDependencyException` / `NoSuchBeanDefinitionException` — Spring test context fails to load. Pre-existing on clean checkout. |
-| Intentionally waived | 0 | No tests waived |
-
-### Pre-existing Verification
-The 18 failures are **pre-existing** — they exist on clean checkout of the original codebase, prior to any changes. The error pattern is consistent: `java.lang.IllegalStateException` at `DefaultCacheAwareContextLoaderDelegate.java:180`, caused by `org.springframework.beans.factory.UnsatisfiedDependencyException` at `ConstructorResolver.java:795`, caused by `org.springframework.beans.factory.NoSuchBeanDefinitionException` at `DefaultListableBeanFactory.java:1880`.
-
-These are Spring Boot test context configuration defects, not application logic defects. The 25 passing tests (pure unit tests without `@SpringBootTest`) confirm the application code and test logic are sound.
+No tests were skipped, disabled, or mocked around to achieve this result; no
+`@MockBean`, no security downgrade, no production behaviour change.
 
 ## Baseline Assessment
 
-**STATUS: CLEAR TO PROCEED TO GATE 2**
+**STATUS: CLEAR — backend test gate passes at HEAD.**
 
-**Reliable test baseline established:** 25 tests across 2 test classes (100% pass rate within their classes).
-
-**18 failures documented and classified:** All are pre-existing Spring context configuration defects, not code defects. They are explained and separated from application defects.
-
-**Next gate (GATE 2 — Database Integrity) can proceed.**
-
-### Gate 1 Checklist
-
-- [x] Run complete backend test suite
-- [x] Investigate all existing failures
-- [x] Separate application defects, test defects, environment/configuration issues
-- [x] Document test count and exact pass/fail status
-- [x] No unexplained mandatory test failures — all 18 explained as pre-existing Spring context configuration
-- [x] Restored/removed broken DatabaseIntegrityTest (was compilation-breaking; to be recreated at appropriate gate)
-- [x] Baseline documentation created: `docs/acceptance/BASELINE.md`
+- Verified 2026-09-04: 48 tests, 0 failures, 0 skipped, 0 context failures
+  (evidence: `build/test-results/test/TEST-*.xml` after `clean test`).
+- 5 of 8 test classes are full `@SpringBootTest` context tests (19 tests) and pass.
+- Refer to `TEST_INFRASTRUCTURE_ANALYSIS.md` (root cause + fix history) and
+  `DATABASE_INTEGRITY.md` (entity/migration integrity + backup/restore gate).
+- CI parity note: `.gitlab-ci.yml` runs the same suite with PostgreSQL service env
+  vars; this machine has no CI Postgres, and the tests target the dev profile's H2
+  datasource. If the CI environment surfaces datasource conflicts, address them in
+  CI configuration — none are present in the committed test code.
