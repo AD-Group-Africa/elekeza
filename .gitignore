@@ -54,3 +54,8 @@ backend/.gradle-home/
 backend/.gradle-user-home/
 backend/.gradle-home/
 backend/.gradle-user-home/
+
+# Local Gradle cache
+backend/.gradle-home/
+**/.gradle/
+
