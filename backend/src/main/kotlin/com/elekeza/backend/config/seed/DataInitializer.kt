@@ -4,11 +4,14 @@ import com.elekeza.backend.auth.*
 import com.elekeza.backend.institution.GuardianLink
 import com.elekeza.backend.institution.GuardianLinkRepository
 import com.elekeza.backend.content.*
+import com.elekeza.backend.exam.*
 import com.elekeza.backend.learner.*
 import com.elekeza.backend.quiz.*
 import jakarta.transaction.Transactional
 import org.slf4j.LoggerFactory
 import org.springframework.boot.CommandLineRunner
+import java.time.Instant
+import java.time.temporal.ChronoUnit
 import org.springframework.context.annotation.Profile
 import org.springframework.core.annotation.Order
 import org.springframework.security.crypto.password.PasswordEncoder
@@ -25,9 +28,12 @@ class DataInitializer(
     private val quizRepo: QuizRepository,
     private val questionRepo: QuizQuestionRepository,
     private val attemptRepo: QuizAttemptRepository,
+    private val lessonProgressRepo: LessonProgressRepository,
     private val learnerRepo: LearnerRepository,
     private val guardianRepo: GuardianRepository,
-    private val guardianLinkRepository: GuardianLinkRepository
+    private val guardianLinkRepository: GuardianLinkRepository,
+    private val examRepo: ExamRepository,
+    private val examQuestionRepo: ExamQuestionRepository
 ) : CommandLineRunner {
 
     private val log = LoggerFactory.getLogger(DataInitializer::class.java)
@@ -89,13 +95,54 @@ class DataInitializer(
             simplifiedText = """{"text":"Water moves around the Earth. The sun heats it and turns it into vapor. Vapor rises and makes clouds. When clouds get heavy, rain falls. The water flows back and the cycle repeats."}"""
         )).id
 
+        // The learner must have COMPLETED the demo lesson (LessonProgress row):
+        // learner home's primary "Continue learning" action is driven by the
+        // dashboard's completed lessons, and a fresh seeded learner otherwise
+        // starts with an empty home and nothing to demonstrate.
+        if (lessonProgressRepo.findByUserIdAndContentId(student.id, demoContentId) == null) {
+            lessonProgressRepo.save(LessonProgress(
+                user = student,
+                contentId = demoContentId,
+                quizScore = 80.0,
+                completed = true,
+                completedAt = java.time.LocalDateTime.now()
+            ))
+            log.info("Assigned demo lesson to learner {}", student.email)
+        }
+
         // Demo quiz for the water-cycle lesson (keyed to its actual id).
         if (quizRepo.findByContentId(demoContentId) == null) {
-            val quiz = quizRepo.save(Quiz(contentId = demoContentId, userId = student.id))
+            val quiz = quizRepo.save(Quiz(contentId = demoContentId, userId = teacher.id))
             questionRepo.save(QuizQuestion(quizId = quiz.id, question = "What is the first step in the water cycle?", optionA = "Evaporation", optionB = "Condensation", optionC = "Precipitation", optionD = "Collection", correctOption = "A", explanation = "The sun heats water."))
             questionRepo.save(QuizQuestion(quizId = quiz.id, question = "What forms when vapor cools?", optionA = "Ice", optionB = "Clouds", optionC = "Rain", optionD = "Snow", correctOption = "B", explanation = "Vapor turns into tiny water drops."))
-            attemptRepo.save(QuizAttempt(quizId = quiz.id, userId = student.id, score = 0.8, totalQuestions = 2, completed = true))
+            // One real completed attempt on the 0-100 scale the controller uses.
+            attemptRepo.save(QuizAttempt(quizId = quiz.id, userId = student.id, score = 80.0, totalQuestions = 2, completed = true))
             log.info("Created demo quiz for lesson 1")
+        }
+
+        // Published demo exam so the /student-exams flow is demonstrable from a
+        // clean database. Guarded by title for idempotence; window opens now and
+        // stays open long enough for demos and E2E runs.
+        if (examRepo.findAll().none { it.title == "Science Check: The Water Cycle" }
+        ) {
+            val exam = examRepo.save(Exam(
+                institutionId = teacher.institutionId ?: 1L,
+                creatorId = teacher.id,
+                title = "Science Check: The Water Cycle",
+                description = "A short check on what you learned about water.",
+                subject = "Science",
+                durationMinutes = 20,
+                // Two attempts: one for a first try, one for a retake — and
+                // enough for the E2E suite to prove immutability after submit.
+                maxAttempts = 2,
+                status = ExamStatus.PUBLISHED,
+                availableFrom = Instant.now().minus(5, ChronoUnit.MINUTES),
+                availableUntil = Instant.now().plus(365, ChronoUnit.DAYS)
+            ))
+            examQuestionRepo.save(ExamQuestion(examId = exam.id, question = "Which step comes first in the water cycle?", qtype = QuestionType.MCQ, optionA = "Evaporation", optionB = "Condensation", optionC = "Precipitation", optionD = "Collection", correctOption = "A", marks = 1, orderIndex = 0))
+            examQuestionRepo.save(ExamQuestion(examId = exam.id, question = "Clouds are made when vapor cools.", qtype = QuestionType.TRUE_FALSE, optionA = "True", optionB = "False", correctOption = "A", marks = 1, orderIndex = 1))
+            examQuestionRepo.save(ExamQuestion(examId = exam.id, question = "Name the stage where rain falls to the ground.", qtype = QuestionType.SHORT_ANSWER, correctText = "precipitation", marks = 1, orderIndex = 2))
+            log.info("Created published demo exam for institution {}", teacher.institutionId)
         }
 
         log.info("Demo data seeded successfully.")

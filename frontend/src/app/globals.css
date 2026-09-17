@@ -1,183 +1,67 @@
-﻿@tailwind base;
+/*
+ * ELEKEZA GLOBAL STYLES — moss-green identity (2026-09-17 redesign)
+ *
+ * Structure:
+ *   1. tokens.css        — semantic primitives + three themes (dark moss default,
+ *                          light paper, calm low-stimulation)
+ *   2. theme-remaps.css  — legacy purple/orange utility classes -> tokens;
+ *                          button/card primitives; a11y helpers
+ *   3. base layer below  — body chrome, glass/metric cards, scrollbars
+ *
+ * Components never need theme logic: they read tokens or use remapped
+ * Tailwind classes. New pages should prefer brand-* utilities and btn-*.
+ */
+@import "../styles/tokens.css";
+@import "../styles/theme-remaps.css";
+
+@tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 body {
-  background: linear-gradient(135deg, #0F0A2E 0%, #1A1340 50%, #2D1F66 100%);
-  color: #F5F3FF;
+  background: var(--bg-gradient);
+  background-attachment: fixed;
+  color: var(--text-primary);
   min-height: 100vh;
   font-family: 'Inter', system-ui, sans-serif;
   line-height: 1.6;
 }
 
 .glass-card {
-  background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(16px);
-  border: 1px solid rgba(124, 58, 237, 0.15);
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
   border-radius: 1rem;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+  box-shadow: var(--ek-shadow-2);
+  transition: border-color var(--ek-speed) ease, background-color var(--ek-speed) ease;
+}
+.glass-card:hover {
+  border-color: var(--border-strong);
+  background: var(--bg-card-hover);
 }
 
 .metric-card {
-  background: linear-gradient(135deg, rgba(124,58,237,0.2) 0%, rgba(139,92,246,0.05) 100%);
-  border: 1px solid rgba(124, 58, 237, 0.2);
+  background: var(--accent-soft);
+  border: 1px solid var(--border-color);
   border-radius: 0.75rem;
   padding: 1rem;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  transition: border-color var(--ek-speed) ease, box-shadow var(--ek-speed) ease;
 }
 .metric-card:hover {
-  border-color: rgba(124, 58, 237, 0.5);
-  box-shadow: 0 4px 20px rgba(124, 58, 237, 0.25);
+  border-color: var(--border-strong);
+  box-shadow: var(--ek-shadow-1);
 }
 
-::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: #1A1340; }
-::-webkit-scrollbar-thumb { background: #4C2D99; border-radius: 3px; }
-
-.focus-mode .glass-card:not(:hover) { opacity: 0.4; }
-.dyslexic-font * {
-  font-family: 'OpenDyslexic', sans-serif !important;
-  letter-spacing: 0.05em;
-  word-spacing: 0.15em;
-  line-height: 1.8;
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: 4px;
 }
+::-webkit-scrollbar-thumb:hover { background: var(--accent); }
 
-/* Accessibility overrides */
-.dyslexia-font *,
-.a11y-dyslexia-support *,
-.a11y-font-family-dyslexia-friendly * { font-family: 'OpenDyslexic', Arial, sans-serif; }
-
-.high-contrast,
-.a11y-high-contrast { filter: contrast(1.5); }
-
-.a11y-high-contrast { background: #000; color: #fff; }
-.a11y-high-contrast a { color: #ffeb3b; text-decoration: underline; }
-.a11y-reduced-motion *, .a11y-reduced-motion *::before, .a11y-reduced-motion *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
-.a11y-font-lg { font-size: 112.5%; }
-.a11y-font-sm { font-size: 87.5%; }
-.reduced-motion * { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
-.large-text { font-size: 1.25rem; }
-
-/* Per-student reading presentation (server-backed profile) */
-.elekeza-spacious .glass-card p {
-  max-width: 68ch;
-  line-height: 1.9;
-  margin-bottom: 1rem;
-}
-.elekeza-spacious .glass-card {
-  padding: 1.5rem;
-}
-
-/* Accessibility: focus indicators */
-*:focus-visible { outline: 2px solid #a78bfa; outline-offset: 2px; }
-
-/* Skip to content */
-.skip-link { position: absolute; top: -40px; left: 0; background: #7c3aed; color: white; padding: 8px 16px; z-index: 100; transition: top 0.2s; }
-.skip-link:focus { top: 0; }
-
-/* Reduce motion preference */
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
-}
-
-/* ======= Light Theme (Sunset) ======= */
-[data-theme="light"] {
-  --bg-primary: #FFF5EC;
-  --bg-secondary: #FFE8D6;
-  --bg-card: rgba(255,255,255,0.85);
-  --text-primary: #4A3728;
-  --text-secondary: #7B5E47;
-  --text-muted: #A98467;
-  --accent-1: #F4845F;
-  --accent-2: #F7A072;
-  --accent-3: #F9C74F;
-  --border: rgba(244,132,95,0.2);
-}
-
-[data-theme="light"] body {
-  background: linear-gradient(135deg, #FFF5EC 0%, #FFE8D6 50%, #FDC9B3 100%);
-}
-
-[data-theme="light"] .glass-card {
-  background: var(--bg-card);
-  backdrop-filter: blur(12px);
-  border: 1px solid var(--border);
-  color: var(--text-primary);
-}
-
-[data-theme="light"] .text-purple-200,
-[data-theme="light"] .text-purple-300,
-[data-theme="light"] .text-purple-400 {
-  color: var(--text-primary);
-}
-
-[data-theme="light"] .text-purple-100 {
-  color: var(--text-secondary);
-}
-
-[data-theme="light"] .text-purple-200\/70,
-[data-theme="light"] .text-purple-200\/50 {
-  color: var(--text-muted);
-}
-
-[data-theme="light"] .bg-gradient-to-r.from-blue-600.to-purple-600 {
-  background: linear-gradient(90deg, var(--accent-1), var(--accent-2));
-}
-
-[data-theme="light"] .bg-purple-600,
-[data-theme="light"] .bg-purple-600\/40,
-[data-theme="light"] .bg-purple-600\/60 {
-  background: var(--accent-1);
-}
-
-[data-theme="light"] .hover\:bg-purple-600\/60:hover {
-  background: var(--accent-2);
-}
-
-[data-theme="light"] .border-purple-300\/10,
-[data-theme="light"] .border-purple-300\/20,
-[data-theme="light"] .border-purple-300\/30 {
-  border-color: var(--border);
-}
-
-[data-theme="light"] .bg-white\/5,
-[data-theme="light"] .bg-white\/10 {
-  background: rgba(244,132,95,0.08);
-}
-
-[data-theme="light"] .text-white {
-  color: #FFF5EC;
-}
-
-/* ====== THEME VARIABLES ====== */
-:root {
-  --bg-gradient: linear-gradient(135deg, #0f172a, #1e1b4b, #2e1065);
-  --bg-card: rgba(255, 255, 255, 0.05);
-  --border-color: rgba(139, 92, 246, 0.1);
-  --text-primary: #e9d5ff;
-  --text-secondary: #c4b5fd;
-  --text-muted: #a78bfa;
-  --accent: #7c3aed;
-}
-
-[data-theme="light"] {
-  --bg-gradient: linear-gradient(135deg, #FFF5EC 0%, #FFE8D6 50%, #FDC9B3 100%);
-  --bg-card: rgba(255, 255, 255, 0.85);
-  --border-color: rgba(244, 132, 95, 0.2);
-  --text-primary: #4A3728;
-  --text-secondary: #7B5E47;
-  --text-muted: #A98467;
-  --accent: #F4845F;
-}
-
-/* Chart tooltip contrast (WCAG 1.4.3) */
-.recharts-default-tooltip {
-  background-color: #1e1b2e !important;
-  border: 1px solid rgba(167, 139, 250, 0.35) !important;
-}
-.recharts-default-tooltip .recharts-tooltip-label {
-  color: #e9d5ff !important;
-}
-.recharts-default-tooltip .recharts-tooltip-item {
-  color: #c4b5fd !important;
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
 }

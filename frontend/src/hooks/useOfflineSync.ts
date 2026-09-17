@@ -43,7 +43,9 @@ export function useOfflineSync() {
     for (const action of actions) {
       try {
         await api.post(`/quiz/${action.quizId}/answer`, {
-          questionId: action.questionId,
+          // The backend parses questionId as a Number — a string here would
+          // 400 on flush and strand the queue forever.
+          questionId: Number(action.questionId),
           selectedOptionId: action.selectedOptionId,
         }, { headers: { 'Idempotency-Key': action.id } })
         await db.delete(STORE_NAME, action.id)

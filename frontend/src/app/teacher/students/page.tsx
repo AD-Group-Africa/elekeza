@@ -3,6 +3,26 @@
 import { Fragment, useEffect, useState } from 'react';
 import api from '@/lib/axios';
 import { Search, Plus, User, HeartHandshake, RefreshCw, Info } from 'lucide-react';
+import {
+  MASTERY_ICON,
+  MASTERY_LABEL,
+  MASTERY_TONE_CLASS,
+  isMasteryState,
+  type MasteryState,
+} from '@/lib/masteryDisplay';
+
+interface MasteryRow {
+  contentId: number;
+  title: string;
+  attempts: number;
+  bestScore: number | null;
+  state: string;
+  reason: string;
+}
+
+function masteryStateOf(value: string): MasteryState {
+  return isMasteryState(value) ? value : 'NOT_ASSESSED';
+}
 
 interface Student {
   id: string;
@@ -54,6 +74,7 @@ export default function StudentsPage() {
 
   const [expanded, setExpanded] = useState<string | null>(null);
   const [support, setSupport] = useState<Record<string, SupportSummary>>({});
+  const [mastery, setMastery] = useState<Record<string, MasteryRow[]>>({});
   const [supportLoading, setSupportLoading] = useState<string | null>(null);
   const [supportError, setSupportError] = useState<Record<string, string>>({});
   const [guideMsg, setGuideMsg] = useState<Record<string, string>>({});
@@ -93,6 +114,14 @@ export default function StudentsPage() {
       }));
     } finally {
       setSupportLoading(null);
+    }
+    // Mastery evidence per lesson (backend-computed, explainable). Non-fatal:
+    // the support panel stays useful even if this call fails.
+    try {
+      const m = await api.get(`/mastery/learner/${Number(id)}`);
+      setMastery((prev) => ({ ...prev, [id]: Array.isArray(m.data) ? (m.data as MasteryRow[]) : [] }));
+    } catch {
+      setMastery((prev) => ({ ...prev, [id]: [] }));
     }
   };
 
@@ -240,6 +269,32 @@ export default function StudentsPage() {
                               </p>
                             ) : summary ? (
                               <div className="text-sm text-purple-200 space-y-3">
+                                {/* Lesson mastery evidence — the real quiz story */}
+                                {mastery[s.id] && mastery[s.id].length > 0 && (
+                                  <div>
+                                    <p className="text-xs text-purple-300/80 uppercase tracking-wide mb-1">Lesson mastery evidence</p>
+                                    <ul className="space-y-1.5">
+                                      {mastery[s.id].map((row) => {
+                                        const st = masteryStateOf(row.state);
+                                        return (
+                                          <li key={row.contentId} className="rounded-lg bg-white/5 px-3 py-2">
+                                            <div className="flex flex-wrap items-center justify-between gap-2">
+                                              <p className="text-purple-100 font-medium">{row.title}</p>
+                                              <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${MASTERY_TONE_CLASS[st]}`}>
+                                                <span aria-hidden="true">{MASTERY_ICON[st]} </span>
+                                                {MASTERY_LABEL[st]}
+                                              </span>
+                                            </div>
+                                            <p className="mt-0.5 text-xs text-purple-400">
+                                              {row.attempts} attempt{row.attempts === 1 ? '' : 's'} · {row.reason}
+                                            </p>
+                                          </li>
+                                        );
+                                      })}
+                                    </ul>
+                                  </div>
+                                )}
+
                                 <div className="flex flex-wrap gap-6">
                                   <div>
                                     <p className="text-xs text-purple-300/80 uppercase tracking-wide">Current mastery</p>

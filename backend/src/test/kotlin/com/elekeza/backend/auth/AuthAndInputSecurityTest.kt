@@ -17,9 +17,11 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
         "spring.datasource.url=jdbc:h2:mem:elekeza;DB_CLOSE_DELAY=-1;MODE=PostgreSQL",
         "spring.datasource.username=sa",
         "spring.datasource.password=",
-        // Tight rate-limit window so the recovery path is testable quickly.
+        // The window must exceed the four bcrypt-backed requests below. A
+        // one-second window can elapse on a busy CI machine before the test
+        // reaches its first 429 assertion, making the security check flaky.
         "app.login-rate-limit.max-attempts=3",
-        "app.login-rate-limit.window-seconds=1",
+        "app.login-rate-limit.window-seconds=3",
     ]
 )
 class AuthAndInputSecurityTest : ApiTestSupport() {
@@ -172,7 +174,7 @@ class AuthAndInputSecurityTest : ApiTestSupport() {
     fun `login succeeds after the rate-limit window expires`() {
         repeat(4) { postRawLogin("""{"email":"student@elekeza.app","password":"wrong"}""") }
         assertThat(postRawLogin("""{"email":"student@elekeza.app","password":"student123"}""").status).isEqualTo(429)
-        Thread.sleep(1200)
+        Thread.sleep(3200)
         val out = postRawLogin("""{"email":"student@elekeza.app","password":"student123"}""")
         assertThat(out.status).isEqualTo(200)
     }

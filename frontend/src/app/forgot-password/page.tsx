@@ -20,7 +20,9 @@ export default function ForgotPasswordPage() {
     setBusy(true);
     setError('');
     try {
-      await api.post('/api/auth/forgot-password', { email: email.trim() });
+      // api baseURL is already '/api' — a leading '/api' here produced a
+      // 404 (double prefix) and silently broke the whole reset flow.
+      await api.post('/auth/forgot-password', { email: email.trim() });
       setDone(true);
     } catch (err) {
       const payload = err as { response?: { data?: { message?: string } } };

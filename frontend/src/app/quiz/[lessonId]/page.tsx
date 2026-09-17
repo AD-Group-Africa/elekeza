@@ -184,7 +184,12 @@ export default function QuizPage() {
 
   return (
     <SidebarLayout>
-      {celebration && <Celebration data={celebration} />}
+      {celebration && (
+        <Celebration
+          data={celebration}
+          onContinue={() => setCelebration(null)}
+        />
+      )}
       <div className="max-w-2xl mx-auto space-y-8">
         {!isOnline && (
           <div role="status" className="flex items-center gap-2 text-sm px-4 py-2 rounded-lg bg-amber-500/20 text-amber-200">

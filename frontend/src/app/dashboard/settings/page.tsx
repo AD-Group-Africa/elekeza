@@ -40,7 +40,8 @@ const categories: SettingCategory[] = [
     title: 'Appearance',
     icon: '🎨',
     settings: [
-      { key: 'lightTheme', label: 'Light Theme', description: 'Switch to warm sunset light mode' },
+      { key: 'lightTheme', label: 'Light Theme', description: 'Switch to a clean paper-and-moss light mode' },
+      { key: 'calmMode', label: 'Calm Mode', description: 'Low-stimulation theme: softer contrast, larger text, still screens' },
     ],
   },
   {
@@ -105,7 +106,10 @@ export default function SettingsPage() {
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
-    const t = setTimeout(() => {
+    // Load saved settings after mount (localStorage is client-only). Deferred
+    // with queueMicrotask so setState does not fire synchronously inside the
+    // effect pass (react-compiler cascading-render rule).
+    queueMicrotask(() => {
       const saved = localStorage.getItem('elekeza-settings');
       if (saved) {
         try {
@@ -113,8 +117,7 @@ export default function SettingsPage() {
         } catch {}
       }
       setMounted(true);
-    }, 0);
-    return () => clearTimeout(t);
+    });
   }, []);
 
   useEffect(() => {
@@ -124,15 +127,36 @@ export default function SettingsPage() {
     Object.entries(settings).forEach(([key, value]) => {
       document.body.classList.toggle('setting-' + key, value);
     });
-    // Handle light theme
-    document.documentElement.setAttribute('data-theme', settings.lightTheme ? 'light' : 'dark');
+    // Theme precedence: Calm > Light > Dark. Calm is the accessibility /
+    // low-stimulation palette; it also sets body.calm-mode (fewer animations,
+    // flatter surfaces). Light is the clean paper palette. Dark (default) is
+    // deep moss.
+    if (settings.calmMode) {
+      document.documentElement.setAttribute('data-theme', 'calm');
+      document.body.classList.add('calm-mode');
+    } else {
+      document.body.classList.remove('calm-mode');
+      document.documentElement.setAttribute('data-theme', settings.lightTheme ? 'light' : 'dark');
+    }
   }, [settings, mounted]);
 
   const toggleSection = (title: string) => {
     setExpanded(prev => ({ ...prev, [title]: !prev[title] }));
   };
 
-  if (!mounted) return null;
+  if (!mounted) {
+    // SSR/hydration shell: render the layout with a loading state instead of
+    // null, so the page never ships a blank body (routes-crawl gate + no
+    // blank flash for real users on slow connections).
+    return (
+      <SidebarLayout>
+        <div className="max-w-3xl mx-auto space-y-4" aria-busy="true" aria-live="polite">
+          <h2 className="text-2xl font-bold text-purple-200 mb-6">Accessibility Settings</h2>
+          <p className="text-purple-300">Loading your settings…</p>
+        </div>
+      </SidebarLayout>
+    );
+  }
 
   return (
     <SidebarLayout>

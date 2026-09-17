@@ -44,8 +44,18 @@ ai:
 app:
   frontend-url: http://localhost:3000
   cors:
-    allowed-origins: http://localhost:3000
+    # 3100 is the Playwright E2E frontend port (see frontend/playwright.config.ts);
+    # browsers send Origin on cross-port XHR, and CORS rejections look like
+    # opaque 403s that masquerade as "Invalid email or password".
+    allowed-origins: http://localhost:3000,http://localhost:3100,http://localhost:3005
   secure-cookies: false
+  # Dev/E2E only: the automated suite performs many logins from one IP in
+  # quick succession, which the production limiter (5/60s) treats as an
+  # attack. The limiter stays ENABLED here so its behavior is exercised;
+  # production keeps the strict default from application.yaml.
+  login-rate-limit:
+    max-attempts: 100
+    window-seconds: 60
 
 mpesa:
   consumer-key: ${MPESA_CONSUMER_KEY:}

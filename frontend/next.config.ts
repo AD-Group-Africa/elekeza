@@ -2,11 +2,17 @@ import withPWA from 'next-pwa';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8080';
 
+// The Playwright E2E suite and the live preview both run `next dev` on this
+// machine. A single `.next` dir means whichever server boots second refuses
+// to start (lock). A distinct distDir per context decouples them.
+const distDir = process.env.NEXT_DIST_DIR ?? '.next';
+
 if (process.env.NODE_ENV === 'production' && !process.env.NEXT_PUBLIC_API_URL) {
   throw new Error('NEXT_PUBLIC_API_URL must be set when building for production');
 }
 
 const nextConfig = {
+  distDir,
   turbopack: {},
   rewrites: async () => [
     { source: '/api/:path*', destination: `${API_BASE}/api/:path*` }

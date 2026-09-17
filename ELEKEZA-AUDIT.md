@@ -1,11 +1,48 @@
 # ELEKEZA-AUDIT.md — Engineering State Report
 
-*Last run: 2026-09-03. Status classification used throughout:*
+*Last expanded-release audit: 2026-09-16. Status classification used throughout:*
 `VERIFIED` · `PARTIALLY VERIFIED` · `BLOCKED (external)` · `MOCKED` · `NOT IMPLEMENTED`.
 
 ---
 
 ## Executive status
+
+### Pilot-freeze finding (2026-09-17 late evening — SUPERSEDES all earlier)
+
+**RELEASE FROZEN FOR REAL-USER HANDOFF.** Pilot documentation complete:
+`docs/PILOT_READINESS.md` (verdict), `PILOT_RUNBOOK.md`, `TEACHER_PILOT_GUIDE.md`,
+`GUARDIAN_PILOT_GUIDE.md`, `LEARNER_PILOT_GUIDE.md`, `PILOT_FEEDBACK.md`,
+`PILOT_SUCCESS_CRITERIA.md`. Freeze evidence: backend **220/220**, vitest **17/17**,
+`next build` green, **Playwright 31/31 (0 flaky, 12.4m)**, fresh-PostgreSQL V1–V12
+re-verified (constraints + zero orphans), four-role manual journeys re-verified incl.
+denials, guardian surfaces token-migrated (moss-green), contamination scan clean.
+Production M-Pesa remains the single external gate. **Next phase: learning, not building.**
+
+### Expanded-release finding (2026-09-17 evening — historical)
+
+**PILOT READY (KNOWN LIMITATIONS). Production gates 1 & 2 closed; production M-Pesa remains external.** All P0 gaps identified on 2026-09-16 are closed with test evidence, plus two new domains:
+
+- Attendance: V10 migration + `attendance` module + `AttendanceApiTest` (12) — teacher-class scoping, duplicate-session uniqueness, guardian-ward isolation, tenant isolation. UI `/attendance`; E2E register journey green.
+- Fees/payments: V11 migration + `finance` module (periods → fee items/structures → learner charges → payments → allocations → derived balances → receipts) + `FinanceApiTest` (14) incl. M-Pesa callback replay idempotency and cross-tenant 403. UI `/finance` + `/guardian/fees`; E2E green.
+- **Assignments (new):** V12 migration + `assignments` module — publish, learner submit/resubmit (single-row update), staff grading with score bounds, guardian read-only ward evidence, tenant isolation (cross-tenant → 404). `AssignmentApiTest` 12/12. UI `/assignments` (learner) + `/teacher-assignments` (teacher), in sidebar.
+- **Guardian daily digest (new):** `GET /api/guardian/wards/{id}/digest` — server-composed snapshot (learning, attendance incl. today, classwork due/missing/feedback, fees balance = charges − allocations). `GuardianDigestTest` 3/3. UI: “Today at a glance” on the ward page.
+- **Production gates:** Gate 1 fresh-PostgreSQL migration V1–V11 + validate + boot **PASSED**; Gate 2 staging deploy exercise (`scripts/staging-gate.sh`: prod build → fresh PG → boot JAR fail-fast env → `next start` → smoke checks) **PASSED**; Gate 3 production Daraja credentials + HTTPS callback **BLOCKED (external, owner-side)** — `docs/MPESA_PRODUCTION_CHECKLIST.md`.
+- Verification (2026-09-17 evening, this codebase): backend **220/220, 0 failed, 0 skipped** (27 suites), frontend `tsc` clean + **vitest 17/17** + `next build` green, **Playwright E2E 31/31 in one clean run (9.1m), 0 flaky** (axe-core a11y, offline, exam, attendance, finance, guardian fees, onboarding, all route-crawls).
+- Remaining before a production tag (explicit, not hidden): production M-Pesa Daraja credentials + HTTPS callback (external, owner-side); one real-host staging deploy (script proven locally).
+- Strategy/roadmap/KPI/device/business analysis: `docs/PRODUCT_STRATEGY_ASSESSMENT.md`; design system: `docs/DESIGN_SYSTEM.md`.
+
+See `docs/RELEASE_CANDIDATE_READINESS.md` (2026-09-17 updates), `docs/RELEASE_TEST_MATRIX.md` (2026-09-17 sections), `docs/PREVIEW_ROLE_VERIFICATION.md`, and `docs/DEPLOYMENT_RUNBOOK.md`.
+
+### Previous finding (2026-09-16, historical)
+
+**NOT READY** for the requested school-platform release. The repository had learner-learning, Tutor, mastery, guardian, and M-Pesa callback work, but did not evidence the requested P0 school-operations scope end to end.
+
+- Attendance: no backend domain, controller, migration, or test suite located. (CLOSED 2026-09-17)
+- Fees/payments: `mpesa_transactions` recorded non-tenant/non-learner-specific STK transactions. (CLOSED 2026-09-17 by the `finance` domain layered above the M-Pesa integration ledger)
+- Current checkout is intentionally preserved with substantial uncommitted work. Earlier learner-release evidence remains historical and must not be read as full five-role acceptance.
+- Verification at the time: a fresh backend run reached 185 tests with 1 failure in the login-rate-limit expiry test (flaky one-second window; since repaired — the full suite now reports 205/205 with the repaired test). Frontend/E2E gates were incomplete then; they are complete as of 2026-09-17.
+
+See `docs/RELEASE_CANDIDATE_READINESS.md`, `docs/RELEASE_TEST_MATRIX.md`, `docs/PREVIEW_ROLE_VERIFICATION.md`, and `docs/DEPLOYMENT_RUNBOOK.md`.
 
 | | Status | Note |
 |---|---|---|

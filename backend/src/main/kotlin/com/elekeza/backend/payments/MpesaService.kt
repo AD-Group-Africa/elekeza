@@ -1,5 +1,6 @@
 ﻿package com.elekeza.backend.payments
 
+import com.elekeza.backend.finance.MpesaPaymentListener
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
@@ -22,7 +23,10 @@ class MpesaService(
     @Value("\${mpesa.environment:sandbox}") private val environment: String,
     private val transactionRepo: MpesaTransactionRepository,
     private val restTemplate: RestTemplate,
-    private val objectMapper: ObjectMapper
+    private val objectMapper: ObjectMapper,
+    // Optional: when present, a confirmed callback also creates the school
+    // finance Payment (idempotently) and updates learner fee balances.
+    private val feePaymentListener: MpesaPaymentListener? = null
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
     private val baseUrl = if (environment == "production") "https://api.safaricom.co.ke" else "https://sandbox.safaricom.co.ke"
@@ -149,6 +153,30 @@ class MpesaService(
         )
         transactionRepo.save(updated)
         log.info("M-Pesa payment {}: {} - KES {}", updated.status, updated.mpesaReceiptNumber ?: checkoutRequestId, updated.amount)
+
+        // Map the confirmed provider transaction into the school finance domain:
+        // idempotent (same checkout id ⇒ one Payment), allocated against the
+        // learner's outstanding charges. The reference carries the learner id
+        // ("ELEKEZA-FEES-<learnerId>") for fee-initiated STK pushes.
+        if (updated.status == "COMPLETED") {
+            val learnerId = updated.reference.split("-").lastOrNull()?.toLongOrNull()
+            if (learnerId != null && feePaymentListener != null) {
+                try {
+                    val payment = feePaymentListener.onMpesaSuccess(
+                        checkoutRequestId, learnerId, updated.amount, updated.mpesaReceiptNumber
+                    )
+                    if (payment == null) {
+                        log.info("M-Pesa callback {} already mapped to a finance payment — skipping (idempotent)", checkoutRequestId)
+                    }
+                } catch (e: Exception) {
+                    // Never fail the provider handshake for a downstream issue;
+                    // the transaction state is already terminal and can be
+                    // reconciled from the ledger.
+                    log.error("Failed to map M-Pesa payment {} to finance domain", checkoutRequestId, e)
+                }
+            }
+        }
+
         return mapOf("ResultCode" to 0, "ResultDesc" to "Success")
     }
 

@@ -39,3 +39,10 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Playwright artifacts
+test-results/
+playwright-report/
+
+# E2E dev-server build dir (decouples Playwright from the live preview)
+/.next-e2e/

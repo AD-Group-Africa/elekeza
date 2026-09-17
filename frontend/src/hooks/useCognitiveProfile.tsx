@@ -45,6 +45,7 @@ export function CognitiveProfileProvider({ children }: { children: ReactNode }) 
       return [...new Set(userProfiles)]
     }
     return readCognitiveProfiles(String(user.learnerId))
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- 'version' is what makes the memo re-read locally persisted profiles after setProfilesForCurrentUser; 'user' alone does not change identity.
   }, [user, version])
 
   const activeMode = useMemo(() => resolveActiveMode(profiles), [profiles])

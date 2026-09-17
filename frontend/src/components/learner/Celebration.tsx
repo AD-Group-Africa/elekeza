@@ -19,7 +19,15 @@ export interface CelebrationData {
   companionMessage: string;
 }
 
-export default function Celebration({ data }: { data: CelebrationData }) {
+export default function Celebration({
+  data,
+  onContinue,
+}: {
+  data: CelebrationData;
+  /** Dismissal is a required affordance: a full-screen dialog a learner can
+   *  never close would trap them after every quiz. */
+  onContinue: () => void;
+}) {
   const great = data.score >= 80;
   return (
     <div
@@ -67,6 +75,14 @@ export default function Celebration({ data }: { data: CelebrationData }) {
             {data.newAchievements.join(' · ')}
           </p>
         )}
+
+        <button
+          onClick={onContinue}
+          autoFocus
+          className="mt-6 w-full rounded-xl bg-gradient-to-r from-fuchsia-500 to-violet-500 px-6 py-3 text-base font-bold text-white shadow-lg transition hover:from-fuchsia-400 hover:to-violet-400 focus:outline-none focus-visible:ring-4 focus-visible:ring-fuchsia-300"
+        >
+          Continue
+        </button>
       </div>
       <style jsx>{`
         @keyframes celebration-pop {

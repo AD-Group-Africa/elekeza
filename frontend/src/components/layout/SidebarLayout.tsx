@@ -6,7 +6,8 @@ import { usePathname } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import {
   LayoutDashboard, Users, BookOpen, ClipboardCheck, Upload, TrendingUp,
-  Calendar, User, Settings, FileText, MessageSquare, Menu, X, BrainCircuit, AlertTriangle, SlidersHorizontal
+  Calendar, User, Settings, FileText, MessageSquare, Menu, X, BrainCircuit, AlertTriangle, SlidersHorizontal,
+  UserCheck, Wallet, NotebookPen
 } from 'lucide-react';
 import NotificationBell from '@/components/layout/NotificationBell';
 
@@ -16,6 +17,7 @@ const teacherItems = [
   { href: '/teacher/lessons', label: 'Lessons', icon: BookOpen },
   { href: '/teacher/assignments', label: 'Assignments', icon: ClipboardCheck },
   { href: '/teacher/content', label: 'Content', icon: Upload },
+  { href: '/teacher-assignments', label: 'Classwork', icon: NotebookPen },
   { href: '/teacher/exams', label: 'Exams', icon: FileText },
   { href: '/teacher/quiz-results', label: 'Quiz Results', icon: ClipboardCheck },
   { href: '/teacher/support', label: 'Support Signals', icon: AlertTriangle },
@@ -24,12 +26,14 @@ const teacherItems = [
   { href: '/teacher/timetable', label: 'Timetable', icon: Calendar },
   { href: '/teacher/communication', label: 'Communication', icon: MessageSquare },
   { href: '/teacher/schedule', label: 'Schedule', icon: Calendar },
+  { href: '/attendance', label: 'Attendance', icon: UserCheck },
 ];
 
 const studentItems = [
   { href: '/student-ai-tutor', label: 'AI Tutor', icon: BrainCircuit },
   { href: '/student-home', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/student-lessons', label: 'My Lessons', icon: BookOpen },
+  { href: '/assignments', label: 'Assignments', icon: NotebookPen },
   { href: '/student-quizzes', label: 'Quizzes', icon: ClipboardCheck },
   { href: '/student-exams', label: 'Exams', icon: FileText },
   { href: '/progress', label: 'Progress', icon: TrendingUp },
@@ -39,6 +43,7 @@ const studentItems = [
 const guardianItems = [
   { href: '/guardian', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/guardian/wards', label: 'My Child', icon: User },
+  { href: '/guardian/fees', label: 'Fees', icon: Wallet },
   { href: '/guardian/reports', label: 'Reports', icon: FileText },
   { href: '/guardian/schedule', label: 'Schedule', icon: Calendar },
   { href: '/guardian/communication', label: 'Communication', icon: MessageSquare },
@@ -46,6 +51,8 @@ const guardianItems = [
 
 const adminItems = [
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
+  { href: '/finance', label: 'Finance', icon: Wallet },
+  { href: '/attendance', label: 'Attendance', icon: UserCheck },
   { href: '/school/onboarding', label: 'Schools', icon: Users },
   { href: '/super-admin', label: 'Platform', icon: TrendingUp },
 ];
@@ -89,6 +96,7 @@ export default function SidebarLayout({ children }: { children: React.ReactNode 
           <Link
             key={item.href}
             href={item.href}
+            aria-current={pathname === item.href ? 'page' : undefined}
             className={'flex items-center gap-3 p-2 rounded-lg transition ' + (pathname === item.href ? 'bg-purple-600/40 text-white' : 'text-purple-200 hover:bg-white/10')}
           >
             <item.icon size={20} />
@@ -102,6 +110,7 @@ export default function SidebarLayout({ children }: { children: React.ReactNode 
           <Link
             key={item.href}
             href={item.href}
+            aria-current={pathname === item.href ? 'page' : undefined}
             className={'flex items-center gap-3 p-2 rounded-lg transition ' + (pathname === item.href ? 'bg-purple-600/40 text-white' : 'text-purple-200 hover:bg-white/10')}
           >
             <item.icon size={20} />
@@ -122,6 +131,13 @@ export default function SidebarLayout({ children }: { children: React.ReactNode 
 
   return (
     <div className="min-h-screen flex" style={{ background: "var(--bg-gradient)" }}>
+      {/* WCAG 2.4.1 Bypass Blocks — first focusable element on the page */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-[100] focus:rounded-lg focus:bg-purple-700 focus:px-4 focus:py-2 focus:text-white focus:shadow-lg"
+      >
+        Skip to main content
+      </a>
       {/* Desktop sidebar */}
       <aside className={'hidden md:block ' + (collapsed ? 'w-16' : 'w-56') + ' transition-all duration-300'}>
         {sidebar}
@@ -147,7 +163,7 @@ export default function SidebarLayout({ children }: { children: React.ReactNode 
       </button>
 
       {/* Main content */}
-      <main className="flex-1 overflow-auto p-4 md:p-6">
+      <main id="main-content" className="flex-1 overflow-auto p-4 md:p-6">
         <div className="flex justify-end mb-2">
           <NotificationBell />
         </div>

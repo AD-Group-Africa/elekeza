@@ -100,6 +100,7 @@ export default function Sidebar() {
                 <Link
                   href={item.href}
                   title={collapsed ? item.label : undefined}
+                  aria-current={isActive ? 'page' : undefined}
                   className={`group relative flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium transition ${
                     isActive
                       ? 'bg-slate-900 text-white shadow-md shadow-slate-900/15'

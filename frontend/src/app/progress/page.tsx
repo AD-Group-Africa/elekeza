@@ -16,6 +16,31 @@ import { useEffect, useState } from 'react';
 import api from '@/lib/axios';
 import SidebarLayout from '@/components/layout/SidebarLayout';
 import { TrendingUp, Award, Download, BookOpen, Star } from 'lucide-react';
+import {
+  MASTERY_ICON,
+  MASTERY_LABEL,
+  MASTERY_TONE_CLASS,
+  isMasteryState,
+  type MasteryState,
+} from '@/lib/masteryDisplay';
+
+interface MasteryRow {
+  contentId: number;
+  title: string;
+  attempts: number;
+  bestScore: number | null;
+  recentAverage: number | null;
+  state: string;
+  stateLabel: string;
+  reason: string;
+  nextAction: string;
+  nextLabel: string;
+  nextReason: string;
+}
+
+function masteryStateOf(value: string): MasteryState {
+  return isMasteryState(value) ? value : 'NOT_ASSESSED';
+}
 
 interface ProgressData {
   name?: string;
@@ -76,6 +101,7 @@ export default function StudentProgress() {
   const [progress, setProgress] = useState<ProgressData | null>(null);
   const [game, setGame] = useState<GamificationData | null>(null);
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
+  const [mastery, setMastery] = useState<MasteryRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -90,6 +116,14 @@ export default function StudentProgress() {
         setProgress(p.data ?? null);
         setGame(g.data ?? null);
         setAnalytics((a.data as AnalyticsData) ?? null);
+        // Mastery/next-steps are a bonus layer: if they fail, the progress
+        // page stays useful rather than breaking the learner's story.
+        try {
+          const m = await api.get('/mastery/learner');
+          setMastery(Array.isArray(m.data) ? (m.data as MasteryRow[]) : []);
+        } catch {
+          setMastery([]);
+        }
       } catch (e: unknown) {
         const message =
           (e as { message?: string }).message ||
@@ -242,6 +276,44 @@ export default function StudentProgress() {
             value={streak + ' days'}
           />
         </div>
+
+        {/* Mastery / next steps — explainable, evidence-based, never a label */}
+        {mastery.length > 0 && (
+          <div className="glass-card p-4" aria-labelledby="mastery-heading">
+            <h3
+              id="mastery-heading"
+              className="text-lg font-semibold text-purple-200 mb-1 flex items-center gap-2"
+            >
+              <TrendingUp size={18} className="text-purple-400" /> What to do next
+            </h3>
+            <p className="text-purple-300 text-sm mb-3">
+              Based on your quiz results — and you can always choose differently.
+            </p>
+            <ul className="space-y-2">
+              {mastery.slice(0, 6).map((row) => {
+                const state = masteryStateOf(row.state);
+                return (
+                  <li
+                    key={row.contentId}
+                    className="rounded-xl bg-white/5 px-4 py-3"
+                  >
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <p className="text-purple-100 font-medium">{row.title}</p>
+                      <span
+                        className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${MASTERY_TONE_CLASS[state]}`}
+                      >
+                        <span aria-hidden="true">{MASTERY_ICON[state]} </span>
+                        {MASTERY_LABEL[state]}
+                      </span>
+                    </div>
+                    <p className="mt-1 text-sm text-purple-300">{row.nextLabel}.</p>
+                    <p className="mt-0.5 text-xs text-purple-400">{row.reason}</p>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        )}
 
         {/* Achievements — earned, not fabricated */}
         {game && game.achievements.length > 0 && (
