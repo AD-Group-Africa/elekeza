@@ -11,6 +11,7 @@ from models.errors import AIServiceError, ErrorResponse, ERROR_EMPTY_CONTENT, ER
 from utils.error_handler import error_json_response
 from utils.learner_messages import attach_learner_message
 import config
+from pipeline.stage3b_readability import apply_readability_corrections
 
 logger = structlog.get_logger(__name__)
 router = APIRouter()
@@ -60,6 +61,7 @@ async def process_file(request: ProcessRequest):
         lesson = await verify(lesson, raw_text, learner_context)
         lesson = extract_concepts(lesson)
         lesson = measure_readability(lesson, learner_context)
+        lesson = await apply_readability_corrections(lesson, learner_context)
         lesson = standardise_visual_hints(lesson, learner_context)
 
         return ProcessResponse(
