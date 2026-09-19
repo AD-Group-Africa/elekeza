@@ -6,4 +6,5 @@ interface AiClient {
     fun generateQuiz(request: GenerateQuizRequest): QuizJSON
     fun adaptiveResponse(request: AdaptiveResponseRequest): AdaptiveResponseJSON
     fun wrongAnswerFlow(request: WrongAnswerFlowRequest): WrongAnswerFlowJSON
+    fun tutorChat(request: TutorChatRequest): TutorChatResponse
 }

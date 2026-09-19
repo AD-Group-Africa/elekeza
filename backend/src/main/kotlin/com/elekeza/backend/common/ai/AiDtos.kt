@@ -146,3 +146,28 @@ data class LessonResponse(
     val terms: List<KeyTermResponse> = emptyList()
 )
 data class TextUploadRequest(val text: String, val title: String? = null, val language: String = "sw", val sneType: String? = null)
+
+// ---------------------------------------------------------------------------
+// Tutor chat — wire names match FastAPI models/requests.py / responses.py
+// TutorChatRequest / TutorChatResponse exactly.
+// ---------------------------------------------------------------------------
+
+data class TutorChatMessage(
+    val role: String,
+    val content: String
+)
+
+data class TutorChatRequest(
+    @JsonProperty("learner_context") val learnerContext: LearnerContext,
+    val messages: List<TutorChatMessage>,
+    @JsonProperty("lesson_context") val lessonContext: String? = null,
+    @JsonProperty("current_action") val currentAction: String? = null
+)
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
+@JsonIgnoreProperties(ignoreUnknown = true)
+data class TutorChatResponse(
+    val reply: String = "",
+    @JsonProperty("action_handled") val actionHandled: String? = null,
+    val fallback: Boolean = false
+)

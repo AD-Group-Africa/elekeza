@@ -43,6 +43,9 @@ class RealAiClient(
     override fun wrongAnswerFlow(request: WrongAnswerFlowRequest): WrongAnswerFlowJSON =
         call("/ai/quiz/wrong-answer-flow", request, WrongAnswerFlowJSON::class.java)
 
+    override fun tutorChat(request: TutorChatRequest): TutorChatResponse =
+        call("/ai/tutor/chat", request, TutorChatResponse::class.java)
+
     private fun <T : Any> call(path: String, body: Any, type: Class<T>): T {
         log.debug("AI call -> $path")
         val raw = webClient.post()
