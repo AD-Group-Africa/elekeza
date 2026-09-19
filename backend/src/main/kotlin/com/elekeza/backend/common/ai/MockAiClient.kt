@@ -60,4 +60,12 @@ class MockAiClient : AiClient {
             reattemptQuestion = ""
         )
     }
+
+    override fun tutorChat(request: TutorChatRequest): TutorChatResponse {
+        log.info("Mock: tutorChat")
+        return TutorChatResponse(
+            reply = "This is a mock tutor reply for: ${request.currentAction ?: "chat"}.",
+            actionHandled = request.currentAction
+        )
+    }
 }

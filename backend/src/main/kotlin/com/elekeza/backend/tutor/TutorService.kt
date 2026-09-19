@@ -3,11 +3,15 @@ package com.elekeza.backend.tutor
 import com.elekeza.backend.auth.User
 import com.elekeza.backend.common.ai.AiClient
 import com.elekeza.backend.analytics.EngagementService
+import com.elekeza.backend.common.ai.LearnerContext
+import com.elekeza.backend.common.ai.TutorChatMessage
+import com.elekeza.backend.common.ai.TutorChatRequest
 import com.elekeza.backend.common.AuditLogService
 import com.elekeza.backend.content.Content
 import com.elekeza.backend.content.ContentAccessGuard
 import com.elekeza.backend.content.ContentRepository
 import com.elekeza.backend.content.LessonView
+import com.elekeza.backend.learner.LearnerProfileRepository
 import com.elekeza.backend.learner.LessonProgressRepository
 import com.elekeza.backend.mastery.MasteryEngine
 import com.elekeza.backend.quiz.QuizAttemptRepository
@@ -26,10 +30,11 @@ import java.util.concurrent.atomic.AtomicInteger
  * access control, and produces grounded learning support.
  *
  * Provider strategy: the deterministic TutorEngine always works. When a REAL
- * AiClient bean is configured, EXPLAIN/SUMMARY responses are marked as
- * provider-sourced and the engine remains the safe fallback — the learner
- * never sees a broken tutor, and the UI never pretends mock output is live
- * AI.
+ * AiClient bean is configured, EXPLAIN/SUMMARY responses call /ai/tutor/chat
+ * and are marked source = "provider" on success; any failure, blank reply,
+ * or provider-signalled fallback silently returns the engine's output with
+ * source = "deterministic" instead. The learner never sees a broken tutor,
+ * and the UI never labels engine output as live AI.
  *
  * Practice questions are held in a short-lived in-process session store (no
  * database writes). Sessions carry the owner's id so one learner can never
@@ -46,6 +51,7 @@ class TutorService(
     private val objectMapper: ObjectMapper,
     private val auditLog: AuditLogService,
     private val engagementService: com.elekeza.backend.analytics.EngagementService,
+    private val learnerProfileRepo: LearnerProfileRepository,
     /** Optional: absent when no AI provider is configured (ai.client.type unset). */
     @Autowired(required = false) private val aiClient: AiClient? = null
 ) {
@@ -86,22 +92,17 @@ class TutorService(
         val (lessonId, title, body, keyTerms) = resolveLesson(user, req.lessonId)
 
         val response: TutorResponse = when (req.action) {
-            // V1 honesty: these responses come from the deterministic engine
-            // (grounded in the lesson text). A provider-backed upgrade plugs
-            // in at this point and would set source = "provider" when it
-            // actually serves the content. We never label engine output as
-            // live AI.
-            TutorAction.EXPLAIN -> TutorResponse(
-                action = req.action,
-                intro = masteryIntro(user, lessonId),
-                content = if (req.variant == "simpler") TutorEngine.explainSimpler(title, body)
-                          else TutorEngine.explain(title, body, keyTerms)
-            )
-            TutorAction.SUMMARY -> TutorResponse(
-                action = req.action,
-                intro = masteryIntro(user, lessonId),
-                content = TutorEngine.summarize(title, body, keyTerms)
-            )
+            TutorAction.EXPLAIN -> {
+                val engineContent = if (req.variant == "simpler") TutorEngine.explainSimpler(title, body)
+                                    else TutorEngine.explain(title, body, keyTerms)
+                val (content, source) = tryProviderReply(user, "explain", title, body, engineContent)
+                TutorResponse(action = req.action, intro = masteryIntro(user, lessonId), content = content, source = source)
+            }
+            TutorAction.SUMMARY -> {
+                val engineContent = TutorEngine.summarize(title, body, keyTerms)
+                val (content, source) = tryProviderReply(user, "summarise", title, body, engineContent)
+                TutorResponse(action = req.action, intro = masteryIntro(user, lessonId), content = content, source = source)
+            }
             TutorAction.TRANSLATE -> {
                 val text = req.text?.take(600)?.trim().orEmpty().ifBlank {
                     body.split(Regex("(?<=[.!?])\\s+")).take(2).joinToString(" ")
@@ -122,11 +123,46 @@ class TutorService(
         return response
     }
 
+    /** Calls /ai/tutor/chat for EXPLAIN/SUMMARY when a provider is configured.
+     *  Returns (content, source) â€” falls back to the deterministic content
+     *  and source = "deterministic" on any failure, blank reply, or
+     *  provider-signalled fallback. Never throws. */
+    private fun tryProviderReply(
+        user: User,
+        pythonAction: String,
+        title: String,
+        body: String,
+        deterministicContent: String
+    ): Pair<String, String> {
+        val client = aiClient ?: return deterministicContent to "deterministic"
+        return runCatching {
+            val request = TutorChatRequest(
+                learnerContext = buildLearnerContext(user),
+                messages = listOf(
+                    TutorChatMessage(role = "user", content = "Please $pythonAction this lesson: $title")
+                ),
+                lessonContext = "$title\n\n$body".take(MAX_LESSON_CHARS),
+                currentAction = pythonAction
+            )
+            val result = client.tutorChat(request)
+            if (result.fallback || result.reply.isBlank()) {
+                deterministicContent to "deterministic"
+            } else {
+                result.reply to "provider"
+            }
+        }.getOrElse { deterministicContent to "deterministic" }
+    }
+
+    private fun buildLearnerContext(user: User): LearnerContext {
+        val sneType = learnerProfileRepo.findByUserId(user.id)?.sneType?.name
+        return LearnerContext.fromSneType(user.id, sneType)
+    }
+
     /** Returns (lessonId, title, body, keyTerms) with access control enforced. */
     private fun resolveLesson(user: User, lessonId: Long?): Quad<Long, String, String, Map<String, String>> {
         val id = lessonId
             ?: progressRepo.findByUserIdOrderByCreatedAtDesc(user.id).firstOrNull()?.contentId
-            ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST, "No lesson in context — open a lesson first")
+            ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST, "No lesson in context â€” open a lesson first")
         val content = contentRepo.findById(id)
             .orElseThrow { ResponseStatusException(HttpStatus.NOT_FOUND, "Lesson not found") }
         accessGuard.requireAccess(user, content)
@@ -170,7 +206,7 @@ class TutorService(
     fun gradeAnswer(user: User, req: TutorRequest): TutorResponse {
         val pid = req.practiceId ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Missing practice id")
         val session = practiceSessions[pid]
-            ?: throw ResponseStatusException(HttpStatus.GONE, "This practice question has expired — ask for a new one")
+            ?: throw ResponseStatusException(HttpStatus.GONE, "This practice question has expired â€” ask for a new one")
         // Cross-learner safety: only the learner who received the question may answer it.
         if (session.ownerId != user.id) {
             throw ResponseStatusException(HttpStatus.FORBIDDEN, "Not your practice question")
@@ -184,7 +220,7 @@ class TutorService(
 
     private fun recordUsage(user: User, req: TutorRequest, title: String?) {
         // Teacher-visible learning signal: action + lesson + timestamp only.
-        // NO conversational content is ever stored — the tutor must not
+        // NO conversational content is ever stored â€” the tutor must not
         // become surveillance.
         runCatching {
             auditLog.log(

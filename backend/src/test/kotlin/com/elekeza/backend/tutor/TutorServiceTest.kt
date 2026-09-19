@@ -18,6 +18,8 @@ import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.boot.test.mock.mockito.MockBean
+import com.elekeza.backend.common.ai.AiClient
 import org.springframework.http.HttpStatus
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.web.server.ResponseStatusException
@@ -34,6 +36,8 @@ import java.time.LocalDateTime
     ]
 )
 class TutorServiceTest {
+
+    @MockBean lateinit var aiClient: AiClient
 
     @Autowired lateinit var tutorService: TutorService
     @Autowired lateinit var userRepo: UserRepository
