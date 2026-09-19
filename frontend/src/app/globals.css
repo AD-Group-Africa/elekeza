@@ -1,0 +1,67 @@
+/*
+ * ELEKEZA GLOBAL STYLES — moss-green identity (2026-09-17 redesign)
+ *
+ * Structure:
+ *   1. tokens.css        — semantic primitives + three themes (dark moss default,
+ *                          light paper, calm low-stimulation)
+ *   2. theme-remaps.css  — legacy purple/orange utility classes -> tokens;
+ *                          button/card primitives; a11y helpers
+ *   3. base layer below  — body chrome, glass/metric cards, scrollbars
+ *
+ * Components never need theme logic: they read tokens or use remapped
+ * Tailwind classes. New pages should prefer brand-* utilities and btn-*.
+ */
+@import "../styles/tokens.css";
+@import "../styles/theme-remaps.css";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  background: var(--bg-gradient);
+  background-attachment: fixed;
+  color: var(--text-primary);
+  min-height: 100vh;
+  font-family: 'Inter', system-ui, sans-serif;
+  line-height: 1.6;
+}
+
+.glass-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 1rem;
+  box-shadow: var(--ek-shadow-2);
+  transition: border-color var(--ek-speed) ease, background-color var(--ek-speed) ease;
+}
+.glass-card:hover {
+  border-color: var(--border-strong);
+  background: var(--bg-card-hover);
+}
+
+.metric-card {
+  background: var(--accent-soft);
+  border: 1px solid var(--border-color);
+  border-radius: 0.75rem;
+  padding: 1rem;
+  transition: border-color var(--ek-speed) ease, box-shadow var(--ek-speed) ease;
+}
+.metric-card:hover {
+  border-color: var(--border-strong);
+  box-shadow: var(--ek-shadow-1);
+}
+
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}

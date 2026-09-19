@@ -1,0 +1,193 @@
+stages:
+  - test
+  - security
+  - build
+  - deploy-staging
+  - deploy-production
+
+variables:
+  DOCKER_DRIVER: overlay2
+  DOCKER_TLS_CERTDIR: ""
+  IMAGE_TAG: $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
+  LATEST_TAG: $CI_REGISTRY_IMAGE:latest
+
+# ── Templates ──────────────────────────────────────────────────
+.docker-login: &docker-login
+  before_script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+
+.cache-gradle: &cache-gradle
+  cache:
+    key: gradle-$CI_COMMIT_REF_SLUG
+    paths:
+      - backend/.gradle/caches
+      - backend/.gradle/wrapper
+    policy: pull-push
+
+.cache-python: &cache-python
+  cache:
+    key: pip-$CI_COMMIT_REF_SLUG
+    paths:
+      - ai-elewa/.venv
+    policy: pull-push
+
+# ── Tests ──────────────────────────────────────────────────────
+test-ai-service:
+  stage: test
+  image: python:3.11-slim
+  <<: *cache-python
+  script:
+    - cd ai-elewa
+    - pip install -r requirements.txt
+    - python -m pytest tests/ -v --tb=short --cov=. --cov-report=xml
+  artifacts:
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: ai-elewa/coverage.xml
+
+test-backend:
+  stage: test
+  image: eclipse-temurin:17-jdk
+  <<: *cache-gradle
+  services:
+    - postgres:16-alpine
+    - redis:7-alpine
+  variables:
+    POSTGRES_DB: elekeza_test
+    POSTGRES_PASSWORD: testpass
+    SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/elekeza_test
+    SPRING_DATASOURCE_USERNAME: postgres
+    SPRING_DATASOURCE_PASSWORD: testpass
+    SPRING_REDIS_HOST: redis
+    JWT_SECRET: test-secret-at-least-thirty-two-characters
+    AI_SERVICE_URL: http://localhost:8000
+    AI_INTERNAL_SECRET: test-internal-secret-32-chars
+    GOOGLE_CLIENT_ID: test
+    GOOGLE_CLIENT_SECRET: test
+    MAIL_USERNAME: test
+    MAIL_PASSWORD: test
+    MPESA_CALLBACK_URL: http://localhost:8080/api/payments/mpesa/callback
+    FRONTEND_URL: http://localhost:3000
+  script:
+    - cd backend
+    - ./gradlew test jacocoTestReport --no-daemon
+  artifacts:
+    reports:
+      junit: backend/build/test-results/test/**/TEST-*.xml
+      coverage_report:
+        coverage_format: cobertura
+        path: backend/build/reports/jacoco/test/jacocoTestReport.xml
+
+lint-frontend:
+  stage: test
+  image: node:20-alpine
+  cache:
+    key: npm-$CI_COMMIT_REF_SLUG
+    paths:
+      - frontend/.npm
+      - frontend/node_modules
+  script:
+    - cd frontend
+    - npm ci
+    - npm run lint
+    - npm run type-check
+
+# ── Security ───────────────────────────────────────────────────
+security-scan:
+  stage: security
+  image: aquasec/trivy:latest
+  script:
+    - trivy fs --severity CRITICAL,HIGH --exit-code 1 .
+
+# ── Build ──────────────────────────────────────────────────────
+build-backend:
+  stage: build
+  image: docker:24-dind
+  services:
+    - docker:24-dind
+  <<: *docker-login
+  script:
+    - cd backend
+    - docker build -t $IMAGE_TAG-backend -t $LATEST_TAG-backend .
+    - docker push $IMAGE_TAG-backend
+    - docker push $LATEST_TAG-backend
+
+build-ai-service:
+  stage: build
+  image: docker:24-dind
+  services:
+    - docker:24-dind
+  <<: *docker-login
+  script:
+    - cd ai-elewa
+    - docker build -t $IMAGE_TAG-ai -t $LATEST_TAG-ai .
+    - docker push $IMAGE_TAG-ai
+    - docker push $LATEST_TAG-ai
+
+build-frontend:
+  stage: build
+  image: docker:24-dind
+  services:
+    - docker:24-dind
+  <<: *docker-login
+  script:
+    - cd frontend
+    - docker build
+      --build-arg NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+      -t $IMAGE_TAG-frontend -t $LATEST_TAG-frontend .
+    - docker push $IMAGE_TAG-frontend
+    - docker push $LATEST_TAG-frontend
+
+# ── Deploy Staging (auto on staging branch) ────────────────────
+deploy-staging:
+  stage: deploy-staging
+  image: alpine:latest
+  before_script:
+    - apk add --no-cache openssh-client
+  script:
+    - |
+      ssh -o StrictHostKeyChecking=no deploy@$STAGING_HOST "
+        cd /opt/elekeza-staging &&
+        echo 'IMAGE_TAG=$CI_COMMIT_SHA' > .env.deploy &&
+        docker compose pull &&
+        docker compose up -d --remove-orphans &&
+        for i in \$(seq 1 9); do
+          sleep 10
+          curl -sf https://staging.elekeza.app/api/health && exit 0
+        done
+        echo 'Health check failed' && exit 1
+      "
+  environment:
+    name: staging
+    url: https://staging.elekeza.app
+  only:
+    - staging
+
+# ── Deploy Production (manual on main branch) ──────────────────
+deploy-production:
+  stage: deploy-production
+  image: alpine:latest
+  before_script:
+    - apk add --no-cache openssh-client
+  script:
+    - |
+      ssh -o StrictHostKeyChecking=no deploy@$PROD_HOST "
+        cd /opt/elekeza-prod &&
+        docker compose config > /tmp/pre-deploy.yml &&
+        echo 'IMAGE_TAG=$CI_COMMIT_SHA' > .env.deploy &&
+        docker compose pull &&
+        docker compose up -d --remove-orphans &&
+        for i in \$(seq 1 12); do
+          sleep 10
+          curl -sf https://elekeza.app/api/health && break
+          [ \$i -eq 12 ] && { docker compose -f /tmp/pre-deploy.yml up -d; exit 1; }
+        done &&
+        docker system prune -f
+      "
+  environment:
+    name: production
+    url: https://elekeza.app
+  only:
+    - main
+  when: manual

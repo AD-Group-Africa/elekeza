@@ -1,0 +1,13 @@
+{
+  "learner_context": {
+    "learner_id": "test-001",
+    "cognitive_profiles": ["dyslexia"],
+    "language_level": 2,
+    "content_difficulty": 2,
+    "pathway_stage": "Foundation"
+  },
+  "question": "What do plants use to make food?",
+  "selected_option": "Water only",
+  "is_correct": false,
+  "latency_ms": 3200
+}

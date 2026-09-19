@@ -1,0 +1,64 @@
+﻿# Dependencies
+node_modules/
+.next/
+build/
+out/
+.gradle/
+venv/
+__pycache__/
+
+# IDE
+.vscode/
+.idea/
+*.iml
+
+# Logs & Temp
+*.log
+*.tmp
+
+# Environment
+.env
+.env.local
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Test artifacts
+*-test.json
+login-prod.json
+student-create.json
+school-create.json
+update-teacher.js
+*.keystore
+*.jks
+frontend/android/app/release/
+
+# Agent / local tooling artifacts
+.freebuff/
+opencode.json.txt
+backend/.gradle-user/
+frontend/android/.gradle/
+frontend/android/app/build/
+frontend/android/build/
+frontend/android/local.properties
+
+# Local Netlify folder
+.netlify
+
+# Build caches and upload artifacts (never commit)
+backend/.gradle-user-home/
+backend/uploads/
+.freebuff/
+backend/.gradle-home/
+backend/.gradle-user-home/
+backend/.gradle-home/
+backend/.gradle-user-home/
+
+# Local Gradle cache
+backend/.gradle-home/
+**/.gradle/
+
+
+# stray nested gradle cache from an errant invocation
+backend/backend/

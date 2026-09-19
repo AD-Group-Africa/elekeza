@@ -1,0 +1,60 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+import api from '@/lib/axios';
+import SidebarLayout from '@/components/layout/SidebarLayout';
+import { ClipboardCheck } from 'lucide-react';
+import Link from 'next/link';
+
+interface QuizRow {
+  id: number;
+  lessonId: number;
+  title: string;
+}
+
+export default function StudentQuizzes() {
+  const [quizzes, setQuizzes] = useState<QuizRow[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Fetch progress which includes upcoming quizzes
+    api.get('/progress/dashboard')
+      .then(res => setQuizzes(res.data?.upcomingQuizzes || []))
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  }, []);
+
+  return (
+    <SidebarLayout>
+      <div className="space-y-6">
+        <h1 className="text-2xl font-bold text-purple-200">My Quizzes</h1>
+        {loading ? (
+          <p className="text-purple-300">Loading…</p>
+        ) : quizzes.length === 0 ? (
+          <div className="glass-card p-6 text-center">
+            <ClipboardCheck size={40} className="text-purple-400 mx-auto mb-3" />
+            <p className="text-purple-200">No quizzes here yet.</p>
+            <p className="text-purple-300 text-sm">
+              Quizzes live inside each lesson. Open a lesson from “My Lessons” and start practicing there.
+            </p>
+            <Link href="/student-lessons" className="mt-4 inline-block bg-purple-600 text-white px-4 py-2 rounded-lg">
+              Browse my lessons
+            </Link>
+          </div>
+        ) : (
+          <div className="grid gap-4">
+            {quizzes.map((q: QuizRow) => (
+              <Link key={q.id} href={'/quiz/' + q.lessonId} className="glass-card p-4 hover:bg-white/5 transition flex justify-between items-center">
+                <div>
+                  <h3 className="text-purple-200 font-semibold">{q.title}</h3>
+                  <p className="text-purple-300 text-sm">Open the lesson to practice</p>
+                </div>
+                <span className="text-purple-400">Open lesson</span>
+              </Link>
+            ))}
+          </div>
+        )}
+      </div>
+    </SidebarLayout>
+  );
+}

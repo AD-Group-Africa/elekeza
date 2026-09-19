@@ -1,0 +1,40 @@
+{
+  "learner_context": {
+    "learner_id": "test-003",
+    "cognitive_profiles": ["autism"],
+    "language_level": 2,
+    "content_difficulty": 2,
+    "pathway_stage": "Foundation"
+  },
+  "lesson_json": {
+    "title": "Photosynthesis Basics",
+    "sections": [
+      {
+        "heading": "Plants produce glucose using sunlight.",
+        "body": "Photosynthesis is the process by which plants produce glucose. Plants require sunlight, water, and carbon dioxide to complete this process. Oxygen is released as a byproduct.",
+        "visual_hint": null,
+        "reading_level": 2
+      },
+      {
+        "heading": "Chlorophyll absorbs light energy.",
+        "body": "Chlorophyll is the pigment found in plant leaves. It absorbs light energy from the sun. This energy powers the photosynthesis process.",
+        "visual_hint": null,
+        "reading_level": 2
+      }
+    ],
+    "key_terms": [
+      {
+        "term": "photosynthesis",
+        "definition": "the process by which plants produce glucose using sunlight"
+      }
+    ],
+    "estimated_minutes": 5,
+    "profile": "autism",
+    "stage_flags": {
+      "verification_triggered": false,
+      "correction_applied": false,
+      "profile_merged": false
+    }
+  },
+  "num_questions": 5
+}

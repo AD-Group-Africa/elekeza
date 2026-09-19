@@ -1,0 +1,47 @@
+spring:
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
+  jpa:
+    hibernate:
+      # Migrations (Flyway) own the schema; Hibernate must never alter it.
+      ddl-auto: ${SPRING_JPA_HIBERNATE_DDL_AUTO:validate}
+  flyway:
+    enabled: true
+  mail:
+    host: ${MAIL_HOST:smtp.gmail.com}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:placeholder@example.com}
+    password: ${MAIL_PASSWORD:placeholder}
+
+management:
+  health:
+    mail:
+      enabled: false
+
+ai:
+  base-url: ${AI_SERVICE_URL:https://elekeza-ai.onrender.com}
+  internal-secret: ${AI_INTERNAL_SECRET}
+  timeout-seconds: 120
+  client:
+    type: ${AI_CLIENT_TYPE:real}
+
+app:
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS}
+  frontend-url: ${FRONTEND_URL}
+  secure-cookies: ${SECURE_COOKIES:true}
+
+jwt:
+  secret: ${JWT_SECRET}
+
+# M-Pesa is optional for the core pilot: the app must boot without it.
+# stkPush fails with a clear 503 until real credentials are configured.
+mpesa:
+  consumer-key: ${MPESA_CONSUMER_KEY:}
+  consumer-secret: ${MPESA_CONSUMER_SECRET:}
+  passkey: ${MPESA_PASSKEY:}
+  shortcode: ${MPESA_SHORTCODE:174379}
+  callback-url: ${MPESA_CALLBACK_URL:}
+  environment: ${MPESA_ENVIRONMENT:production}

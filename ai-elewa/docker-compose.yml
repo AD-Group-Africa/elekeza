@@ -1,0 +1,70 @@
+﻿services:
+
+  ai-service:
+    build: .
+    container_name: ai-service
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    environment:
+      # Override Windows Tesseract path — inside Linux container use system path
+      TESSERACT_CMD: ""
+      # Override Langfuse host — use Docker service name, not localhost
+      LANGFUSE_HOST: "http://langfuse:3000"
+    depends_on:
+      - postgres
+      - langfuse
+    networks:
+      - elekeza-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+
+  postgres:
+    image: postgres:16
+    container_name: elekeza-postgres
+    environment:
+      POSTGRES_USER: ELEKEZA
+      POSTGRES_PASSWORD: ELEKEZA_dev_password
+      POSTGRES_DB: ELEKEZA_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - elekeza-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ELEKEZA -d ELEKEZA_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  langfuse:
+    image: langfuse/langfuse:2
+    container_name: langfuse
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: postgresql://ELEKEZA:ELEKEZA_dev_password@postgres:5432/ELEKEZA_db
+      NEXTAUTH_SECRET: ELEKEZA_nextauth_secret_change_in_production
+      NEXTAUTH_URL: http://localhost:3000
+      SALT: ELEKEZA_salt_change_in_production
+      TELEMETRY_ENABLED: "false"
+      LANGFUSE_ENABLE_EXPERIMENTAL_FEATURES: "false"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - elekeza-network
+    restart: unless-stopped
+
+networks:
+  elekeza-network:
+    driver: bridge
+
+volumes:
+  postgres_data:

@@ -1,0 +1,158 @@
+/*
+ * ELEKEZA DESIGN TOKENS — moss-green identity
+ * ============================================
+ * Architecture: every Tailwind purple/violet/indigo/orange/amber utility used
+ * in this codebase resolves to a CSS variable. Themes (dark = default moss,
+ * light = paper, calm = low-stimulation) override the variables only.
+ * 875+ hardcoded utility instances across 65 files therefore switch palette
+ * without touching a single component file.
+ *
+ * Layers:
+ *   1. :root            — semantic primitives (brand, surface, text, status)
+ *   2. [data-theme]     — three full palettes on the same primitives
+ *   3. utility remaps   — Tailwind color classes -> var() (globals.css imports this)
+ *
+ * Principles (master-reset brief):
+ *   - deep moss/forest green identity: calm, trustworthy, premium, warm
+ *   - orange survives ONLY as a warm educational accent (softened, WCAG-checked)
+ *   - gradients are accents, never the visual language
+ *   - no neon, no glassmorphism, no crypto-green
+ */
+
+:root {
+  /* ---- Brand: deep moss / forest ---- */
+  --ek-moss-950: #0d1a12;
+  --ek-moss-900: #12241a;
+  --ek-moss-800: #1a3326;
+  --ek-moss-700: #245039;
+  --ek-moss-600: #2f6b4a;
+  --ek-moss-500: #3d8a5f;
+  --ek-moss-400: #5da97c;
+  --ek-moss-300: #8cc7a2;
+  --ek-moss-200: #bfe3cd;
+  --ek-moss-100: #e3f2e9;
+  --ek-moss-050: #f2f9f5;
+
+  /* ---- Warm accent: the one orange, softened ----
+     #E8935A sits ~4.6:1 on --ek-moss-950 and ~3.2:1 on white.
+     Used for emphasis/learning actions/selected states only — never warnings,
+     never large fills. */
+  --ek-ember-600: #c96f3b;
+  --ek-ember-500: #e8935a;
+  --ek-ember-400: #f0b183;
+  --ek-ember-300: #f7cfae;
+  --ek-ember-100: #fceee1;
+
+  /* ---- Status (shared across themes; checked per-surface below) ---- */
+  --ek-ok: #4caf7d;
+  --ek-warn: #d9a441;
+  --ek-danger: #d96b5a;
+  --ek-info: #5b93c9;
+
+  /* ---- Radii / elevation / motion ---- */
+  --ek-radius-sm: 0.5rem;
+  --ek-radius-md: 0.75rem;
+  --ek-radius-lg: 1rem;
+  --ek-shadow-1: 0 1px 3px rgba(6, 16, 11, 0.35);
+  --ek-shadow-2: 0 4px 24px rgba(6, 16, 11, 0.35);
+  --ek-speed: 160ms;
+}
+
+/* ================= DARK (default) — deep moss ================= */
+:root,
+[data-theme="dark"] {
+  --bg-gradient: linear-gradient(160deg, var(--ek-moss-950) 0%, var(--ek-moss-900) 55%, #142e21 100%);
+  --bg-primary: var(--ek-moss-950);
+  --bg-secondary: var(--ek-moss-900);
+  --bg-card: rgba(255, 255, 255, 0.045);
+  --bg-card-hover: rgba(255, 255, 255, 0.08);
+  --border-color: rgba(140, 199, 162, 0.16);
+  --border-strong: rgba(140, 199, 162, 0.34);
+
+  --text-primary: #eef7f1;
+  --text-secondary: #c2dccd;
+  --text-muted: #8fb49c;
+
+  --accent: var(--ek-moss-500);
+  --accent-strong: var(--ek-moss-400);
+  --accent-soft: rgba(93, 169, 124, 0.16);
+  --accent-contrast: #07130c;
+
+  --warm-accent: var(--ek-ember-500);
+  --warm-accent-soft: rgba(232, 147, 90, 0.15);
+
+  --focus-ring: var(--ek-moss-300);
+
+  /* status on dark surfaces */
+  --ek-ok: #63c795;
+  --ek-warn: #e5b95e;
+  --ek-danger: #e88a7a;
+  --ek-info: #7db3e0;
+}
+
+/* ================= LIGHT — paper & moss ================= */
+[data-theme="light"] {
+  --bg-gradient: linear-gradient(160deg, var(--ek-moss-050) 0%, #ffffff 60%, var(--ek-moss-100) 100%);
+  --bg-primary: #ffffff;
+  --bg-secondary: var(--ek-moss-050);
+  --bg-card: rgba(255, 255, 255, 0.92);
+  --bg-card-hover: #ffffff;
+  --border-color: rgba(26, 51, 38, 0.14);
+  --border-strong: rgba(26, 51, 38, 0.30);
+
+  --text-primary: #17281e;
+  --text-secondary: #40584a;
+  --text-muted: #6b8174;
+
+  --accent: var(--ek-moss-600);
+  --accent-strong: var(--ek-moss-700);
+  --accent-soft: rgba(47, 107, 74, 0.10);
+  --accent-contrast: #ffffff;
+
+  --warm-accent: var(--ek-ember-600);
+  --warm-accent-soft: rgba(201, 111, 59, 0.12);
+
+  --focus-ring: var(--ek-moss-600);
+
+  --ek-ok: #2e7d4f;
+  --ek-warn: #9a6b13;
+  --ek-danger: #b0432f;
+  --ek-info: #2f6699;
+}
+
+/* ================= CALM — accessibility / low stimulation =================
+   Lower brightness, softer contrast (still >= 4.5:1 for body text), larger
+   base type, reduced shadow noise. Pairs with body.calm-mode which slows
+   motion and removes decorative gradients. */
+[data-theme="calm"] {
+  --bg-gradient: linear-gradient(180deg, #dfe9e2 0%, #e9f0ea 100%);
+  --bg-primary: #e9f0ea;
+  --bg-secondary: #dfe9e2;
+  --bg-card: #f4f8f5;
+  --bg-card-hover: #ffffff;
+  --border-color: rgba(36, 80, 57, 0.20);
+  --border-strong: rgba(36, 80, 57, 0.38);
+
+  --text-primary: #1d2f24;
+  --text-secondary: #3c5244;
+  --text-muted: #5f7567;
+
+  --accent: #2c5c41;
+  --accent-strong: #235039;
+  --accent-soft: rgba(44, 92, 65, 0.10);
+  --accent-contrast: #ffffff;
+
+  --warm-accent: #b06a3e;
+  --warm-accent-soft: rgba(176, 106, 62, 0.12);
+
+  --focus-ring: #235039;
+
+  --ek-ok: #2e6b47;
+  --ek-warn: #8a6410;
+  --ek-danger: #a03d2c;
+  --ek-info: #33608c;
+}
+
+[data-theme="calm"] {
+  font-size: 106%; /* a touch larger base type — one knob, whole UI scales */
+}
