@@ -31,16 +31,52 @@ notes in `docs/archive/`.
   ai-service 2 CPU / 1.5G, frontend 1 CPU / 1G.
   Minimum practical: **2 vCPU / 4 GB RAM / 25 GB disk**.
   Comfortable: **4 vCPU / 8 GB RAM / 40 GB disk** (headroom for builds + growth).
-- **Domain & DNS:** an A record pointing at the host. `infrastructure/nginx/nginx.conf`
-  has `server_name elekeza.app` and cert paths
-  `/etc/letsencrypt/live/elekeza.app/` **hardcoded** — for a different domain,
-  edit that file (or run certbot with matching name) before first boot.
-- **TLS:** nginx terminates HTTPS (TLS 1.2/1.3, HSTS). ⚠️ Compose mounts only
-  `./infrastructure/nginx/nginx.conf` and the `certbot_data` volume — it does
-  **not** mount `/etc/letsencrypt`. Provide certs via a
-  `docker-compose.override.yml` (e.g. mount `/etc/letsencrypt` from the host
-  where certbot ran), or start HTTP-only for an internal pilot and add TLS
-  before internet exposure.
+- **Domain & DNS:** an A record pointing at the host. The checked-in
+  `infrastructure/nginx/nginx.conf` hardcodes `elekeza.app` only for a
+  no-override boot; deployment never needs to edit it — use the TLS override below.
+- **TLS (parameterized, opt-in override — dry-run verified):**
+  `docker-compose.tls.yml` renders `infrastructure/nginx/templates/nginx.conf.template`
+  with `envsubst` at nginx startup and mounts your certificates read-only.
+
+  **DNS pre-flight (before issuance):**
+  1. A record for `NGINX_DOMAIN` (and `www.`) → host IP; verify:
+     `dig +short $NGINX_DOMAIN` returns the host IP.
+  2. Ports 80 and 443 reachable from the internet (cloud firewall + host ufw:
+     `sudo ufw allow 80,443/tcp`).
+  3. No other service bound to 80/443 on the host:
+     `sudo ss -ltnp | grep -E ':80 |:443 '`. Stop it if present — certbot
+     webroot issuance needs nginx serving port 80.
+
+  **Bring-up (order matters):**
+  1. In `.env` set `NGINX_DOMAIN=pilot.example.com` (your domain) and
+     `TLS_CERT_HOST_DIR=/srv/elekeza/certbot` (host dir that will hold
+     letsencrypt certs AND serve as the ACME webroot).
+  2. Start the stack with the override:
+     `docker compose -f docker-compose.yml -f docker-compose.tls.yml up -d`
+     — until certificates exist, nginx keeps restarting with
+     "no such file ... fullchain.pem" (harmless; backend/frontend/postgres are
+     already healthy).
+  3. One-time issuance — the override serves `$TLS_CERT_HOST_DIR` at
+     `/.well-known/acme-challenge/` on port 80, so a **host** certbot can
+     validate immediately:
+     `sudo certbot certonly --webroot -w "$TLS_CERT_HOST_DIR" \
+        -d "$NGINX_DOMAIN" -d "www.$NGINX_DOMAIN" \
+        --agree-tos -m you@example.com --no-eff-email`
+  4. Restart nginx to pick the certs up:
+     `docker compose -f docker-compose.yml -f docker-compose.tls.yml restart nginx`
+     (runbook §I smoke step: `curl -I https://$NGINX_DOMAIN` → 200, and
+     `curl -I http://$NGINX_DOMAIN` → 301 https).
+  5. Renewal — host cron, twice daily:
+     `0 3,15 * * * certbot renew --webroot -w "$TLS_CERT_HOST_DIR" --quiet \
+        --deploy-hook "docker compose -f docker-compose.yml -f docker-compose.tls.yml restart nginx"`
+     (certs land in `$TLS_CERT_HOST_DIR/live/<domain>/` on the host — the exact
+     path nginx mounts read-only; the deploy-hook reloads without downtime).
+
+  Verified end-to-end: rendered config passes `nginx -t`, HTTPS handshake works,
+  HTTP→HTTPS 301 redirect live, nginx `$host` runtime variables untouched by
+  the substitution, base compose (`docker compose up`, no override) unchanged.
+  For a private (non-internet) LiveLabs host you may skip the override entirely
+  and use plain HTTP on port 80 until exposure.
 - **Persistence:** named volume `postgres_data`. Backups to a **separate disk
   or off-host location** (see §H).
 
@@ -69,6 +105,8 @@ notes in `docs/archive/`.
 | Variable | Notes |
 |---|---|
 | `BACKEND_IMAGE` / `AI_IMAGE` / `FRONTEND_IMAGE` / `IMAGE_TAG` | Prebuilt image overrides; leave unset to `docker compose build` locally |
+| `NGINX_DOMAIN` | Pilot domain for the TLS override (`docker-compose.tls.yml`); e.g. `pilot.example.com`. Unset → base HTTP-only compose |
+| `TLS_CERT_HOST_DIR` | Host dir holding letsencrypt certs + ACME webroot for the TLS override (e.g. `/srv/elekeza/certbot`); defaults to `/etc/letsencrypt` |
 | `REDIS_HOST` / `REDIS_PORT` / `REDIS_PASSWORD` | Redis is provisioned by compose but currently unused by the backend |
 | `SENTRY_DSN_BACKEND` / `SENTRY_DSN_AI` / `NEXT_PUBLIC_SENTRY_DSN` | Error tracking |
 | `LANGFUSE_HOST` / `LANGFUSE_PUBLIC_KEY` / `LANGFUSE_SECRET_KEY` | AI observability |
@@ -77,7 +115,7 @@ notes in `docs/archive/`.
 
 | Integration | Variables |
 |---|---|
-| AI provider | `AI_PROVIDER` (groq/openai/anthropic/google), `AI_API_KEY`, `AI_SERVICE_URL`, `AI_CLIENT_TYPE=real` |
+| AI provider | `AI_PROVIDER` (groq/openai/anthropic/google), `AI_API_KEY`, `AI_SERVICE_URL`, `AI_CLIENT_TYPE=real`. The ai-service **fail-fasts at boot** on a missing/mock provider — set a real provider name even before the key is valid (dry-run verified). |
 | M-Pesa Daraja | `MPESA_ENVIRONMENT` (sandbox\|production), `MPESA_CONSUMER_KEY`, `MPESA_CONSUMER_SECRET`, `MPESA_PASSKEY`, `MPESA_SHORTCODE`, `MPESA_CALLBACK_URL` (public HTTPS required for production callbacks) |
 | Email/SMTP | `EMAIL_PROVIDER=javamail` + `MAIL_HOST`, `MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD` |
 | SMS | `SMS_PROVIDER=africa_talking` + `AFRICA_TALKING_API_KEY`, `AFRICA_TALKING_SENDER_ID` |
@@ -89,6 +127,7 @@ notes in `docs/archive/`.
 git clone <repo-url> && cd Elekeza
 git checkout 38024ea
 cp .env.example .env && $EDITOR .env        # per §C; DEMO_SEED_ENABLED stays unset
+# (for TLS on a public domain, also set NGINX_DOMAIN + TLS_CERT_HOST_DIR per §B)
 
 # 1. Validate configuration (exit 0, warnings about optional unset vars are fine)
 docker compose config --quiet
@@ -96,7 +135,8 @@ docker compose config --quiet
 # 2. Build images (or set *_IMAGE and skip)
 docker compose build
 
-# 3. Start
+# 3. Start (for TLS on a public domain, use the override instead — see §B:
+#    docker compose -f docker-compose.yml -f docker-compose.tls.yml up -d)
 docker compose up -d
 
 # 4. Status & logs
@@ -123,6 +163,8 @@ curl -s -X POST http://localhost/api/auth/login -H 'Content-Type: application/js
 # 3. Only intended ports exposed (80/443 public; 5432 loopback-only; nothing else)
 ss -tlnp | grep -E ':(80|443|5432)\s'
 # 4. Cookies are Secure (browser devtools: session cookie has Secure flag)
+#    NOTE: /actuator/health intentionally excludes SMTP (optional fail-safe
+#    integration) — verify email delivery via the §I smoke checklist instead.
 # 5. HTTPS + HSTS active once TLS is in place (curl -I https://<domain>)
 # 6. CORS rejects foreign origins (curl -I -H 'Origin: https://evil.example' http://localhost/api/auth/csrf)
 # 7. JWT_SECRET is 64+ random chars (not a dictionary/default value)
@@ -282,3 +324,70 @@ restore drill failing.
 **Do NOT change during the pilot:** database schema/migrations, auth/session
 design, RBAC model, the seed gate, API contracts the frontend depends on, and
 the AI boundary — freeze the architecture; ship only clear defect fixes.
+
+## M. ACCEPTANCE JOURNEYS (manual, expected vs actual)
+
+Execute top to bottom on the deployed pilot with real registered accounts.
+Fill **Actual** with PASS/FAIL + note; every FAIL is a pilot blocker.
+
+### LEARNER
+| Step | Expected | Actual |
+|---|---|---|
+| Register (self) | Account created; guided onboarding (profile → placement) completes | |
+| Login | Lands on learner home; session cookie `Secure` | |
+| Class/course | Enrolled class content visible on dashboard | |
+| Lesson | Open lesson → readable sections render | |
+| Accessibility controls | Learner preferences save; presentation applies | |
+| Quiz | Start → answer → submit → scored | |
+| Results | Score visible immediately; no fake score offline | |
+| Progress | Progress reflects the attempt; mastery updates | |
+| AI tutor/adaptation | With key: adapted content. Without: honest degradation, core flow unaffected | |
+
+### TEACHER
+| Step | Expected | Actual |
+|---|---|---|
+| Login | Lands on teacher dashboard | |
+| Dashboard | Class/learner stats render (no console errors) | |
+| Classes | Own classes listed | |
+| Learners | Learner list with mastery evidence opens | |
+| Attendance | Register marks + saves; counts correct | |
+| Assignment | Create assignment; learner sees it | |
+| Grading | Submissions/results visible per learner | |
+| Analytics | Teacher analytics render with real data | |
+
+### GUARDIAN
+| Step | Expected | Actual |
+|---|---|---|
+| Login | Lands on guardian dashboard | |
+| Ward | Ward detail opens; another guardian's ward is denied | |
+| Progress | Learner progress visible for own ward only | |
+| Fees | Balance + history shown (payment may 503 w/o creds — fail-safe) | |
+| Digest/communication | Digest generated/visible in-app; email only with SMTP | |
+
+### SCHOOL ADMIN
+| Step | Expected | Actual |
+|---|---|---|
+| Login | Lands on admin dashboard | |
+| Staff | Create staff (teacher); password reset works | |
+| Learners | Enroll learners into classes | |
+| Classes | Create/manage classes | |
+| Fees | Create fee structure/charge; dashboard shows honest zeros before activity | |
+| Reports | School reports/analytics render | |
+| Institution settings | School profile editable; scope limited to own institution | |
+
+### SUPER ADMIN (ADMIN)
+| Step | Expected | Actual |
+|---|---|---|
+| Login | Lands on admin surface | |
+| Institution management | Cross-institution visibility per RBAC; cannot be reached by SCHOOL_ADMIN | |
+| User management | User roles manageable; audit trail exists | |
+| Platform visibility | Platform-wide analytics restricted to ADMIN | |
+
+### INTEGRATIONS
+| Check | Expected | Actual |
+|---|---|---|
+| AI | With key: real adaptation. Without: graceful fallback, no crash | |
+| M-Pesa | Without prod creds: clear 503, no crash. Sandbox: STK push fires | |
+| Email | Without SMTP: in-app flows intact. With: message delivered | |
+| SMS | Without AT: in-app only. With: delivered | |
+| Storage | Local disk default works; R2 optional once configured | |

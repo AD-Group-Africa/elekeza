@@ -1,0 +1,39 @@
+# ELEKEZA — opt-in TLS override for docker-compose.yml
+#
+# Bring-your-own-certs pattern: certificates are issued ON THE HOST by certbot
+# (docker compose up before issuance just fails nginx cert-file checks and
+# restarts harmlessly until they exist).
+#
+# One-time issuance (host certbot, webroot = TLS_CERT_HOST_DIR, which nginx
+# serves over port 80 for the ACME challenge):
+#   sudo certbot certonly --webroot \
+#     -w "$TLS_CERT_HOST_DIR" \
+#     -d "$NGINX_DOMAIN" -d "www.$NGINX_DOMAIN" \
+#     --agree-tos -m you@example.com --no-eff-email
+#
+# Renewal (host cron, e.g. twice daily):
+#   0 3,15 * * * certbot renew --webroot -w "$TLS_CERT_HOST_DIR" --quiet \
+#     --deploy-hook "docker compose -f docker-compose.yml -f docker-compose.tls.yml restart nginx"
+#
+# NGINX_DOMAIN example: pilot.elekeza.app   TLS_CERT_HOST_DIR example: /srv/elekeza/certbot
+
+services:
+  nginx:
+    environment:
+      # Compose interpolates this from the host .env BEFORE container start;
+      # envsubst (in the command below) reads it from the CONTAINER env at startup.
+      # ":?" makes `docker compose up` fail fast if the domain is unset —
+      # otherwise envsubst would silently render an empty cert path.
+      NGINX_DOMAIN: ${NGINX_DOMAIN:?Set NGINX_DOMAIN in .env (see runbook §B)}
+    volumes:
+      - ./infrastructure/nginx/templates/nginx.conf.template:/templates/nginx.conf.template:ro
+      - ${TLS_CERT_HOST_DIR:-/etc/letsencrypt}:/etc/letsencrypt:ro
+      - ${TLS_CERT_HOST_DIR:-/etc/letsencrypt}:/var/www/certbot:ro
+      - nginx_rendered:/etc/nginx/conf.rendered
+    command: >
+      sh -c "envsubst '$$NGINX_DOMAIN' < /templates/nginx.conf.template
+      > /etc/nginx/conf.rendered/nginx.conf
+      && exec nginx -c /etc/nginx/conf.rendered/nginx.conf -g 'daemon off;'"
+
+volumes:
+  nginx_rendered: {}
