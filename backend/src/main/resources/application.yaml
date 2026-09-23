@@ -25,6 +25,10 @@ spring:
     locations: classpath:db/migration
     baseline-on-migrate: true
     validate-on-migrate: true
+    # Demo seed gate (V2__seed_demo.sql). ON by default so local dev, backend
+    # tests and the E2E suite keep their demo accounts. prod/docker set it OFF.
+    placeholders:
+      demoSeedEnabled: "TRUE"
 
   mail:
     host: ${MAIL_HOST:smtp.gmail.com}
@@ -76,8 +80,6 @@ cloudflare:
     secret_access_key: ${CLOUDFLARE_R2_SECRET_ACCESS_KEY:}
     endpoint: ${R2_ENDPOINT:}
 
-google:
-  client-id: ${GOOGLE_CLIENT_ID:442000591516-2c4fkqj14727fjooo1vtjue768ociucd.apps.googleusercontent.com}
 
 app:
   cors:

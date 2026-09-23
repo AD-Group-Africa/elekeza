@@ -71,8 +71,8 @@ html .from-purple-500 { --tw-gradient-from: var(--p600) var(--tw-gradient-from-p
 html .from-purple-600 { --tw-gradient-from: var(--p600) var(--tw-gradient-from-position); --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to); }
 html .from-purple-600\/20 { --tw-gradient-from: color-mix(in srgb, var(--p600) 20%, transparent) var(--tw-gradient-from-position); --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to); }
 html .from-violet-900 { --tw-gradient-from: var(--bg-secondary) var(--tw-gradient-from-position); --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to); }
-html .hover:bg-purple-500:hover { background-color: var(--p600); }
-html .hover:text-purple-200:hover { color: var(--p300); }
+html .hover\:bg-purple-500:hover { background-color: var(--p600); }
+html .hover\:text-purple-200:hover { color: var(--p300); }
 html .placeholder-purple-200\/50 { color: color-mix(in srgb, var(--text-muted) 50%, transparent); }
 html .placeholder-purple-400\/60 { color: color-mix(in srgb, var(--text-muted) 60%, transparent); }
 html .ring-fuchsia-300 { --tw-ring-color: var(--border-color); }

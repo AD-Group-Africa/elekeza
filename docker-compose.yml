@@ -49,7 +49,11 @@ services:
     logging: *default-logging
 
   backend:
-    image: ${BACKEND_IMAGE:-registry.gitlab.com/ad-group-africa-group/ad-group-africa-project/backend}:${IMAGE_TAG:-latest}
+    # Image names are explicitly configurable per service. Empty defaults mean
+    # "build locally from ./backend, ./ai-elewa, ./frontend" (build: blocks below).
+    # To deploy prebuilt images, set BACKEND_IMAGE/AI_IMAGE/FRONTEND_IMAGE
+    # (and IMAGE_TAG) in .env — no foreign-registry defaults remain.
+    image: ${BACKEND_IMAGE:-elekeza/backend}:${IMAGE_TAG:-local}
     build:
       context: ./backend
       dockerfile: Dockerfile
@@ -75,8 +79,6 @@ services:
       MAIL_PORT: ${MAIL_PORT}
       MAIL_USERNAME: ${MAIL_USERNAME}
       MAIL_PASSWORD: ${MAIL_PASSWORD}
-      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
-      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
       MPESA_CALLBACK_URL: ${MPESA_CALLBACK_URL}
       FRONTEND_URL: ${FRONTEND_URL}
       CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS}
@@ -102,7 +104,7 @@ services:
     logging: *default-logging
 
   ai-service:
-    image: ${AI_IMAGE:-registry.gitlab.com/ad-group-africa-group/ad-group-africa-project/ai}:${IMAGE_TAG:-latest}
+    image: ${AI_IMAGE:-elekeza/ai}:${IMAGE_TAG:-local}
     build:
       context: ./ai-elewa
       dockerfile: Dockerfile
@@ -131,7 +133,7 @@ services:
     logging: *default-logging
 
   frontend:
-    image: ${FRONTEND_IMAGE:-registry.gitlab.com/ad-group-africa-group/ad-group-africa-project/frontend}:${IMAGE_TAG:-latest}
+    image: ${FRONTEND_IMAGE:-elekeza/frontend}:${IMAGE_TAG:-local}
     build:
       context: ./frontend
       dockerfile: Dockerfile

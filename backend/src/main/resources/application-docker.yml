@@ -11,6 +11,12 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
+  flyway:
+    enabled: true
+    # Demo seed gate (V2__seed_demo.sql): docker deployments default to demo
+    # seeding OFF. Set DEMO_SEED_ENABLED=true only for a demo stack.
+    placeholders:
+      demoSeedEnabled: "${DEMO_SEED_ENABLED:FALSE}"
 
 ai:
   base-url: ${AI_SERVICE_URL:http://ai-service:8000}

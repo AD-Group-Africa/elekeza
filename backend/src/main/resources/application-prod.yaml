@@ -9,6 +9,11 @@ spring:
       ddl-auto: ${SPRING_JPA_HIBERNATE_DDL_AUTO:validate}
   flyway:
     enabled: true
+    # Demo seed gate (V2__seed_demo.sql): production defaults to demo seeding
+    # OFF. Set DEMO_SEED_ENABLED=true ONLY for a demo deployment on a private
+    # domain — never on an internet-facing host.
+    placeholders:
+      demoSeedEnabled: "${DEMO_SEED_ENABLED:FALSE}"
   mail:
     host: ${MAIL_HOST:smtp.gmail.com}
     port: ${MAIL_PORT:587}
