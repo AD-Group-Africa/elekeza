@@ -1,7 +1,9 @@
 ﻿FROM node:20-alpine AS build
 WORKDIR /app
 COPY package*.json ./
-RUN npm ci
+# --legacy-peer-deps: lockfile was generated with legacy peer resolution
+# (vitest@5 vs @types/node@20 via @capacitor/cli tree); same locked versions install.
+RUN npm ci --legacy-peer-deps
 COPY . .
 RUN npm run build
 

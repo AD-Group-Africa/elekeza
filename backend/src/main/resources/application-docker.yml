@@ -1,7 +1,10 @@
 spring:
   datasource:
-    url: jdbc:postgresql://postgres:5432/accessibledocs
-    username: ${DB_USERNAME:postgres}
+    # Compose contract: DB_URL / DB_USER / DB_PASSWORD (see docker-compose.yml).
+    # Fallbacks preserve the original docker-profile defaults for image users
+    # who set nothing (postgres@postgres:5432/accessibledocs).
+    url: ${DB_URL:jdbc:postgresql://postgres:5432/accessibledocs}
+    username: ${DB_USER:${DB_USERNAME:postgres}}
     password: ${DB_PASSWORD:password}
     driver-class-name: org.postgresql.Driver
   jpa:
@@ -17,6 +20,14 @@ spring:
     # seeding OFF. Set DEMO_SEED_ENABLED=true only for a demo stack.
     placeholders:
       demoSeedEnabled: "${DEMO_SEED_ENABLED:FALSE}"
+
+management:
+  health:
+    mail:
+      # SMTP is an optional fail-safe integration (EMAIL_PROVIDER=mock by default);
+      # an unconfigured MAIL_HOST must not mark the whole platform DOWN
+      # (it blocks `docker compose up --wait` and ops alerting).
+      enabled: false
 
 ai:
   base-url: ${AI_SERVICE_URL:http://ai-service:8000}

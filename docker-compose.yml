@@ -118,7 +118,8 @@ services:
       LANGFUSE_HOST: ${LANGFUSE_HOST}
       SENTRY_DSN: ${SENTRY_DSN_AI}
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      # python:alpine images ship no curl — use the stdlib for the probe
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health', timeout=5)"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -146,7 +147,8 @@ services:
     depends_on:
       - backend
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      # node:alpine images ship no curl — use node for the probe
+      test: ["CMD", "node", "-e", "fetch('http://localhost:3000').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
       interval: 30s
       timeout: 10s
       retries: 3
