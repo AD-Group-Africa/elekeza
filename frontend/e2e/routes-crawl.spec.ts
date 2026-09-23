@@ -18,7 +18,25 @@ const LEARNER_SURFACES = ['/student-home', '/student-lessons', '/progress', '/st
 const TEACHER_SURFACES = ['/teacher/students', '/teacher/progress']
 const GUARDIAN_SURFACES = ['/guardian']
 
-async function collectLinks(page: import('@playwright/test').Page, surfaces: string[]): Promise<string[]> {
+/**
+ * Per-link timeout guard for the crawls. `networkidle` alone can hang on
+ * dev-server keepalive traffic; every phase below is individually bounded so
+ * one slow route costs seconds, not the whole test budget.
+ */
+async function crawlLink(page: import('@playwright/test').Page, link: string, crashes: string[]) {
+  // 90s goto budget: on a loaded machine (CI sibling jobs, cold Next dev
+  // compilation) a healthy route can take >45s to fire `load`; a narrower
+  // budget misreports slow-but-valid pages as failures. The crash assertions
+  // below are unchanged — this only widens tolerance for latency, not errors.
+  const response = await page.goto(link, { timeout: 90_000 })
+  if (response && response.status() >= 500) crashes.push(`${link} → HTTP ${response.status()}`)
+  await page.waitForLoadState('networkidle', { timeout: 15_000 }).catch(() => {})
+  const bodyText = await page.locator('body').innerText({ timeout: 15_000 }).catch(() => '')
+  if (/application error|internal server error/i.test(bodyText)) crashes.push(`${link} → crash page`)
+  if (bodyText.trim().length === 0) crashes.push(`${link} → blank page`)
+}
+
+async function collectLinks(page: import('@playwright/test').Page, surfaces: string[]) {
   const links = new Set<string>()
   for (const surface of surfaces) {
     await page.goto(surface)
@@ -38,15 +56,7 @@ test.describe('learner route crawl', () => {
     expect(links.length, `expected to discover links, got: ${links.join(', ')}`).toBeGreaterThan(0)
 
     const crashes: string[] = []
-    for (const link of links) {
-      const response = await page.goto(link)
-      // A crash surfaces as a 500 response or the Next.js error page.
-      if (response && response.status() >= 500) crashes.push(`${link} → HTTP ${response.status()}`)
-      await page.waitForLoadState('networkidle').catch(() => {})
-      const bodyText = await page.locator('body').innerText().catch(() => '')
-      if (/application error|internal server error/i.test(bodyText)) crashes.push(`${link} → crash page`)
-      if (bodyText.trim().length === 0) crashes.push(`${link} → blank page`)
-    }
+    for (const link of links) await crawlLink(page, link, crashes)
     expect(crashes, crashes.join('\n')).toEqual([])
   })
 })
@@ -58,14 +68,7 @@ test.describe('teacher route crawl', () => {
     expect(links.length).toBeGreaterThan(0)
 
     const crashes: string[] = []
-    for (const link of links) {
-      const response = await page.goto(link)
-      if (response && response.status() >= 500) crashes.push(`${link} → HTTP ${response.status()}`)
-      await page.waitForLoadState('networkidle').catch(() => {})
-      const bodyText = await page.locator('body').innerText().catch(() => '')
-      if (/application error|internal server error/i.test(bodyText)) crashes.push(`${link} → crash page`)
-      if (bodyText.trim().length === 0) crashes.push(`${link} → blank page`)
-    }
+    for (const link of links) await crawlLink(page, link, crashes)
     expect(crashes, crashes.join('\n')).toEqual([])
   })
 })
@@ -77,14 +80,7 @@ test.describe('guardian route crawl', () => {
     expect(links.length).toBeGreaterThan(0)
 
     const crashes: string[] = []
-    for (const link of links) {
-      const response = await page.goto(link)
-      if (response && response.status() >= 500) crashes.push(`${link} → HTTP ${response.status()}`)
-      await page.waitForLoadState('networkidle').catch(() => {})
-      const bodyText = await page.locator('body').innerText().catch(() => '')
-      if (/application error|internal server error/i.test(bodyText)) crashes.push(`${link} → crash page`)
-      if (bodyText.trim().length === 0) crashes.push(`${link} → blank page`)
-    }
+    for (const link of links) await crawlLink(page, link, crashes)
     expect(crashes, crashes.join('\n')).toEqual([])
   })
 })
