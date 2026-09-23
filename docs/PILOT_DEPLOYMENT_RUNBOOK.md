@@ -162,7 +162,7 @@ Redis and app containers have no published ports (internal network only).
 
 | Integration | Status |
 |---|---|
-| AI / Groq | **IMPLEMENTED + FAIL-SAFE.** Backend defaults to the mock AI client; platform works fully without a key. Real inference: `CREDENTIAL REQUIRED` (Groq key + `AI_CLIENT_TYPE=real`). |
+| AI / Groq | **IMPLEMENTED + FAIL-SAFE.** ai-elewa is the real provider path (`AI_PROVIDER`+`AI_API_KEY` are required to boot the AI service); if it is down/unreachable, the backend AiClient falls back and the platform keeps working without AI features. Mock client available for dev via `AI_CLIENT_TYPE=mock`. |
 | M-Pesa Daraja | **IMPLEMENTED + FAIL-SAFE.** STK push/callback/idempotency in code; returns a clear 503 without prod credentials + public HTTPS callback. `CREDENTIAL REQUIRED` for live payments. |
 | Email/SMTP | **IMPLEMENTED + FAIL-SAFE** (mock provider default). `CREDENTIAL REQUIRED` for real delivery. |
 | Africa's Talking SMS | **IMPLEMENTED + FAIL-SAFE** (mock default). `CREDENTIAL REQUIRED` for real delivery. |
@@ -192,16 +192,36 @@ scripts/db-restore-drill.sh /backup/elekeza-<date>.dump --target elekeza_restore
 
 ## I. PILOT SMOKE TEST (manual, after deployment)
 
-1. `curl -f http://localhost/actuator/health` → `{"status":"UP"}`
-2. `users` count = 0; `student@elekeza.app` login rejected
-3. School onboarding → SCHOOL_ADMIN created, finance dashboard shows honest zeros
-4. Admin: create teacher + class + learners; link a guardian
-5. Teacher: login, create class content, mark attendance
-6. Learner: login, read lesson, take quiz, see progress
-7. Guardian: login, see ward progress + attendance + fees balance
-8. Upload a PDF as teacher → lesson appears (mock AI OK)
-9. Logout everywhere; wrong-password shows an inline error, no crash
-10. `docker compose logs --since 10m backend | grep -i error` → nothing alarming
+Run top to bottom after first boot and after every deploy. The platform must
+remain fully usable when every OPTIONAL integration is unconfigured.
+
+**Pre-flight:** `curl -f http://localhost/actuator/health` → `{"status":"UP"}` ·
+`users` count = 0 · `docker compose logs --since 10m backend | grep -i error` → nothing alarming.
+
+| # | Check | Pass criteria | Class |
+|---|---|---|---|
+| 1 | Landing page | Loads over HTTPS, no console errors | CORE |
+| 2 | Registration + login | Each role registers/logs in; session cookie has `Secure` | CORE |
+| 3 | Learner | Dashboard → lesson → read completes | CORE |
+| 4 | Teacher | Dashboard → class → learners visible | CORE |
+| 5 | Guardian | Dashboard → ward detail opens | CORE |
+| 6 | School admin | School onboarding creates admin; finance dashboard shows honest zeros | CORE |
+| 7 | Super admin | ADMIN role: seeds/curriculum/institution APIs respond per RBAC | CORE |
+| 8 | Tenant isolation | School-A admin cannot read School-B data (object-level 403/404) | CORE |
+| 9 | Lessons | Enrolled learner sees class content | CORE |
+| 10 | Quiz | Start → answer → score → progress updates | CORE |
+| 11 | Progress | Learner/teacher/guardian views reflect the same attempts | CORE |
+| 12 | Attendance | Teacher saves register; guardian sees history | CORE |
+| 13 | Assignments | Teacher creates; learner sees/submits | CORE |
+| 14 | Fees | Admin creates charge; guardian sees balance (payment may 503 — see #18) | CORE |
+| 15 | Guardian digest | Digest generated and visible in-app | CORE |
+| 16 | PDF/document upload | Teacher uploads PDF → extraction → lesson appears (local storage) | CORE |
+| 17 | AI path | With key: adapted content. Without: honest degradation, no crash, core flows unaffected | CORE (graceful) / real inference OPTIONAL |
+| 18 | M-Pesa path | Without creds: clear 503, no crash, fees view unaffected. With sandbox creds: STK push fires | CORE (fail-safe) / live pay OPTIONAL |
+| 19 | Email | Without SMTP: reset/digest flows stay usable in-app, no 500s. With SMTP: email arrives | OPTIONAL |
+| 20 | SMS | Without AT creds: notifications stay in-app. With creds: SMS delivered | OPTIONAL |
+| 21 | Logout/session security | Logout clears session; expired/refreshed tokens behave; wrong password = inline error | CORE |
+| 22 | Mobile/PWA | Install prompt works; offline quiz queues and syncs on reconnect | CORE |
 
 ## J. INCIDENT CHECKLIST
 
@@ -228,3 +248,37 @@ All must be **factually true**:
 - [ ] A school admin can independently run the §F workflow without engineer help
 - [ ] Learner / teacher / guardian journeys each completed end-to-end by a non-engineer
 - [ ] No `DEMO_SEED_ENABLED` on the pilot database (users table contains only real accounts)
+
+## L. PILOT READINESS (LiveLabs / InnovateNow / first school)
+
+**Ready now (verified):** all CORE smoke checks are covered by automated suites
+(backend 269, E2E 31 incl. a11y + offline + role journeys) and the §I manual
+pass on the deployed stack; demo-seed gate proven; secrets hygiene verified.
+
+**Needs credentials (blockers only for those features):** Groq key (real AI
+adaptation), M-Pesa Daraja prod + public HTTPS callback (live payments), SMTP
+(email delivery), Africa's Talking (SMS delivery). Everything degrades safely
+without them.
+
+**Needs human testing before users arrive:** §I checklist executed by a human
+on the real host; one backup + restore drill; admin runs the §F first-school
+workflow unaided.
+
+**What pilot users should test:** daily teaching flow (content, quiz,
+attendance, assignments), learner experience on low-end Android/PWA offline,
+guardian visibility (progress/fees/digest), and honest reporting of anything
+confusing — UX friction is data, not failure.
+
+**Telemetry/feedback to collect:** `/actuator/health` + `docker compose logs`
+ship-metrics; error tracking via optional Sentry; a weekly 30-min teacher and
+parent feedback call; in-app feedback channel for learners; track
+gestures-of-success (lessons completed, quizzes scored, attendance marked)
+from the existing analytics.
+
+**Pilot blockers (fix immediately):** any CORE smoke-check failure; login/auth
+instability; data loss or cross-tenant visibility; unexplained 500s in logs;
+restore drill failing.
+
+**Do NOT change during the pilot:** database schema/migrations, auth/session
+design, RBAC model, the seed gate, API contracts the frontend depends on, and
+the AI boundary — freeze the architecture; ship only clear defect fixes.
