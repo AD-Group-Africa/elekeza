@@ -69,7 +69,7 @@ export default function SchoolAdminDashboard() {
             <div className="grid grid-cols-2 gap-2">
               <Link href="/teacher/students" className="bg-purple-600/40 text-white p-3 rounded-lg text-center">Add Student</Link>
               <Link href="/school/import" className="bg-purple-600/40 text-white p-3 rounded-lg text-center">Import CSV</Link>
-              <button onClick={() => setToast('Reports module coming soon')} className="bg-purple-600/40 text-white p-3 rounded-lg">Reports</button>
+              <Link href="/analytics" className="bg-purple-600/40 text-white p-3 rounded-lg text-center">Reports</Link>
             </div>
           </div>
         </div>

@@ -45,6 +45,10 @@ data class Content(
     @Column(name = "word_count")
     val wordCount: Int? = null,
 
+    /** Curriculum mapping: the learning objective this lesson serves (nullable until mapped). */
+    @Column(name = "objective_id")
+    val objectiveId: Long? = null,
+
     @Column(name = "created_at")
     val createdAt: LocalDateTime = LocalDateTime.now(),
 

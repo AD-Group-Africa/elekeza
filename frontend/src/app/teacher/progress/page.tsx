@@ -50,7 +50,7 @@ export default function ProgressPage() {
                 <XAxis dataKey="name" stroke="#a78bfa" />
                 <YAxis stroke="#a78bfa" />
                 <Tooltip />
-                <Bar dataKey="score" fill="#7c3aed" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="score" fill="#7c3aed" radius={[4, 4, 0, 0]} isAnimationActive={false} />
               </BarChart>
             </ResponsiveContainer>
           </div>

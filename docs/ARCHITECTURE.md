@@ -1,5 +1,8 @@
 # ARCHITECTURE — Elekeza
 
+> **Superseded:** the authoritative, current overview is [`ELEKEZA_README.md`](../ELEKEZA_README.md)
+> (22 September 2026). This document retains deeper backend-domain detail;
+> its test counts predate the current 269-test suite.
 Status: verified against repository on branch `release/v0.1.0` (baseline: 151 backend tests green, frontend typecheck/lint/build green).
 
 ## Shape

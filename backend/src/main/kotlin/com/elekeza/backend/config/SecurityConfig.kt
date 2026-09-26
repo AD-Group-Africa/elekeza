@@ -55,7 +55,7 @@ class SecurityConfig(private val jwtAuthFilter: JwtAuthFilter) {
                     // XorCsrfTokenRequestAttributeHandler would reject.
                     .csrfTokenRequestHandler(CsrfTokenRequestAttributeHandler())
                     .ignoringRequestMatchers(
-                        "/api/auth/login", "/api/auth/register", "/api/auth/refresh", "/api/auth/csrf", "/api/auth/forgot-password",
+                        "/api/auth/login", "/api/auth/register", "/api/auth/refresh", "/api/auth/csrf", "/api/auth/forgot-password", "/api/auth/reset-password",
                         // Server-to-server provider callback: the caller holds no
                         // browser session and cannot carry a CSRF token. Auth is
                         // already permitAll here, and the handler validates the
@@ -88,6 +88,22 @@ class SecurityConfig(private val jwtAuthFilter: JwtAuthFilter) {
                 auth.requestMatchers("/api/teacher/**").hasAnyRole("TEACHER", "SCHOOL_ADMIN", "ADMIN")
                 auth.requestMatchers("/api/guardian/**").hasAnyRole("GUARDIAN", "SCHOOL_ADMIN", "ADMIN")
                 auth.requestMatchers("/api/institutions/**").hasAnyRole("SCHOOL_ADMIN", "ADMIN")
+
+                // Newer admin surfaces: filter-level roles must not shadow the
+                // method-level @PreAuthorize rules inside these controllers.
+                auth.requestMatchers("/api/curriculum/tree", "/api/curriculum/learners/**").authenticated()
+                auth.requestMatchers("/api/curriculum/**").hasAnyRole("TEACHER", "SCHOOL_ADMIN", "ADMIN")
+                auth.requestMatchers("/api/engagement/**").authenticated()
+                auth.requestMatchers("/api/accessibility-profiles/**").authenticated()
+                auth.requestMatchers("/api/timetable/**").authenticated()
+                // Public read-only catalogs: plan pricing and country
+                // configuration are non-sensitive reference data used by the
+                // pre-login surfaces. Writes stay SCHOOL_ADMIN/ADMIN below.
+                auth.requestMatchers(HttpMethod.GET, "/api/billing/plans").permitAll()
+                auth.requestMatchers(HttpMethod.GET, "/api/countries", "/api/countries/*").permitAll()
+                auth.requestMatchers("/api/billing/**").hasAnyRole("SCHOOL_ADMIN", "ADMIN")
+                auth.requestMatchers("/api/devices/mine").authenticated()
+                auth.requestMatchers("/api/devices/**").hasAnyRole("SCHOOL_ADMIN", "ADMIN")
                 auth.anyRequest().authenticated()
             }
             .formLogin { it.disable() }

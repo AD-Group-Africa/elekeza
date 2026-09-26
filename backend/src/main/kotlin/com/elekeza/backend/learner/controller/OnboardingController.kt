@@ -18,10 +18,16 @@ import java.util.UUID
 class OnboardingController(private val onboardingService: OnboardingService) {
 
     // Learner records live in a separate table keyed by the auth user's email.
+    // get-or-create: self-registered learners have no learners row until their
+    // first onboarding call (see OnboardingService.findLearnerByEmail).
+    // NOTE: auth.name resolves to User.toString() (Kotlin data class, no
+    // getName override), NOT the email — resolve the principal to the User
+    // entity and use its email explicitly.
     private fun currentLearner(auth: Authentication): Learner {
-        val email = auth.name
+        val principal = auth.principal
+        val email = (principal as? com.elekeza.backend.auth.User)?.email
+            ?: throw ResponseStatusException(HttpStatus.UNAUTHORIZED, "Not authenticated")
         return onboardingService.findLearnerByEmail(email)
-            ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Learner profile not found — complete registration first")
     }
 
     @PostMapping("/profile")

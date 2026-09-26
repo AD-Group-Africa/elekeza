@@ -56,7 +56,7 @@ class GuardianDigestController(
     fun wardDigest(@AuthenticationPrincipal guardian: User, @PathVariable learnerId: Long): ResponseEntity<Map<String, Any>> {
         // Ward boundary: only linked, active guardian-learner relationships.
         val link = guardianLinkRepo.findByGuardianId(guardian.id)
-            .firstOrNull { it.isActive && it.learnerId == learnerId }
+            .firstOrNull { it.currentlyActive() && it.learnerId == learnerId }
             ?: return ResponseEntity.status(403).body(mapOf("error" to "Not authorized"))
         val learner = userRepo.findById(learnerId).orElse(null)
             ?: return ResponseEntity.status(404).body(mapOf("error" to "Ward not found"))

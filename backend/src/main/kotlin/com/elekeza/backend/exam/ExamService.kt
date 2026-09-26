@@ -33,6 +33,7 @@ class ExamService(
     private val userRepo: UserRepository,
     private val guardianLinkRepo: GuardianLinkRepository,
     private val auditLog: AuditLogService,
+    private val engagementService: com.elekeza.backend.analytics.EngagementService,
 ) {
 
     companion object {
@@ -245,6 +246,13 @@ class ExamService(
         )
         integrityRepo.save(ExamIntegrityEvent(attemptId = attemptId, eventType = "SUBMITTED"))
         auditLog.log(action = "EXAM_SUBMITTED", category = "EXAM", userId = student.id, detail = """{"examId":${attempt.examId},"attemptId":$attemptId,"score":$score}""")
+        runCatching {
+            engagementService.record(student, com.elekeza.backend.analytics.EngagementService.EventRequest(
+                eventType = "EXAM_SUBMITTED",
+                refType = "EXAM",
+                refId = attempt.examId,
+            ))
+        }
         return AttemptDto(
             id = finished.id,
             examId = finished.examId,
@@ -630,11 +638,11 @@ class ExamService(
         if (ward.role != UserRole.STUDENT) {
             throw ResponseStatusException(HttpStatus.FORBIDDEN, "Learner not accessible")
         }
-        // The active guardian link is the authorization boundary (same model as
-        // GuardianController): links are school-created, so an unlinked guardian
-        // — including one from another institution — can never see results.
+        // The currently-active guardian link is the authorization boundary:
+        // links are school-created, and revoked/expired links stop granting
+        // access everywhere (same lifecycle rule as the other domains).
         val link = guardianLinkRepo.findByGuardianIdAndLearnerIdAndIsActiveTrue(guardian.id, wardId)
-        if (link == null) {
+        if (link == null || !link.currentlyActive()) {
             throw ResponseStatusException(HttpStatus.FORBIDDEN, "Not a guardian of this learner")
         }
     }

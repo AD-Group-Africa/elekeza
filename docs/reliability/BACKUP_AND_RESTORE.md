@@ -1,183 +1,72 @@
 # Elekeza — Backup & Restore
 
-## 1. PostgreSQL Database Backup
+**Status:** scripts implemented; first restore drill executed 2026-09-19 against
+a real PostgreSQL 15 dump (see §6 for the recorded evidence). Retention, drill
+schedule and off-server storage are pilot-phase operational commitments.
 
-### 1.1 Full Database Backup
+## 1. What exists
 
-**Command:**
-```bash
-pg_dump -h localhost -U elekeza_admin -d elekeza_prod \
-  -F c -b -v -f /tmp/elekeza_prod_backup.dump
-```
-
-**Options explained:**
-- `-F c`: Custom format (compressed; supports parallel restore)
-- `-b`: Backup blobs (large objects; not typically used for standard tables)
-- `-v`: Verbose mode — shows progress and included objects
-- `-h localhost`: Database host
-- `-U elekeza_admin`: Database user
-- `-d elekeza_prod`: Database name
-
-**Backup retention:** Keep last 3 backups; store off-server (e.g., `/backups/elekeza/`)
-
-### 1.2 Schema-Only Backup
-
-If you only need the schema (no data):
-
-```bash
-pg_dump -h localhost -U elekeza_admin -d elekeza_prod --schema-only \
-  -F c -v -f /tmp/elekeza_schema_backup.dump
-```
-
-### 1.3 Data-Only Backup
-
-```bash
-pg_dump -h localhost -U elekeza_admin -d elekeza_prod --data-only \
-  -F c -v -f /tmp/elekeza_data_backup.dump
-```
-
-## 2. Database Restore
-
-### 2.1 Restore to Fresh Database
-
-```bash
-# Create the database (if not exists)
-psql -U postgres -c "CREATE DATABASE elekeza_prod;"
-
-# Restore from backup
-pg_restore -U elekeza_admin -d elekeza_prod /tmp/elekeza_prod_backup.dump
-```
-
-### 2.2 Restore to Existing Database (Reset)
-
-**Warning:** This will lose all data not in the backup.
-
-```bash
-# Using Flyway baseline + migrate
-cd /path/to/elekeza/backend
-./gradlew flywayBaseline  # First time only
-./gradlew flywayMigrate   # Migrate to latest version
-
-# Or restore from custom format backup, overwriting:
-pg_restore -U elekeza_admin -d elekeza_prod --clean /tmp/elekeza_prod_backup.dump
-```
-
-### 2.2 Verify Restore
-
-```bash
-psql -U elekeza_admin -d elekeza_prod -c "
-  SELECT 'users' AS table_name, count(*) AS row_count FROM users
-  UNION ALL
-  SELECT 'institutions', count(*) FROM institutions
-  UNION ALL
-  SELECT 'students', count(*) FROM students
-  UNION ALL
-  SELECT 'lessons', count(*) FROM lessons
-  UNION ALL
-  SELECT 'quiz_attempts', count(*) FROM quiz_attempts;
-"
-```
-
-## 3. Flyway Migration Management
-
-### 3.1 Current Migration State
-
-The following Flyway migrations are present in `backend/src/main/resources/db/migration/`:
-
-| Version | Description | Size |
+| Piece | Location | Notes |
 | --- | --- | --- |
-| V1 | Baseline schema — users, institutions, students, lessons, quiz infrastructure | 12,250 bytes |
-| V2 | Seed demo data (admin, teacher, guardian, sample students) | 5,384 bytes |
-| V3 | Quiz answers table and relationship to questions | 1,006 bytes |
-| V4 | Support interventions deadlines and enforcement | 3,657 bytes |
+| Backup wrapper | `scripts/db-backup.sh` | custom-format `pg_dump -Fc`, verifies with `pg_restore --list`, prunes beyond `--keep` (default 7) |
+| Restore drill | `scripts/db-restore-drill.sh` | restores into a **disposable** DB, verifies core tables + Flyway history, drops the drill DB |
+| Production runbook | `docs/DEPLOYMENT_RUNBOOK.md` | nightly backup before migration days |
 
-**Total migrations:** 4
-
-### 2.2 Adding a New Migration
+## 2. Backup procedure
 
 ```bash
-# Naming convention: V{N+1}_description.sql
-# Example: V5_add_guardian_notifications.sql
-
-# Place in: backend/src/main/resources/db/migration/
-# Run: ./gradlew flywayMigrate
+PGPASSWORD='<db password>' scripts/db-backup.sh \
+  --host localhost --port 5433 --user postgres --db elekeza_prod \
+  --out /backups/elekeza/elekeza_prod.dump --keep 14
 ```
 
-### 2.2 Rolling Back a Migration
+- Output is compressed custom format (`-Fc`) — restore with `pg_restore`.
+- The wrapper refuses to declare success unless `pg_restore --list` can read
+  the dump; a `.list` manifest is written next to every dump.
+- Retention: the wrapper keeps the newest `--keep` dumps of that database and
+  deletes older ones (plus their manifests/logs). Off-server copying is an
+  operational step, not automated here — pilot hosting must provide it.
+
+## 3. Restore procedure
 
 ```bash
-# Flyway does not support direct rollback.
-# Instead: create a new migration that reverses the changes.
-# Example: V5_rollback_V4_additions.sql
-
-# Then: ./gradlew flywayMigrate
+# Planned restore into an existing database:
+PGPASSWORD='<db password>' pg_restore -h <host> -p <port> -U <user> \
+  -d elekeza_prod --clean --if-exists --no-owner --no-privileges backup.dump
 ```
 
-## 3. Application Configuration Backup
-
-### 3.1 Environment Variables
-
-**Critical variables to back up:**
-- `DB_URL`, `DB_USER`, `DB_PASSWORD`
-- `JWT_SECRET`
-- `AI_CLIENT_TYPE`, `AI_API_KEY`, `AI_INTERNAL_SECRET`
-- `MPESA_CONSUMER_KEY`, `MPESA_CONSUMER_SECRET`, `MPESA_PASSKEY`, `MPESA_SHORTCODE`
-- `AFRICA_TALKING_API_KEY`, `AFRICA_TALKING_SENDER_ID`
-- `MAIL_HOST`, `MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD`
-- `R2_ENDPOINT`, `R2_ACCESS_KEY`, `R2_SECRET_KEY`, `R2_BUCKET`
-- `SENTRY_DSN_BACKEND`, `LANGFUSE_PUBLIC_KEY`, `LANGFUSE_SECRET_KEY`
-
-**Backup method:**
-```bash
-# Save all critical vars
-env | grep -E "DB_URL|JWT_SECRET|AI_CLIENT_TYPE|MPESA|AFRICA_TALKING|MAIL_|R2_|SENTRY|LANGFUSE" > /tmp/elekeza_env_backup.txt
-```
-
-## 4. Application JAR Backup
-
-### 4.1 Backup the Built JAR
+Always rehearse with the drill first — it is the same code path without risk:
 
 ```bash
-# After ./gradlew bootRun or build
-cp backend/build/libs/*.jar /tmp/elekeza-app-backup.jar
+PGPASSWORD='<db password>' scripts/db-restore-drill.sh backup.dump --target elekeza_restore_drill
 ```
 
-**Note:** The JAR contains the compiled code and `application.yml` config. For true disaster recovery, also back up the environment variables.
+The drill restores into a throwaway database, runs verification queries
+(`institutions`, `users`, `learners`, `lessons`, `flyway_schema_history`),
+requires ≥1 successful Flyway migration, and drops the throwaway database.
 
-## 5. Docker Image Backup
+## 4. Verification after a real restore
 
-### 5.1 Backup Built Docker Image
+- [ ] `scripts/db-restore-drill.sh` (or equivalent queries) green
+- [ ] Backend health: `curl -sf http://localhost:8080/actuator/health`
+- [ ] Login round-trip works (seed or restored account)
+- [ ] Flyway history matches the deployed migration set (V1–V15 currently)
 
-```bash
-# If Docker is running
-docker save -o /tmp/elekeza-images.tar elekeza-backend elekeza-ai elekeza-frontend
+## 5. Limitations (honest)
 
-# Or export individual images
-docker save elekeza-backend > /tmp/elekeza-backend.tar
-docker save elekeza-ai > /tmp/elekeza-ai.tar
-docker save elekeza-frontend > /tmp/elekeza-frontend.tar
-```
+- Backups are **not** encrypted at rest by these scripts; enable volume/disk
+  encryption or an encrypted object store at the hosting layer.
+- No point-in-time recovery (WAL archiving) is configured; RPO = interval
+  between runs of `db-backup.sh`. Nightly before migrations is the pilot
+  commitment.
+- Off-server/offsite copy is manual; schedule it in the hosting provider.
+- Restore of the *live* database takes the app offline for the duration.
 
-### 5.2 Restore Docker Images
+## 6. Executed drill record
 
-```bash
-docker load -i /tmp/elekeza-images.tar
-```
-
-## 5. Verification Checklist After Restore
-
-- [ ] Health check passes: `curl -sf http://localhost:8080/actuator/health`
-- [ ] Authentication works: login with test credentials
-- [ ] Institution data present: query institutions table
-- [ ] Student data present: query students table
-- [ ] AI mode correct: verify `AI_CLIENT_TYPE` env var
-- [ ] Payment mode correct: verify `MPESA_CONSUMER_KEY` is set (or mock mode)
-- [ ] Sentry/DSN configured: check `SENTRY_DSN_BACKEND` is not empty
-- [ ] No critical errors in application logs
-
----
----
----
-**IMPORTANT:** Always test backups in a non-production environment first. 
-Restore time objective (RTO) and recovery point objective (RPO) should be defined 
-based on business requirements before disasters occur.
+- **2026-09-19** — `scripts/db-restore-drill.sh` run against a fresh
+  `pg_dump -Fc` of the V1–V15 schema + seed data on PostgreSQL 15
+  (localhost:5433). Result: restore completed, verification queries returned
+  rows for all core tables, `flyway_schema_history` showed all migrations
+  successful, drill database dropped. Transcript excerpt is retained in the
+  repository history (commit message of the backup/restore workstream).

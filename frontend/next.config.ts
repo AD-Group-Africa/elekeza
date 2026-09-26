@@ -1,6 +1,6 @@
 import withPWA from 'next-pwa';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8080';
+const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8085';
 
 // The Playwright E2E suite and the live preview both run `next dev` on this
 // machine. A single `.next` dir means whichever server boots second refuses
@@ -14,6 +14,9 @@ if (process.env.NODE_ENV === 'production' && !process.env.NEXT_PUBLIC_API_URL) {
 const nextConfig = {
   distDir,
   turbopack: {},
+  // Hide the Next.js dev-tools badge (the floating "N" bottom-left). It is
+  // developer-only chrome that leaks into E2E screenshots and manual demos.
+  devIndicators: false as const,
   rewrites: async () => [
     { source: '/api/:path*', destination: `${API_BASE}/api/:path*` }
   ],

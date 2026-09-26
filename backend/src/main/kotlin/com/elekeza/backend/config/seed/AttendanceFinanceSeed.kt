@@ -220,8 +220,13 @@ class AttendanceFinanceSeed(
             ?: feeItemRepo.save(FeeItem(institutionId = instId, name = name, description = description, amount = amount))
     }
 
+    // Monotonic per-boot suffix: consecutive saves within one clock tick
+    // (Windows timer granularity is ~15ms) previously produced duplicate
+    // charge/receipt numbers and violated the unique index.
+    private val numberSeq = java.util.concurrent.atomic.AtomicLong(0)
+
     private fun nextNumber(prefix: String): String =
-        "$prefix-${LocalDate.now().year}-SEED${(System.currentTimeMillis() % 100000).toInt()}"
+        "$prefix-${LocalDate.now().year}-SEED${(System.currentTimeMillis() % 100000).toInt()}-${numberSeq.incrementAndGet()}"
 
     private fun createUserIfAbsent(email: String, rawPassword: String, name: String, role: UserRole, institutionId: Long?): User =
         userRepository.findByEmail(email) ?: userRepository.save(

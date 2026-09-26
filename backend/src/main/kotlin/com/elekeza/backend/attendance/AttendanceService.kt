@@ -133,7 +133,7 @@ class AttendanceService(
         val self = viewer.id == learnerId
         val isStaff = viewer.role in setOf(com.elekeza.backend.auth.UserRole.TEACHER, com.elekeza.backend.auth.UserRole.SCHOOL_ADMIN, com.elekeza.backend.auth.UserRole.ADMIN)
         val isLinkedGuardian = viewer.role == com.elekeza.backend.auth.UserRole.GUARDIAN &&
-            guardianLinkRepo.findByGuardianId(viewer.id).any { it.learnerId == learnerId && it.isActive }
+            guardianLinkRepo.findByGuardianId(viewer.id).any { it.learnerId == learnerId && it.currentlyActive() }
 
         if (!self && !isStaff && !isLinkedGuardian) {
             throw ResponseStatusException(HttpStatus.FORBIDDEN, "Not authorized to view this learner's attendance")

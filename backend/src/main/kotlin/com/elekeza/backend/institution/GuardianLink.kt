@@ -13,8 +13,20 @@ data class GuardianLink(
     val learnerId: Long,
     val relationship: String = "PARENT",
     val isActive: Boolean = true,
+    /** Bounds a temporary caregiving grant; null = open-ended. */
+    val expiresAt: Instant? = null,
+    /** Set when a school admin or guardian revokes the link; null = live. */
+    val revokedAt: Instant? = null,
     val createdAt: Instant = Instant.now()
 ) {
+    /**
+     * Whether this link currently grants ward access: active, not revoked,
+     * and not past its expiry. Every guardian ward-authorization check
+     * (finance, attendance, assignments, digest, exams) must use this instead
+     * of the bare [isActive] flag so lifecycle rules apply uniformly.
+     */
+    fun currentlyActive(now: Instant = Instant.now()): Boolean =
+        isActive && revokedAt == null && (expiresAt == null || expiresAt.isAfter(now))
     companion object {
         /** Canonical relationship types. Role stays GUARDIAN; this is the relationship label. */
         val VALID_RELATIONSHIPS = setOf("PARENT", "CAREGIVER", "OLDER_SIBLING", "LEGAL_GUARDIAN", "OTHER")

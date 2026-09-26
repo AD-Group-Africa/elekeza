@@ -67,7 +67,7 @@ test-backend:
     GOOGLE_CLIENT_SECRET: test
     MAIL_USERNAME: test
     MAIL_PASSWORD: test
-    MPESA_CALLBACK_URL: http://localhost:8080/api/payments/mpesa/callback
+    MPESA_CALLBACK_URL: http://localhost:8085/api/payments/mpesa/callback
     FRONTEND_URL: http://localhost:3000
   script:
     - cd backend

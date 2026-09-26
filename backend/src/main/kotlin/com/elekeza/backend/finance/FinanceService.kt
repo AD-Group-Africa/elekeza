@@ -166,7 +166,7 @@ class FinanceService(
             user.role == UserRole.STUDENT ->
                 chargeRepo.findByLearnerIdOrderByCreatedAtDesc(user.id)
             user.role == UserRole.GUARDIAN -> {
-                val wardIds = guardianLinkRepo.findByGuardianId(user.id).filter { it.isActive }.map { it.learnerId }
+                val wardIds = guardianLinkRepo.findByGuardianId(user.id).filter { it.currentlyActive() }.map { it.learnerId }
                 if (learnerId != null && learnerId !in wardIds) {
                     throw ResponseStatusException(HttpStatus.FORBIDDEN, "Not your ward")
                 }
@@ -364,7 +364,7 @@ class FinanceService(
         return when (actor.role) {
             UserRole.STUDENT -> actor.id == learner.id
             UserRole.GUARDIAN ->
-                guardianLinkRepo.findByGuardianId(actor.id).any { it.learnerId == learner.id && it.isActive }
+                guardianLinkRepo.findByGuardianId(actor.id).any { it.learnerId == learner.id && it.currentlyActive() }
             UserRole.SCHOOL_ADMIN -> learner.institutionId == actor.institutionId
             UserRole.ADMIN -> true
             else -> false
@@ -400,7 +400,7 @@ class FinanceService(
             user.role == UserRole.STUDENT ->
                 paymentRepo.findByLearnerIdOrderByPaidAtDesc(user.id)
             user.role == UserRole.GUARDIAN -> {
-                val wardIds = guardianLinkRepo.findByGuardianId(user.id).filter { it.isActive }.map { it.learnerId }
+                val wardIds = guardianLinkRepo.findByGuardianId(user.id).filter { it.currentlyActive() }.map { it.learnerId }
                 if (learnerId != null && learnerId !in wardIds) {
                     throw ResponseStatusException(HttpStatus.FORBIDDEN, "Not your ward")
                 }
@@ -429,7 +429,7 @@ class FinanceService(
         val allowed = when (user.role) {
             UserRole.STUDENT -> payment.learnerId == user.id
             UserRole.GUARDIAN ->
-                guardianLinkRepo.findByGuardianId(user.id).any { it.learnerId == payment.learnerId && it.isActive }
+                guardianLinkRepo.findByGuardianId(user.id).any { it.learnerId == payment.learnerId && it.currentlyActive() }
             UserRole.ADMIN -> true
             UserRole.SCHOOL_ADMIN -> payment.institutionId == user.institutionId
             else -> false

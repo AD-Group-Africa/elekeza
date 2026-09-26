@@ -21,7 +21,8 @@ class GuardianController(
 ) {
     @GetMapping("/wards")
     fun getWards(@AuthenticationPrincipal guardian: User): ResponseEntity<List<Map<String, Any>>> {
-        val links = guardianLinkRepo.findAll().filter { it.guardianId == guardian.id }
+        // Lifecycle-aware: revoked or expired links stop granting ward access.
+        val links = guardianLinkRepo.findByGuardianId(guardian.id).filter { it.currentlyActive() }
         val wards = links.mapNotNull { link ->
             val learner = userRepo.findById(link.learnerId).orElse(null) ?: return@mapNotNull null
             val profile = learnerProfileRepo.findByUserId(learner.id)
@@ -61,7 +62,8 @@ class GuardianController(
 
     @GetMapping("/wards/{wardId}/progress")
     fun getWardProgress(@AuthenticationPrincipal guardian: User, @PathVariable wardId: Long): ResponseEntity<Map<String, Any>> {
-        val link = guardianLinkRepo.findAll().firstOrNull { it.guardianId == guardian.id && it.learnerId == wardId }
+        val link = guardianLinkRepo.findByGuardianId(guardian.id)
+            .firstOrNull { it.learnerId == wardId && it.currentlyActive() }
             ?: return ResponseEntity.status(403).body(mapOf("error" to "Not authorized"))
         val learner = userRepo.findById(wardId).orElseThrow()
         val progress = lessonProgressRepo.findByUserIdOrderByCreatedAtDesc(wardId)

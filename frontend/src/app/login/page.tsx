@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { Eye, EyeOff } from 'lucide-react';
-import GoogleSignInButton from '@/components/GoogleSignInButton';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -75,9 +74,6 @@ export default function LoginPage() {
           </button>
         </form>
 
-        <div className="mt-4">
-          <GoogleSignInButton />
-        </div>
 
         <p className="mt-6 text-center text-sm text-purple-200/70">
           Don&apos;t have an account?{' '}

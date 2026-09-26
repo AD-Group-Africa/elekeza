@@ -12,13 +12,14 @@ interface User {
   title?: string;
   gender?: string;
   cognitiveProfiles?: string[];
+  /** Tenant context for admin surfaces (staff management, CSV import). */
+  institutionId?: number;
 }
 
 interface AuthContextType {
   user: User | null;
   login: (email: string, password: string) => Promise<User>;
   register: (email: string, password: string, name: string, phone: string, role: string, termsAccepted: boolean, gender?: string) => Promise<void>;
-  loginWithGoogle: () => Promise<void>;
   logout: () => Promise<void>;
   loading: boolean;
 }
@@ -56,9 +57,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await login(email, password);
   }, [login]);
 
-  const loginWithGoogle = useCallback(async () => {
-    // Google Sign-In will be available in a future release;
-  }, []);
 
   const logout = useCallback(async () => {
     try { await api.post('/auth/logout'); } catch {}
@@ -67,7 +65,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [router]);
 
   return (
-    <AuthContext.Provider value={{ user, login, register, loginWithGoogle, logout, loading }}>
+    <AuthContext.Provider value={{ user, login, register, logout, loading }}>
       {children}
     </AuthContext.Provider>
   );

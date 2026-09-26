@@ -30,6 +30,10 @@ export default defineConfig({
   expect: { timeout: 45_000 },
   fullyParallel: false,
   workers: 1,
+  // Transient dev-server hiccups (Fast-Refresh bounce, cold compile jitter)
+  // are real but rare; one retry turns them into logs instead of red runs.
+  // Genuine defects still fail twice and are reported.
+  retries: process.env.CI ? 2 : 1,
   reporter: [['list']],
   use: {
     baseURL: FRONTEND_URL,

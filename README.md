@@ -1,3 +1,10 @@
+> **SUPERSEDED:** this file has been consolidated into **[`ELEKEZA_README.md`](ELEKEZA_README.md)** —
+> the single authoritative Elekeza README (22 September 2026). Content below is historical.
+>
+> **PRODUCTION / OPERATIONS:** the canonical deployment, security and operations reference is
+> **[`ELEKEZA_PRODUCTION_MASTER.md`](ELEKEZA_PRODUCTION_MASTER.md)** (final production audit,
+> 24 September 2026, HEAD `14c4393`).
+
 # Elekeza – AI-Powered Inclusive Learning Platform
 
 **Elekeza** *(meaning "to understand" in Swahili)* is an AI-powered, accessibility-first learning platform designed for the Kenyan CBC curriculum. Built for learners with Special Educational Needs (SNE) and mainstream education.

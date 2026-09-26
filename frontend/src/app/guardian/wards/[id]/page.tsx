@@ -6,6 +6,8 @@ import api from '@/lib/axios';
 import { ArrowLeft, BookOpen, ClipboardCheck, TrendingUp, Calendar, HeartHandshake } from 'lucide-react';
 import Link from 'next/link';
 import DailyDigest from '@/components/guardian/DailyDigest';
+import GuardianLinksPanel from '@/components/admin/GuardianLinksPanel';
+import { useAuth } from '@/hooks/useAuth';
 
 interface WardData {
   name?: string;
@@ -31,6 +33,8 @@ export default function WardDetail() {
   const [ward, setWard] = useState<WardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [support, setSupport] = useState<LearningSupport | null>(null);
+  const { user } = useAuth();
+  const isAdmin = user?.role === 'SCHOOL_ADMIN' || user?.role === 'ADMIN';
 
   useEffect(() => {
     api.get('/guardian/wards/' + id)
@@ -79,6 +83,9 @@ export default function WardDetail() {
 
         {/* Server-composed daily digest: learning / attendance / classwork / fees */}
         <DailyDigest wardId={id as string} />
+
+        {/* School admins manage the guardian-link lifecycle from here; hidden for guardians. */}
+        {isAdmin && <GuardianLinksPanel learnerId={id as string} />}
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
           <div className="bg-white/5 p-4 rounded-lg text-center">

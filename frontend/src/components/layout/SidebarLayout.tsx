@@ -7,7 +7,7 @@ import { useAuth } from '@/hooks/useAuth';
 import {
   LayoutDashboard, Users, BookOpen, ClipboardCheck, Upload, TrendingUp,
   Calendar, User, Settings, FileText, MessageSquare, Menu, X, BrainCircuit, AlertTriangle, SlidersHorizontal,
-  UserCheck, Wallet, NotebookPen
+  UserCheck, Wallet, NotebookPen, UserCog
 } from 'lucide-react';
 import NotificationBell from '@/components/layout/NotificationBell';
 
@@ -51,6 +51,7 @@ const guardianItems = [
 
 const adminItems = [
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
+  { href: '/admin/staff', label: 'Staff Accounts', icon: UserCog },
   { href: '/finance', label: 'Finance', icon: Wallet },
   { href: '/attendance', label: 'Attendance', icon: UserCheck },
   { href: '/school/onboarding', label: 'Schools', icon: Users },

@@ -16,6 +16,7 @@ import org.springframework.web.server.ResponseStatusException
 import java.security.MessageDigest
 import java.time.OffsetDateTime
 import com.elekeza.backend.auth.dto.ForgotPasswordRequest
+import com.elekeza.backend.auth.dto.ResetPasswordRequest
 
 @RestController
 @RequestMapping("/api/auth")
@@ -73,11 +74,16 @@ class AuthController(
 
     @PostMapping("/forgot-password")
     fun forgotPassword(@RequestBody @jakarta.validation.Valid req: ForgotPasswordRequest): ResponseEntity<Map<String, Any>> {
-        // Minimal safe endpoint: only confirm whether the email belongs to a
-        // registered account, and queue a reset flow. We never reveal existence
-        // of an account via the response shape.
+        // Issues a single-use reset token for registered accounts and emails
+        // it. The response never reveals whether the account exists.
         authService.forgotPassword(req.email.trim())
         return ResponseEntity.ok(mapOf("message" to "If that email is registered, a reset link has been sent."))
+    }
+
+    @PostMapping("/reset-password")
+    fun resetPassword(@RequestBody @jakarta.validation.Valid req: ResetPasswordRequest): ResponseEntity<Map<String, Any>> {
+        authService.resetPassword(req.token, req.newPassword)
+        return ResponseEntity.ok(mapOf("message" to "Your password has been reset. You can now sign in with your new password."))
     }
 
     @GetMapping("/me")

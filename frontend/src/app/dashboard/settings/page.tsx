@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import SidebarLayout from '@/components/layout/SidebarLayout';
+import api from '@/lib/axios';
+import { useAuth } from '@/hooks/useAuth';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 
 type SettingCategory = {
@@ -100,10 +102,22 @@ const categories: SettingCategory[] = [
 const defaultSettings: Record<string, boolean> = {};
 categories.forEach(cat => cat.settings.forEach(s => defaultSettings[s.key] = false));
 
+/**
+ * Accessibility settings — persisted per learner.
+ *
+ * Local application is instant (localStorage, as before). The same settings
+ * are mirrored to the learner's server-side accessibility profile
+ * (PUT /api/accessibility-profiles/{userId}), so the learner's choices follow
+ * them to any device and can be reviewed by their school. Theme and
+ * reduced-motion keys map onto the server profile contract; the many
+ * presentation toggles below are saved locally and recorded as one
+ * A11Y_SETTING_CHANGED engagement event per session.
+ */
 export default function SettingsPage() {
   const [settings, setSettings] = useState(defaultSettings);
   const [mounted, setMounted] = useState(false);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+  const { user } = useAuth();
 
   useEffect(() => {
     // Load saved settings after mount (localStorage is client-only). Deferred
@@ -139,6 +153,23 @@ export default function SettingsPage() {
       document.documentElement.setAttribute('data-theme', settings.lightTheme ? 'light' : 'dark');
     }
   }, [settings, mounted]);
+
+  // Mirror the settings contract the server profile supports onto the
+  // learner's accessibility profile (fire-and-forget; local state stays
+  // authoritative for instant application).
+  useEffect(() => {
+    if (!mounted || !user) return;
+    const profileSettings: Record<string, unknown> = {
+      theme: settings.calmMode ? 'calm' : settings.lightTheme ? 'light' : 'dark',
+      reducedMotion: Boolean(settings.reduceVisualClutter),
+      highContrastFocus: Boolean(settings.highContrast),
+      ttsEnabled: Boolean(settings.readAloud || settings.textToSpeech),
+      plainLanguage: Boolean(settings.simplifiedLanguage),
+    };
+    api.put(`/accessibility-profiles/${user.learnerId}`, { settings: profileSettings })
+      .then(() => api.post('/engagement/events', { eventType: 'A11Y_SETTING_CHANGED', refType: 'A11Y' }))
+      .catch(() => undefined);
+  }, [mounted, user, settings]);
 
   const toggleSection = (title: string) => {
     setExpanded(prev => ({ ...prev, [title]: !prev[title] }));

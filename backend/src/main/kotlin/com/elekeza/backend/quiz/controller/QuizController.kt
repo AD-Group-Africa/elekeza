@@ -34,15 +34,26 @@ class QuizController(
     private val aiClient: AiClient,
     private val aiQuizParser: AiQuizParser,
     private val notificationService: com.elekeza.backend.notification.NotificationService,
-    private val contentAccessGuard: ContentAccessGuard
+    private val contentAccessGuard: ContentAccessGuard,
+    private val engagementService: com.elekeza.backend.analytics.EngagementService,
 ) {
     // Keep GET for the existing lesson page and accept POST for API clients.
     @RequestMapping("/{lessonId}/start", method = [RequestMethod.GET, RequestMethod.POST])
+    @Transactional
     fun startQuiz(@PathVariable lessonId: Long, @AuthenticationPrincipal user: User): Map<String, Any> {
         val content = contentRepo.findById(lessonId)
             .orElseThrow { ResponseStatusException(HttpStatus.NOT_FOUND, "Lesson not found") }
         // A learner may only start a quiz for content they can access.
         contentAccessGuard.requireAccess(user, content)
+
+        // Telemetry: lesson opened for practice (best-effort).
+        runCatching {
+            engagementService.record(user, com.elekeza.backend.analytics.EngagementService.EventRequest(
+                eventType = "LESSON_STARTED",
+                refType = "LESSON",
+                refId = lessonId,
+            ))
+        }
 
         var quiz = quizRepo.findByContentId(lessonId)
         if (quiz == null) {
@@ -164,6 +175,15 @@ class QuizController(
             .orElseThrow { ResponseStatusException(HttpStatus.NOT_FOUND, "Quiz not found") }
         val questions = questionRepo.findByQuizId(quizId)
 
+        // Telemetry: quiz start/finish (best-effort, never breaks the flow).
+        runCatching {
+            engagementService.record(user, com.elekeza.backend.analytics.EngagementService.EventRequest(
+                eventType = "QUIZ_COMPLETED",
+                refType = "QUIZ",
+                refId = quizId,
+            ))
+        }
+
         // A user may only complete a quiz they have started (a pending attempt exists).
         val attempts = attemptRepo.findByQuizIdAndUserId(quizId, user.id)
         val latest = attempts.maxByOrNull { it.createdAt }
@@ -220,7 +240,14 @@ class QuizController(
             // Notification must never break the completion flow.
         }
 
-        // Update lesson progress (mutate managed entity)
+        // Update lesson progress (mutate managed entity) + telemetry.
+        runCatching {
+            engagementService.record(user, com.elekeza.backend.analytics.EngagementService.EventRequest(
+                eventType = "LESSON_COMPLETED",
+                refType = "LESSON",
+                refId = quiz.contentId,
+            ))
+        }
         val managedUser = userRepo.findById(user.id).orElseThrow()
         val existingProgress = progressRepo.findByUserIdAndContentId(user.id, quiz.contentId)
         if (existingProgress != null) {

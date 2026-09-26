@@ -2,6 +2,7 @@ package com.elekeza.backend.tutor
 
 import com.elekeza.backend.auth.User
 import com.elekeza.backend.common.ai.AiClient
+import com.elekeza.backend.analytics.EngagementService
 import com.elekeza.backend.common.AuditLogService
 import com.elekeza.backend.content.Content
 import com.elekeza.backend.content.ContentAccessGuard
@@ -44,6 +45,7 @@ class TutorService(
     private val attemptRepo: QuizAttemptRepository,
     private val objectMapper: ObjectMapper,
     private val auditLog: AuditLogService,
+    private val engagementService: com.elekeza.backend.analytics.EngagementService,
     /** Optional: absent when no AI provider is configured (ai.client.type unset). */
     @Autowired(required = false) private val aiClient: AiClient? = null
 ) {
@@ -69,6 +71,14 @@ class TutorService(
     }
 
     fun handle(user: User, req: TutorRequest): TutorResponse {
+        // Telemetry: tutor opened/used (best-effort; never blocks the answer).
+        runCatching {
+            engagementService.record(user, com.elekeza.backend.analytics.EngagementService.EventRequest(
+                eventType = if (req.practiceId != null) "TUTOR_ACTION_USED" else "TUTOR_OPENED",
+                refType = "TUTOR",
+                refId = req.lessonId,
+            ))
+        }
         if (req.action == TutorAction.PRACTICE && req.practiceId != null) {
             return gradeAnswer(user, req)
         }

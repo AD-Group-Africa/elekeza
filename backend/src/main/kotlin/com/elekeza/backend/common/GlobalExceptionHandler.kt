@@ -99,6 +99,13 @@ class GlobalExceptionHandler {
             .body(mapOf("error" to "An account or record with these details already exists"))
     }
 
+    // ── Client-input rule violations surfaced as IllegalStateException/IllegalArgumentException
+    // (require()/check() in services) → 400, not a 500. These messages are
+    // written for users ("Placement must be completed first") and are safe to show.
+    @ExceptionHandler(IllegalArgumentException::class, IllegalStateException::class)
+    fun handleIllegalArgument(ex: RuntimeException): ResponseEntity<*> =
+        ResponseEntity.badRequest().body(mapOf("error" to (ex.message ?: "Invalid request")))
+
     // ── Catch-all — never expose stack traces to clients ─────────────────────
     @ExceptionHandler(Exception::class)
     fun handleGeneric(ex: Exception): ResponseEntity<*> {

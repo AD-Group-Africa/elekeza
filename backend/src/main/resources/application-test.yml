@@ -26,4 +26,4 @@ mpesa:
   consumer-secret: test-secret
   passkey: test-passkey
   shortcode: 174379
-  callback-url: http://localhost:8080/api/payments/callback
+  callback-url: http://localhost:8085/api/payments/callback

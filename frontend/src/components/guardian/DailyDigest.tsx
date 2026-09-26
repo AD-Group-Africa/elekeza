@@ -44,14 +44,14 @@ export default function DailyDigest({ wardId }: { wardId: string | number }) {
   if (failed) {
     return (
       <section aria-label="Daily summary" className="glass-card p-5">
-        <p className="text-sm opacity-70">Could not load today's summary. Please refresh to try again.</p>
+        <p className="text-sm opacity-70">Could not load today&rsquo;s summary. Please refresh to try again.</p>
       </section>
     );
   }
   if (!digest) {
     return (
       <section aria-label="Daily summary" className="glass-card p-5">
-        <p className="text-sm opacity-70 animate-pulse">Loading today's summary…</p>
+        <p className="text-sm opacity-70 animate-pulse">Loading today&rsquo;s summary…</p>
       </section>
     );
   }

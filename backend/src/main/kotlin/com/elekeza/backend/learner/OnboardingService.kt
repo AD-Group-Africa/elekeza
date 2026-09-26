@@ -22,8 +22,18 @@ class OnboardingService(
     private val learnerRepository:  LearnerRepository,
     private val guardianRepository: GuardianRepository
 ) {
-    /** Resolves a Learner record from the authenticated user's email. */
-    fun findLearnerByEmail(email: String): Learner? = learnerRepository.findByEmail(email).orElse(null)
+    /**
+     * Resolves the Learner record for the authenticated user's email,
+     * creating it on first use. Self-registered learners get a `users` row
+     * from /api/auth/register but no `learners` row; onboarding is the first
+     * learner-scoped flow they hit, so it provisions the record here instead
+     * of failing with a confusing 404. Idempotent: the second call finds the
+     * existing row.
+     */
+    fun findLearnerByEmail(email: String): Learner =
+        learnerRepository.findByEmail(email).orElseGet {
+            learnerRepository.save(Learner(email = email, cognitiveProfiles = emptyList()))
+        }
     @Transactional
     fun saveProfile(learnerId: UUID, request: ProfileRequest): OnboardingResponse {
         val learner = learnerRepository.findById(learnerId).orElseThrow { IllegalArgumentException("Learner not found") }

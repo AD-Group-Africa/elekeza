@@ -28,7 +28,8 @@ class AssignmentService(
     private val classRepo: SchoolClassRepository,
     private val enrollmentRepo: ClassEnrollmentRepository,
     private val userRepo: UserRepository,
-    private val guardianLinkRepo: GuardianLinkRepository
+    private val guardianLinkRepo: GuardianLinkRepository,
+    private val engagementService: com.elekeza.backend.analytics.EngagementService,
 ) {
 
     // ── Teacher / admin ──────────────────────────────────────────────────────
@@ -106,6 +107,13 @@ class AssignmentService(
             (existing ?: AssignmentSubmission(assignmentId = a.id, learnerId = user.id, content = ""))
                 .copy(content = content.take(20_000), submittedAt = java.time.Instant.now(), updatedAt = java.time.Instant.now())
         )
+        runCatching {
+            engagementService.record(user, com.elekeza.backend.analytics.EngagementService.EventRequest(
+                eventType = "ASSIGNMENT_SUBMITTED",
+                refType = "ASSIGNMENT",
+                refId = a.id,
+            ))
+        }
         return toDto(saved, a, user.name)
     }
 
@@ -181,7 +189,7 @@ class AssignmentService(
 
     private fun requireGuardianOf(user: User, learnerId: Long) {
         val active = guardianLinkRepo.findByGuardianId(user.id)
-            .filter { it.isActive && it.learnerId == learnerId }
+            .filter { it.currentlyActive() && it.learnerId == learnerId }
         if (active.isEmpty()) {
             throw ResponseStatusException(HttpStatus.FORBIDDEN, "Not a linked ward")
         }

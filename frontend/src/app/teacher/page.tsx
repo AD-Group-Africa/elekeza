@@ -67,7 +67,7 @@ export default function TeacherDashboard() {
                 <XAxis dataKey="day" stroke="#a78bfa" />
                 <YAxis stroke="#a78bfa" />
                 <Tooltip />
-                <Bar dataKey="completed" fill="#7c3aed" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="completed" fill="#7c3aed" radius={[4, 4, 0, 0]} isAnimationActive={false} />
               </BarChart>
             </ResponsiveContainer>
           ) : (
@@ -87,7 +87,7 @@ export default function TeacherDashboard() {
                   { name: 'Active', value: data.activeLearners },
                   { name: 'Inactive', value: (data.totalLearners - data.activeLearners - data.atRiskStudents) || 0 },
                 ]}
-                cx="50%" cy="50%" outerRadius={80} label
+                cx="50%" cy="50%" outerRadius={80} label isAnimationActive={false}
               >
                 {[...Array(3)].map((_, i) => (
                   <Cell key={`cell-${i}`} fill={COLORS[i % COLORS.length]} />

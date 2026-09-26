@@ -62,3 +62,6 @@ backend/.gradle-home/
 
 # stray nested gradle cache from an errant invocation
 backend/backend/
+
+# Backup artifacts — never commit dumps
+backups/

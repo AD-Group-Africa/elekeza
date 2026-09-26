@@ -63,7 +63,7 @@ jobs:
       - name: Production build
         run: npm run build
         env:
-          NEXT_PUBLIC_API_URL: http://localhost:8080
+          NEXT_PUBLIC_API_URL: http://localhost:8085
 
   e2e:
     runs-on: ubuntu-latest
@@ -103,3 +103,48 @@ jobs:
           name: playwright-traces
           path: frontend/test-results
           retention-days: 7
+
+  ai-elewa:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ai-elewa
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: ai-elewa/requirements.txt
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Boot AI service (in-process, deterministic config)
+        # test_error_handling.py and test_edge_cases.py are live-server tests:
+        # they call the HTTP API on localhost:8000. CI boots uvicorn exactly as
+        # a local developer would. No real provider calls occur for these.
+        run: |
+          uvicorn main:app --port 8000 > uvicorn.log 2>&1 &
+          for i in $(seq 1 30); do
+            curl -sf http://localhost:8000/health > /dev/null && break
+            sleep 1
+          done
+          curl -sf http://localhost:8000/health > /dev/null || (cat uvicorn.log && exit 1)
+        env:
+          # Dummy provider env: config.py fails fast at import without these.
+          # No real provider calls occur in the non-live suite.
+          AI_PROVIDER: groq
+          AI_API_KEY: ci-dummy-not-a-real-key
+          INTERNAL_SECRET: elekeza-test-internal-key-not-a-secret
+          LANGFUSE_HOST: ""
+      - name: Run AI unit + contract + live-server tests (credential-free)
+        # test_full_pipeline.py is marked `live`: it asserts against the real
+        # AI provider and needs genuine AI_API_KEY credentials, so CI skips it
+        # via -m "not live".
+        run: python -m pytest tests -q -m "not live"
+      - name: Upload AI test summary on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ai-elewa-test-output
+          path: ai-elewa/test-results.xml
+          if-no-files-found: ignore

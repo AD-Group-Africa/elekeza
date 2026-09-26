@@ -84,9 +84,9 @@ for i in $(seq 1 60); do
   sleep 2
 done
 curl -sf "http://localhost:$BE_PORT/actuator/health" >/dev/null || fail "backend health"
-grep -q "Successfully applied 11 migrations" "$BE_LOG" \
-  || fail "expected 'Successfully applied 11 migrations' in backend log"
-echo "Flyway: 11/11 migrations applied; Hibernate validate OK; health 200"
+grep -q "Successfully applied 15 migrations" "$BE_LOG" \
+  || fail "expected 'Successfully applied 15 migrations' in backend log"
+echo "Flyway: 15/15 migrations applied; Hibernate validate OK; health 200"
 
 log "5. Production frontend (`next start`)"
 (cd "$FRONTEND" && npx next start -p $FE_PORT >"$FE_LOG" 2>&1) & FE_PID=$!
