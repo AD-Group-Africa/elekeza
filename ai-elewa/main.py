@@ -15,6 +15,7 @@ from security import InternalAuthMiddleware
 from endpoints.simplify import router as simplify_router
 from endpoints.quiz import router as quiz_router
 from endpoints.process import router as process_router
+from endpoints.tutor import router as tutor_router
 from models.errors import ErrorResponse
 from utils.learner_messages import get_learner_message
 
@@ -41,6 +42,7 @@ app.add_middleware(InternalAuthMiddleware)
 app.include_router(process_router)
 app.include_router(simplify_router)
 app.include_router(quiz_router)
+app.include_router(tutor_router)
 
 
 @app.exception_handler(RequestValidationError)

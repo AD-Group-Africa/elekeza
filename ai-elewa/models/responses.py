@@ -105,6 +105,12 @@ class WrongAnswerFlowResponse(BaseModel):
     reattempt_question: str
 
 
+class TutorChatResponse(BaseModel):
+    reply: str
+    action_handled: Optional[str] = None
+    fallback: bool = False
+
+
 # ---------------------------------------------------------------------------
 # Process endpoint response — backend compatibility
 # ---------------------------------------------------------------------------

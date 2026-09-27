@@ -70,6 +70,25 @@ class WrongAnswerFlowRequest(BaseModel):
     section_content: str
 
 
+class TutorChatMessage(BaseModel):
+    role: Literal["user", "assistant"]
+    content: str
+
+
+class TutorChatRequest(BaseModel):
+    learner_context: LearnerContext
+    messages: list[TutorChatMessage] = Field(..., min_length=1, max_length=20)
+    lesson_context: Optional[str] = None
+    current_action: Optional[Literal[
+        "explain",
+        "practice",
+        "read_aloud",
+        "translate",
+        "diagram",
+        "summarise",
+    ]] = None
+
+
 class ProcessRequest(BaseModel):
     file_path: str
     sne_type: str = "NONE"
