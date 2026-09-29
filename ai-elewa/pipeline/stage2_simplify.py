@@ -60,8 +60,11 @@ async def simplify(
 ) -> LessonJSON:
     """
     Stage 2 — calls the large AI model to simplify raw_text into LessonJSON.
-    Validates the response with Pydantic.
-    Schema failures are retried by retry.py automatically via ai_client.complete().
+    Uses the provider's JSON object response mode (verified supported by
+    qwen/qwen3.8-27b on Groq) with an explicit completion-token bound, so
+    truncated or fence-wrapped output is far less likely. Pydantic validation
+    remains the final authority; schema failures still flow through the
+    existing retry path in ai_client/retry.
     """
     profiles = learner_context.cognitive_profiles
     profile_label = (
@@ -86,6 +89,10 @@ CONTENT TO SIMPLIFY:
         temperature=config.TEMPERATURE_SIMPLIFY,
         stage="stage2_simplify",
         profile=profile_label,
+        extra_params={
+            "response_format": {"type": "json_object"},
+            "max_completion_tokens": config.STAGE2_MAX_COMPLETION_TOKENS,
+        },
     )
 
     # Strip markdown fences if model adds them despite instructions

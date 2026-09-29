@@ -24,6 +24,11 @@ def init_ai_clients():
         import httpx
         _groq_client = AsyncGroq(
             api_key=config.AI_API_KEY,
+            # Retry authority is the application layer (utils/retry.py).
+            # The SDK default of 2 internal retries multiplied with app retries
+            # (3 app attempts x 3 SDK attempts = up to 9 provider calls) and
+            # let a single read-timeout block for ~75s+. Disable SDK retries.
+            max_retries=0,
             timeout=httpx.Timeout(
                 connect=5.0,    # fail fast on connection
                 read=25.0,      # allow up to 25s for model response
@@ -59,7 +64,8 @@ def init_ai_clients():
 # Internal provider call functions — each returns a plain str
 # ---------------------------------------------------------------------------
 
-async def _call_groq(system_prompt: str, user_prompt: str, model: str, temperature: float) -> tuple[str, int, int]:
+async def _call_groq(system_prompt: str, user_prompt: str, model: str, temperature: float,
+                     extra_params: Optional[dict] = None) -> tuple[str, int, int]:
     """Returns (response_text, input_tokens, output_tokens)"""
     response = await _groq_client.chat.completions.create(
         model=model,
@@ -68,6 +74,7 @@ async def _call_groq(system_prompt: str, user_prompt: str, model: str, temperatu
             {"role": "system", "content": system_prompt},
             {"role": "user",   "content": user_prompt},
         ],
+        **(extra_params or {}),
     )
     text = response.choices[0].message.content or ""
     input_tokens  = response.usage.prompt_tokens     if response.usage else 0
@@ -75,7 +82,8 @@ async def _call_groq(system_prompt: str, user_prompt: str, model: str, temperatu
     return text, input_tokens, output_tokens
 
 
-async def _call_openai(system_prompt: str, user_prompt: str, model: str, temperature: float) -> tuple[str, int, int]:
+async def _call_openai(system_prompt: str, user_prompt: str, model: str, temperature: float,
+                       extra_params: Optional[dict] = None) -> tuple[str, int, int]:
     response = await _openai_client.chat.completions.create(
         model=model,
         temperature=temperature,
@@ -83,6 +91,7 @@ async def _call_openai(system_prompt: str, user_prompt: str, model: str, tempera
             {"role": "system", "content": system_prompt},
             {"role": "user",   "content": user_prompt},
         ],
+        **(extra_params or {}),
     )
     text = response.choices[0].message.content or ""
     input_tokens  = response.usage.prompt_tokens     if response.usage else 0
@@ -90,7 +99,10 @@ async def _call_openai(system_prompt: str, user_prompt: str, model: str, tempera
     return text, input_tokens, output_tokens
 
 
-async def _call_anthropic(system_prompt: str, user_prompt: str, model: str, temperature: float) -> tuple[str, int, int]:
+async def _call_anthropic(system_prompt: str, user_prompt: str, model: str, temperature: float,
+                          extra_params: Optional[dict] = None) -> tuple[str, int, int]:
+    # extra_params accepted for dispatch parity; structured-output params are
+    # not standardised on this SDK — no provider currently passes them here.
     response = await _anthropic_client.messages.create(
         model=model,
         max_tokens=4096,
@@ -104,7 +116,10 @@ async def _call_anthropic(system_prompt: str, user_prompt: str, model: str, temp
     return text, input_tokens, output_tokens
 
 
-async def _call_google(system_prompt: str, user_prompt: str, model: str, temperature: float) -> tuple[str, int, int]:
+async def _call_google(system_prompt: str, user_prompt: str, model: str, temperature: float,
+                       extra_params: Optional[dict] = None) -> tuple[str, int, int]:
+    # extra_params accepted for dispatch parity; structured-output params are
+    # not standardised on this SDK — no provider currently passes them here.
     import google.generativeai as genai
     if model not in _google_model_cache:
         _google_model_cache[model] = genai.GenerativeModel(
@@ -146,6 +161,7 @@ async def complete(
     temperature: float,
     stage: str,
     profile: str,
+    extra_params: Optional[dict] = None,
 ) -> str:
     """
     Makes one AI completion call, normalised across all providers.
@@ -176,7 +192,7 @@ async def complete(
                 )
 
             text, input_tokens, output_tokens = await call_fn(
-                system_prompt, prompt, model, temperature
+                system_prompt, prompt, model, temperature, extra_params
             )
 
             latency_ms = (time.monotonic() - start) * 1000
@@ -213,11 +229,24 @@ async def complete(
 
             # Map provider SDK errors to our error codes
             if "429" in error_str or "rate limit" in error_str or "rate_limit" in error_str:
+                # Carry a provider Retry-After hint when the SDK exception
+                # exposes the HTTP response; utils/retry.py honors it (bounded).
+                # Absent or non-numeric headers fall back to our own backoff.
+                retry_after: Optional[float] = None
+                provider_response = getattr(e, "response", None)
+                if provider_response is not None and hasattr(provider_response, "headers"):
+                    raw_retry_after = provider_response.headers.get("retry-after")
+                    if raw_retry_after is not None:
+                        try:
+                            retry_after = float(raw_retry_after)
+                        except (TypeError, ValueError):
+                            retry_after = None
                 raise AIServiceError(ErrorResponse(
                     error_code=ERROR_RATE_LIMIT,
                     message="AI provider rate limit reached.",
                     stage=stage,
                     retried=attempt > 0,
+                    retry_after_seconds=retry_after,
                 ))
             if "timeout" in error_str or "timed out" in error_str:
                 raise AIServiceError(ErrorResponse(

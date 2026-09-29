@@ -74,5 +74,15 @@ TEMPERATURE_ADAPTIVE = 0.7   # creative — personalised responses
 MAX_WORDS = 5000              # requests above this return OVERSIZED error
 MIN_CHARS = 1                 # below this return EMPTY_CONTENT error
 
+# ---------------------------------------------------------------------------
+# Stage 2 structured output
+# qwen/qwen3.8-27b on Groq accepts response_format {"type": "json_object"} and
+# max_completion_tokens — verified live against the configured model/key.
+# The bound comfortably exceeds the largest legitimate LessonJSON (a 5000-word
+# input) while preventing runaway completions; Pydantic validation remains the
+# final authority regardless.
+# ---------------------------------------------------------------------------
+STAGE2_MAX_COMPLETION_TOKENS = 16384
+
 print(f"Config loaded — provider: {AI_PROVIDER} | stage2: {STAGE2_MODEL} | stage3: {STAGE3_MODEL}")
 
