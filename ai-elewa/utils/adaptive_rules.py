@@ -265,6 +265,87 @@ def validate_directive(
 
 
 # ---------------------------------------------------------------------------
+# Deterministic directive computation (pure source of truth)
+# ---------------------------------------------------------------------------
+
+def compute_directive(
+    is_correct: bool,
+    latency_ms: int,
+    rule: AdaptiveRule,
+    consecutive_correct: int = 0,
+) -> DirectiveType:
+    """
+    Deterministically derive the adaptive directive from the learner's answer
+    outcome and response time, applying the profile rule.
+
+    This is the pure source of truth behind the directive decision table in
+    the adaptive system prompt:
+
+      easier  — learner answered wrong and took a long time
+      revisit — learner answered wrong and was within normal time
+      same    — learner answered correctly but took a long time
+      harder  — learner answered correctly and quickly
+
+    Profile rules refine the baseline, exactly as encoded in the existing
+    machinery of this module (rule fields + is_slow/is_very_slow/is_fast_wrong)
+    and in each rule_description:
+
+      - latency is weighted (rule.latency_weight) before classification
+      - ADHD (fast_wrong_is_impulsive): a fast wrong answer is an impulsivity
+        signal → revisit (never easier)
+      - dyslexia (latency_weight < 1.0): latency reflects decoding time, so a
+        merely-slow wrong answer triggers revisit, not easier, and a slow
+        correct answer stays harder unless latency is very high
+      - intellectual disability (requires_consecutive_correct > 0): 'harder'
+        requires at least that many consecutive correct answers; a single
+        correct answer returns 'same'; a wrong answer returns 'revisit'
+        before 'easier'
+      - autism (easier_allowed False): 'easier' is never returned — revisit
+        replaces it in all cases (the same override validate_directive()
+        applies post-hoc today)
+
+    Pure function: no I/O, no randomness, no environment access, no side
+    effects. Same inputs always produce the same directive.
+    """
+    slow = is_slow(latency_ms, rule)
+    very_slow = is_very_slow(latency_ms, rule)
+
+    if is_correct:
+        # Intellectual-disability rule: escalation requires demonstrated
+        # consistency before 'harder' is allowed.
+        if (
+            rule.requires_consecutive_correct > 0
+            and consecutive_correct < rule.requires_consecutive_correct
+        ):
+            return "same"
+        if very_slow:
+            return "same"
+        if slow and rule.latency_weight < 1.0:
+            # Decoding-time profiles: a slow correct answer stays harder
+            # (only a very slow one signals same).
+            return "harder"
+        if slow:
+            return "same"
+        return "harder"
+
+    # ---- wrong answer ----
+    if is_fast_wrong(latency_ms, is_correct=False, rule=rule):
+        # Impulsivity signal: slow the learner down, do not drop difficulty.
+        return "revisit"
+    if slow or very_slow:
+        if not rule.easier_allowed:
+            # Autism-family rule: 'easier' is forbidden — revisit instead.
+            return "revisit"
+        if rule.latency_weight < 1.0:
+            # Decoding-time profiles: slowness reflects decoding effort, not
+            # conceptual difficulty — revisit rather than easier.
+            return "revisit"
+        return "easier"
+    # Normal-time wrong answer: look at it again.
+    return "revisit"
+
+
+# ---------------------------------------------------------------------------
 # System prompt builder
 # ---------------------------------------------------------------------------
 
