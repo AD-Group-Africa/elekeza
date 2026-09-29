@@ -16,6 +16,12 @@ from models.responses import (
 from models.errors import AIServiceError, ErrorResponse, ERROR_SCHEMA_INVALID
 from utils.error_handler import error_json_response as _error_response
 from utils.learner_messages import attach_learner_message
+from utils.adaptive_rules import (
+    get_adaptive_rule,
+    validate_directive,
+    build_adaptive_context_block,
+    compute_directive,
+)
 
 logger = structlog.get_logger(__name__)
 router = APIRouter()
@@ -168,20 +174,19 @@ async def quiz_generate(request: QuizGenerateRequest):
 # POST /ai/quiz/adaptive-response
 # ---------------------------------------------------------------------------
 
-ADAPTIVE_SYSTEM_PROMPT = """
+ADAPTIVE_SYSTEM_PROMPT_BASE = """
 You are an adaptive learning assistant for learners with cognitive disabilities.
-You will receive information about a quiz question, the learner's answer, and
-whether it was correct.
+You will receive information about a quiz question, the learner's answer,
+whether it was correct, and the difficulty decision the system has already
+made for the learner's next step.
 
-Your job is to:
-1. Write a short, encouraging learner_message appropriate to the profile.
-2. Return a directive that tells the system what to do next.
+Your ONLY job is:
+1. Write a short, encouraging learner_message appropriate to the profile and
+   consistent with the decision provided to you.
 
-DIRECTIVE RULES — return exactly one of these four values:
-- "easier"  — learner answered wrong and took a long time (latency_ms > 5000)
-- "revisit" — learner answered wrong and was within normal time
-- "same"    — learner answered correctly but took a long time (latency_ms > 5000)
-- "harder"  — learner answered correctly and quickly (latency_ms <= 5000)
+The decision (easier / same / harder / revisit) is made by the system. Do not
+question it, do not output a different decision, and do not add any field
+other than learner_message.
 
 LEARNER MESSAGE RULES:
 - dyslexia: short sentences (max 12 words), positive tone, active voice.
@@ -193,16 +198,23 @@ LEARNER MESSAGE RULES:
 You must respond with ONLY a valid JSON object. No markdown, no extra text.
 
 {
-  "learner_message": "string — message shown directly to the learner",
-  "directive": "easier" | "same" | "harder" | "revisit"
+  "learner_message": "string ? message shown directly to the learner"
 }
 """
 
 
-def _build_adaptive_user_prompt(request: AdaptiveResponseRequest) -> str:
-    profiles = request.learner_context.cognitive_profiles
-    profile = profiles[0] if len(profiles) == 1 else f"{profiles[0]}+{profiles[1]}"
+
+def _build_adaptive_user_prompt(request: AdaptiveResponseRequest, directive: str) -> str:
+    profile = _profile_label(request)
     outcome = "CORRECT" if request.is_correct else "INCORRECT"
+    rule = get_adaptive_rule(profile)
+    context_block = build_adaptive_context_block(
+        profile=profile,
+        language_level=request.learner_context.language_level,
+        is_correct=request.is_correct,
+        latency_ms=request.latency_ms,
+        rule=rule,
+    )
 
     return f"""LEARNER PROFILE: {profile}
 LANGUAGE LEVEL: {request.learner_context.language_level}
@@ -212,12 +224,17 @@ LEARNER'S ANSWER: {request.selected_option}
 OUTCOME: {outcome}
 RESPONSE TIME: {request.latency_ms}ms
 
-Based on this, return the learner_message and directive JSON object.
+{context_block}
+
+The system's decision for the learner's next step is: {directive}
+
+Write the learner_message JSON object for this decision.
 """
 
 
-def _parse_adaptive_response(raw_response: str) -> AdaptiveResponse:
-    """Parse and validate adaptive response. Raises AIServiceError on failure."""
+
+def _parse_adaptive_response(raw_response: str) -> dict:
+    """Parse and validate the LLM learner-message JSON. Raises AIServiceError on failure."""
     cleaned = raw_response.strip()
     if cleaned.startswith("```"):
         cleaned = "\n".join(cleaned.split("\n")[1:-1]).strip()
@@ -231,40 +248,43 @@ def _parse_adaptive_response(raw_response: str) -> AdaptiveResponse:
             stage="adaptive_response",
         ))
 
-    # Validate directive before Pydantic — give clearer error message
-    valid_directives = {"easier", "same", "harder", "revisit"}
-    directive = data.get("directive", "")
-    if directive not in valid_directives:
+    message = data.get("learner_message", "")
+    if not isinstance(message, str) or not message.strip():
         raise AIServiceError(ErrorResponse(
             error_code=ERROR_SCHEMA_INVALID,
-            message=(
-                f"Invalid directive '{directive}'. "
-                f"Must be one of: {', '.join(sorted(valid_directives))}."
-            ),
+            message="Adaptive response must include a non-empty learner_message string.",
             stage="adaptive_response",
         ))
 
-    try:
-        return AdaptiveResponse(**data)
-    except ValidationError as e:
-        raise AIServiceError(ErrorResponse(
-            error_code=ERROR_SCHEMA_INVALID,
-            message=f"Adaptive response did not match schema: {str(e)}",
-            stage="adaptive_response",
-        ))
+    return data
 
 
 @router.post("/ai/quiz/adaptive-response", response_model=AdaptiveResponse)
 async def adaptive_response(request: AdaptiveResponseRequest):
     try:
         profile = _profile_label(request)
+        rule = get_adaptive_rule(profile)
 
-        # Track latency for P95 target (800ms)
+        # Directive is application-owned and deterministic — computed BEFORE
+        # the LLM call, from the same rule machinery that informs the message.
+        # The LLM is never authoritative for this field: whatever it returns
+        # (or fails to return) cannot change the decision below.
+        directive = compute_directive(
+            is_correct=request.is_correct,
+            latency_ms=request.latency_ms,
+            rule=rule,
+        )
+        _, directive_reason = validate_directive(
+            directive=directive,
+            profile=profile,
+            rule=rule,
+        )
+
         wall_start = time.monotonic()
 
         raw_response = await complete(
-            system_prompt=ADAPTIVE_SYSTEM_PROMPT,
-            user_prompt=_build_adaptive_user_prompt(request),
+            system_prompt=ADAPTIVE_SYSTEM_PROMPT_BASE,
+            user_prompt=_build_adaptive_user_prompt(request, directive),
             model=config.ADAPTIVE_MODEL,
             temperature=config.TEMPERATURE_ADAPTIVE,
             stage="adaptive_response",
@@ -275,10 +295,15 @@ async def adaptive_response(request: AdaptiveResponseRequest):
         logger.info(f"Adaptive response wall latency: {wall_latency_ms:.0f}ms")
 
         if wall_latency_ms > 800:
-            logger.warning(f"⚠️  Adaptive response exceeded 800ms target: {wall_latency_ms:.0f}ms")
+            logger.warning(f"Adaptive response exceeded 800ms target: {wall_latency_ms:.0f}ms")
 
-        result = _parse_adaptive_response(raw_response)
-        return result
+        data = _parse_adaptive_response(raw_response)
+
+        return AdaptiveResponse(
+            learner_message=data["learner_message"],
+            directive=directive,
+            directive_reason=directive_reason,
+        )
 
     except AIServiceError as e:
         attach_learner_message(e.error_response, request.learner_context.cognitive_profiles)
@@ -291,6 +316,7 @@ async def adaptive_response(request: AdaptiveResponseRequest):
             message="An unexpected error occurred in adaptive response.",
             stage="adaptive_response",
         ), request.learner_context.cognitive_profiles))
+
 
 
 # ---------------------------------------------------------------------------

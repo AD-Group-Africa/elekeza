@@ -94,6 +94,7 @@ class QuizResponse(BaseModel):
 class AdaptiveResponse(BaseModel):
     learner_message: str
     directive: Literal["easier", "same", "harder", "revisit"]
+    directive_reason: Optional[str] = None
 
 
 # ---------------------------------------------------------------------------
