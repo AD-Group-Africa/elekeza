@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import random
 from typing import Callable, Optional
 
 from models.errors import (
@@ -13,8 +14,17 @@ from langfuse_client import trace_ai_call
 
 logger = logging.getLogger(__name__)
 
-# Delay in seconds between retries on rate limit
+# Base delays in seconds between retries on rate limit. A bounded jitter of
+# +/- 25% is applied at sleep time (RATE_LIMIT_JITTER_FRACTION) so multiple
+# concurrent requests do not retry in lock-step against the provider.
 RATE_LIMIT_DELAYS = [1, 2]
+RATE_LIMIT_JITTER_FRACTION = 0.25
+
+# Retry-After bounds: a provider hint is honored only when it is a usable
+# positive number and not absurdly large — it may extend a single wait up to
+# this cap but never adds retries or unbounded waiting.
+RETRY_AFTER_MIN_SECONDS = 0.0
+RETRY_AFTER_MAX_SECONDS = 30.0
 
 
 async def with_retry(
@@ -55,7 +65,29 @@ async def with_retry(
 
             if code == ERROR_RATE_LIMIT:
                 delay = RATE_LIMIT_DELAYS[min(attempt - 1, len(RATE_LIMIT_DELAYS) - 1)]
-                logger.warning(f"⚠️  Rate limit hit on {stage} — waiting {delay}s before retry {attempt}")
+
+                # Honor a provider Retry-After hint when one was surfaced on
+                # the error (ai_client parses it from the SDK exception). It
+                # replaces the base delay for this wait — bounded, never a
+                # new retry, and falls back to the base delay when absent,
+                # non-numeric, or outside sane bounds.
+                provider_hint = e.error_response.retry_after_seconds
+                if provider_hint is not None and RETRY_AFTER_MIN_SECONDS <= provider_hint <= RETRY_AFTER_MAX_SECONDS:
+                    delay = provider_hint
+                    logger.warning(
+                        f"⚠️  Rate limit hit on {stage} — honoring provider Retry-After: {delay}s "
+                        f"before retry {attempt}"
+                    )
+                else:
+                    # Bounded jitter: delay +/- 25%. Clamped at >= 0 so it can
+                    # never go negative; bounded by construction (base delay
+                    # x 1.25), so waits stay predictable.
+                    jitter = 1.0 + random.uniform(-RATE_LIMIT_JITTER_FRACTION, RATE_LIMIT_JITTER_FRACTION)
+                    delay = max(0.0, delay * jitter)
+                    logger.warning(
+                        f"⚠️  Rate limit hit on {stage} — waiting {delay:.2f}s before retry {attempt}"
+                    )
+
                 await asyncio.sleep(delay)
 
             elif code == ERROR_TIMEOUT:

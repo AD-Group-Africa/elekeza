@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import Optional
 
 # ---------------------------------------------------------------------------
@@ -25,6 +25,10 @@ class ErrorResponse(BaseModel):
     stage: Optional[str] = None
     retried: bool = False
     learner_message: Optional[str] = None
+    # Internal retry hint (seconds) parsed from a provider Retry-After header.
+    # Carried on the exception object for utils/retry.py; `exclude=True` keeps
+    # it out of every serialized response, so the API contract is unchanged.
+    retry_after_seconds: Optional[float] = Field(default=None, exclude=True)
 
 
 class AIServiceError(Exception):

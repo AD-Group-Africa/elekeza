@@ -137,10 +137,12 @@ jobs:
           INTERNAL_SECRET: elekeza-test-internal-key-not-a-secret
           LANGFUSE_HOST: ""
       - name: Run AI unit + contract + live-server tests (credential-free)
-        # test_full_pipeline.py is marked `live`: it asserts against the real
-        # AI provider and needs genuine AI_API_KEY credentials, so CI skips it
-        # via -m "not live".
-        run: python -m pytest tests -q -m "not live"
+        # test_full_pipeline.py is marked `live_full`: it asserts against the
+        # real AI provider and needs genuine AI_API_KEY credentials, so CI
+        # skips it via -m. The small credential-gated smoke set
+        # (tests/test_live_smoke.py, marker `live`) is excluded by the same
+        # expression. pytest.ini addopts also excludes live_full by default.
+        run: python -m pytest tests -q -m "not live and not live_full"
       - name: Upload AI test summary on failure
         if: failure()
         uses: actions/upload-artifact@v4

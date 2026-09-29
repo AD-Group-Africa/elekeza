@@ -1,22 +1,28 @@
 """
-Day 10 — Full pipeline integration test.
+Day 10 — Full pipeline integration test (FULL LIVE MATRIX).
 Tests all 4 profiles × all endpoints × edge cases.
 Runs against the live server — start uvicorn before running.
 
 These tests exercise the REAL AI provider path end-to-end (they assert on
-provider-backed generation), so they require genuine AI_API_KEY credentials
-and are marked `live` — excluded from CI, which runs credential-free.
+provider-backed generation), so they require genuine AI_API_KEY credentials.
 
-Usage:
+Marked `live_full` ONLY: this matrix makes 54 real provider calls in quick
+succession and behaves as a live-provider stress test (it previously produced
+self-inflicted rate-limit cascades). It is excluded by the default pytest
+selection (`addopts = -m "not live_full"`) and from CI. Run explicitly:
+
     uvicorn main:app --port 8000
-    pytest tests/test_full_pipeline.py -v -s
+    pytest -m live_full -v -s
+
+A small credential-gated smoke set lives in tests/test_live_smoke.py (marker
+`live`): pytest -m live
 """
 import os
 import pytest
 import httpx
 import time
 
-pytestmark = pytest.mark.live
+pytestmark = pytest.mark.live_full
 
 # Key is read from the environment (never hardcoded) — the placeholder below
 # only applies when the operator has not configured a real INTERNAL_SECRET.
