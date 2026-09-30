@@ -29,10 +29,10 @@ if not AI_API_KEY:
 
 _MODELS = {
     "groq": {
-        "stage2": "llama-3.3-70b-versatile",   # large — simplification
-        "stage3": "llama-3.1-8b-instant",       # fast  — verification
-        "quiz":   "llama-3.3-70b-versatile",   # same as stage2
-        "adaptive": "llama-3.1-8b-instant",    # same as stage3
+        "stage2": "qwen/qwen3.8-27b",      # large — simplification
+        "stage3": "qwen/qwen3.8-27b",      # fast  — verification
+        "quiz":   "qwen/qwen3.8-27b",      # same as stage2
+        "adaptive": "qwen/qwen3.8-27b",  # same as stage3
     },
     "openai": {
         "stage2":   "gpt-4o",

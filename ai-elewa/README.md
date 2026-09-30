@@ -206,7 +206,7 @@ uvicorn main:app --reload --port 8000
 
 Expected startup output:
 ```
-✅ Config loaded — provider: groq | stage2: llama-3.3-70b-versatile | stage3: llama-3.1-8b-instant
+✅ Config loaded — provider: groq | stage2: qwen/qwen3.8-27b | stage3: qwen/qwen3.8-27b
 ✅ Langfuse connected successfully
 ✅ Groq async client initialised
 INFO:     Application startup complete.
@@ -562,13 +562,13 @@ Stage 1 — Context Build        pure function, no API call, ~0ms
   ├── Injects language_level, content_difficulty, pathway_stage
   └── Returns: complete system prompt string
 
-Stage 2 — Simplification       large model (llama-3.3-70b-versatile), ~2–5s
+Stage 2 — Simplification       large model (qwen/qwen3.8-27b), ~2–5s
   ├── Sends system prompt + raw content to the AI
   ├── Validates response as LessonJSON with Pydantic
   ├── Retries once on schema failure with correction note appended
   └── Returns: validated LessonJSON
 
-Stage 3 — Verification         fast model (llama-3.1-8b-instant), ~1–2s
+Stage 3 — Verification         fast model (qwen/qwen3.8-27b), ~1–2s
   ├── ONLY fires if len(raw_text.split()) > 500
   ├── Checks simplified lesson for meaning distortions against original
   ├── Runs targeted correction pass if issues found
@@ -725,7 +725,7 @@ Update model names in `config.py` if desired (defaults are already set for all f
 
 | Provider | Stage 2 model (large) | Stage 3 model (fast) |
 |---|---|---|
-| `groq` | llama-3.3-70b-versatile | llama-3.1-8b-instant |
+| `groq` | qwen/qwen3.8-27b | qwen/qwen3.8-27b |
 | `openai` | gpt-4o | gpt-4o-mini |
 | `anthropic` | claude-opus-4-6 | claude-haiku-4-5-20251001 |
 | `google` | gemini-1.5-pro | gemini-1.5-flash |
