@@ -1,6 +1,6 @@
 fastapi==0.115.0
 uvicorn[standard]==0.30.6
-groq==0.11.0
+groq==1.4.0
 anthropic==0.34.0
 openai==1.45.0
 google-generativeai==0.8.1

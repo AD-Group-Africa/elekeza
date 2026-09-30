@@ -4,4 +4,7 @@ __pycache__
 venv
 .pytest_cache
 .mypy_cache
+# Secrets must never enter the build context (runtime config comes from
+# the environment / docker-compose, not baked image layers).
+.env
 *.log
