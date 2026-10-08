@@ -1,4 +1,5 @@
 ﻿import axios from 'axios';
+import { refreshSessionOnce } from './sessionRefresh';
 
 const api = axios.create({
   baseURL: '/api',
@@ -26,18 +27,38 @@ api.interceptors.request.use(async (config) => {
   return config;
 });
 
-// Redirect to login on 401 responses.
-// The initial /auth/me check legitimately returns 401 for anonymous visitors;
-// redirecting there would reload /login in an endless loop, so only redirect
-// when we are NOT already on an auth page and the failing call is not the
-// auth-status check itself.
+// Redirect to login on authentication failures. The initial /auth/me check
+// legitimately returns 401 for anonymous visitors; redirecting there would
+// reload /login in an endless loop, so only redirect when we are NOT already
+// on an auth page and the failing call is not the auth-status check itself.
+// 403 responses that carry code AUTH_REQUIRED are expired/invalid access
+// cookies (the backend emits this shape since the session-expiry fix) and
+// are treated exactly like 401 — before this, an expired cookie left pages
+// silently broken because recovery keyed on 401 only (audit EL-F-002/006).
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      const url = error.config?.url ?? '';
+  async (error) => {
+    const status = error.response?.status;
+    const code = error.response?.data?.code;
+    const isAuthFailure = status === 401 || code === 'AUTH_REQUIRED';
+    if (isAuthFailure) {
+      const original = error.config;
+      const url: string = original?.url ?? '';
       const onAuthPage = ['/login', '/register', '/forgot-password'].includes(window.location.pathname);
       const isAuthCheck = url === '/auth/me' || url.endsWith('/auth/me');
+      if (!onAuthPage && !isAuthCheck && original && !original._sessionRetried) {
+        // Recover first: one shared single-flight refresh, then retry once.
+        // A 15-minute access-cookie expiry must not kick the user to /login
+        // mid-page (back-button/navigation contract: navigation never logs
+        // the user out when a valid refresh cookie exists).
+        original._sessionRetried = true;
+        try {
+          await refreshSessionOnce();
+          return api(original);
+        } catch {
+          // Refresh failed (e.g. refresh cookie expired) — fall through.
+        }
+      }
       if (!onAuthPage && !isAuthCheck) {
         window.location.href = '/login';
       }

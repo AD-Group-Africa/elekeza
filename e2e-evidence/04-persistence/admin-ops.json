@@ -1,0 +1,5 @@
+{
+  "dashboardExcerpt": "Skip to main content\nElekeza\nDashboard\nStaff Accounts\nFinance\nAttendance\nSchools\nProfile\nSettings\nLogout\nSchool Administration\n\nTeachers\n\n0\n\nStudents\n\n0\n\nLessons\n\n0\n\nImports\n\n0\n\nStudents by Grade\n\nNo students enrolled.\n\nQuick Actions\nAdd Student\nImport CSV\nReports\nElekeza Assist",
+  "staffExcerpt": "Staff Accounts\n\nCreate teacher and school-admin accounts, and manage who can sign in.\n\nAdd a staff account\nFull name\nSchool email\nRole\nTeacher\nSchool Admin\nCreate account\n\nThe new staff member receives a one-time password by email and should change it at first sign-in.\n\nCurrent accounts\nName\tEmail\tRole\tStatus\tActions\nAlice Mwalimu\tteacher@elekeza.app\tTeacher\tActive\tDeactivateSend reset\nDemo School Admin\tadmin@elekeza.app\tSchool Admin\tActive\tDeactivateSend reset",
+  "note": "admin surfaces are read/configuration screens; no destructive state change executed"
+}

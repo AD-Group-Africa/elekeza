@@ -27,7 +27,7 @@ const ROLE_LABELS: Record<string, string> = {
 };
 
 export default function StaffManagementPage() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const institutionId = user?.institutionId;
 
   const [staff, setStaff] = useState<StaffRow[]>([]);
@@ -66,8 +66,15 @@ export default function StaffManagementPage() {
     setError('');
     setNotice('');
     try {
-      await api.post(`/institutions/${institutionId}/staff`, { email: email.trim(), name: name.trim(), role });
-      setNotice(`Account created for ${name.trim()}. They will receive a one-time password by email.`);
+      const res = await api.post(`/institutions/${institutionId}/staff`, { email: email.trim(), name: name.trim(), role });
+      // The backend returns the single-use setup password ONCE in the create
+      // response (same credential-handover contract as the CSV import panel).
+      const tempPassword = res.data?.tempPassword as string | undefined;
+      setNotice(
+        tempPassword
+          ? `Account created for ${name.trim()} (${email.trim()}). One-time password: ${tempPassword} — share it now; they change it after first sign-in.`
+          : `Account created for ${name.trim()}. They will receive a one-time password by email.`
+      );
       setEmail('');
       setName('');
       await load();
@@ -105,6 +112,19 @@ export default function StaffManagementPage() {
       setError(payload?.response?.data?.message ?? 'Could not send the reset notice.');
     }
   };
+
+  // Audit EL-NEW-04: while the session is still resolving (auth/me in flight)
+  // show a loading state — never the "not linked" error, which is only truthful
+  // once the session has actually loaded without an institution.
+  if (authLoading) {
+    return (
+      <main className="p-6">
+        <div className="glass-card p-6 max-w-md mx-auto mt-10 text-center" aria-busy="true" aria-live="polite">
+          <p className="text-purple-200">Loading your school…</p>
+        </div>
+      </main>
+    );
+  }
 
   if (!institutionId) {
     return (

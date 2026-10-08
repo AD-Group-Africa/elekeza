@@ -30,6 +30,14 @@ const RELATIONSHIP_LABELS: Record<string, string> = {
 const relationshipLabel = (r?: string) =>
   (r && RELATIONSHIP_LABELS[r]) || 'Guardian';
 
+/** Time-aware greeting for the guardian “Today” home. */
+function greeting(): string {
+  const h = new Date().getHours();
+  if (h < 12) return 'Good morning';
+  if (h < 17) return 'Good afternoon';
+  return 'Good evening';
+}
+
 export default function GuardianDashboard() {
   const [children, setChildren] = useState<ChildRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -55,8 +63,9 @@ export default function GuardianDashboard() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Guardian Dashboard</h1>
-      <p className="text-sm opacity-75">A guardian can be a parent, caregiver, older sibling, legal guardian, or another authorized adult.</p>
+      <h1 className="text-2xl font-bold">{greeting()}, here is your child's day</h1>
+      <p className="text-sm opacity-75">Today at a glance — what they're learning, what they've completed, and anything that needs your attention.</p>
+      <p className="text-xs opacity-50">A guardian can be a parent, caregiver, older sibling, legal guardian, or another authorized adult.</p>
 
       {/* Child Tabs */}
       <div className="flex gap-2 overflow-x-auto pb-2">

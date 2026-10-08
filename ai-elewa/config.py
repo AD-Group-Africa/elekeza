@@ -1,10 +1,10 @@
-import os
+﻿import os
 from dotenv import load_dotenv
 
 load_dotenv()
 
 # ---------------------------------------------------------------------------
-# Provider selection — read once at startup, fail fast if invalid
+# Provider selection â€” read once at startup, fail fast if invalid
 # ---------------------------------------------------------------------------
 
 AI_PROVIDER = os.getenv("AI_PROVIDER", "").lower()
@@ -24,15 +24,15 @@ if not AI_API_KEY:
 
 # ---------------------------------------------------------------------------
 # Model names per provider and per stage
-# Switch provider by changing AI_PROVIDER in .env — nothing else changes
+# Switch provider by changing AI_PROVIDER in .env â€” nothing else changes
 # ---------------------------------------------------------------------------
 
 _MODELS = {
     "groq": {
-        "stage2": "qwen/qwen3.8-27b",      # large — simplification
-        "stage3": "qwen/qwen3.8-27b",      # fast  — verification
-        "quiz":   "qwen/qwen3.8-27b",      # same as stage2
-        "adaptive": "qwen/qwen3.8-27b",  # same as stage3
+        "stage2": "qwen/qwen3.8-27b",   # large â€” simplification
+        "stage3": "qwen/qwen3.8-27b",       # fast  â€” verification
+        "quiz":   "qwen/qwen3.8-27b",   # same as stage2
+        "adaptive": "qwen/qwen3.8-27b",    # same as stage3
     },
     "openai": {
         "stage2":   "gpt-4o",
@@ -60,12 +60,12 @@ QUIZ_MODEL     = _MODELS[AI_PROVIDER]["quiz"]
 ADAPTIVE_MODEL = _MODELS[AI_PROVIDER]["adaptive"]
 
 # ---------------------------------------------------------------------------
-# Temperature constants — fixed regardless of provider
+# Temperature constants â€” fixed regardless of provider
 # ---------------------------------------------------------------------------
 
-TEMPERATURE_SIMPLIFY = 0.3   # deterministic — content must be accurate
-TEMPERATURE_QUIZ     = 0.5   # balanced — varied but structured
-TEMPERATURE_ADAPTIVE = 0.7   # creative — personalised responses
+TEMPERATURE_SIMPLIFY = 0.3   # deterministic â€” content must be accurate
+TEMPERATURE_QUIZ     = 0.5   # balanced â€” varied but structured
+TEMPERATURE_ADAPTIVE = 0.7   # creative â€” personalised responses
 
 # ---------------------------------------------------------------------------
 # Content limits
@@ -84,5 +84,6 @@ MIN_CHARS = 1                 # below this return EMPTY_CONTENT error
 # ---------------------------------------------------------------------------
 STAGE2_MAX_COMPLETION_TOKENS = 16384
 
-print(f"Config loaded — provider: {AI_PROVIDER} | stage2: {STAGE2_MODEL} | stage3: {STAGE3_MODEL}")
+print(f"Config loaded â€” provider: {AI_PROVIDER} | stage2: {STAGE2_MODEL} | stage3: {STAGE3_MODEL}")
+
 

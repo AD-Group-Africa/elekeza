@@ -23,8 +23,12 @@ class InternalAuthMiddleware(BaseHTTPMiddleware):
 
         incoming_key = request.headers.get("X-Internal-Key", "")
 
-        # Constant-time comparison — prevents timing attacks
-        key_valid = hmac.compare_digest(
+        # Fail-CLOSED: an unconfigured INTERNAL_SECRET must never authenticate
+        # anyone. With the previous bare compare_digest("", "") a missing env
+        # var made every request without a key valid (verified P0: no-key
+        # request reached the pipeline when the secret was unset). When no
+        # secret is configured, every authenticated endpoint returns 401.
+        key_valid = bool(INTERNAL_SECRET) and hmac.compare_digest(
             incoming_key.encode("utf-8"),
             INTERNAL_SECRET.encode("utf-8")
         )

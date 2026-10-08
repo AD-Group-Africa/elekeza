@@ -1,0 +1,86 @@
+[
+  {
+    "n": 1,
+    "name": "login as teacher → teacher home",
+    "ok": true,
+    "detail": "",
+    "at": "2026-10-03T08:13:04.853Z"
+  },
+  {
+    "n": 2,
+    "name": "teacher dashboard rendered",
+    "ok": true,
+    "detail": "Skip to main content | Elekeza | Dashboard | Students",
+    "at": "2026-10-03T08:13:05.432Z"
+  },
+  {
+    "n": 3,
+    "name": "learners page rendered",
+    "ok": true,
+    "detail": "",
+    "at": "2026-10-03T08:13:09.214Z"
+  },
+  {
+    "n": 4,
+    "name": "lessons page rendered",
+    "ok": true,
+    "detail": "",
+    "at": "2026-10-03T08:13:12.142Z"
+  },
+  {
+    "n": 5,
+    "name": "content upload → AI simplify → preview",
+    "ok": true,
+    "detail": "AI has simplified your lesson. Review below.",
+    "at": "2026-10-03T08:13:43.775Z"
+  },
+  {
+    "n": 6,
+    "name": "uploaded lesson renders at /lesson/{id}",
+    "ok": true,
+    "detail": "How Plants Make Food",
+    "at": "2026-10-03T08:13:47.339Z"
+  },
+  {
+    "n": 7,
+    "name": "quiz results page rendered",
+    "ok": true,
+    "detail": "",
+    "at": "2026-10-03T08:13:51.114Z"
+  },
+  {
+    "n": 8,
+    "name": "attendance register saved",
+    "ok": true,
+    "detail": "1 learners — Saved. Present 1 · Absent 0 · Late 0 · Excused 0",
+    "at": "2026-10-03T08:13:56.119Z"
+  },
+  {
+    "n": 9,
+    "name": "PERSISTED: attendance record visible in history after reload",
+    "ok": true,
+    "detail": "date 2026-10-03 shown",
+    "at": "2026-10-03T08:14:00.627Z"
+  },
+  {
+    "n": 10,
+    "name": "class progress page rendered",
+    "ok": true,
+    "detail": "",
+    "at": "2026-10-03T08:14:04.274Z"
+  },
+  {
+    "n": 11,
+    "name": "assignments page rendered",
+    "ok": true,
+    "detail": "Skip to main content | Elekeza | Dashboard",
+    "at": "2026-10-03T08:14:07.570Z"
+  },
+  {
+    "n": 12,
+    "name": "logout",
+    "ok": true,
+    "detail": "",
+    "at": "2026-10-03T08:14:07.941Z"
+  }
+]

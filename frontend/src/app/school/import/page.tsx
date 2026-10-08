@@ -4,7 +4,7 @@ import SidebarLayout from '@/components/layout/SidebarLayout';
 import { api } from '@/lib/api';
 import { useAuth } from '@/hooks/useAuth';
 
-interface Result { status:string; totalRows:number; succeededRows:number; failedRows:number; errors:{row:number;error:string}[]; guardianCredentials?:{email:string;tempPassword:string;relationship:string;studentEmail:string}[]; }
+interface Result { status:string; totalRows:number; succeededRows:number; failedRows:number; errors:{row:number;error:string}[]; guardianCredentials?:{email:string;tempPassword:string;relationship:string;studentEmail:string}[]; studentCredentials?:{email:string;tempPassword:string}[]; }
 
 export default function ImportPage() {
   const { user }    = useAuth();
@@ -142,6 +142,20 @@ export default function ImportPage() {
         {/* Results */}
         {result && (
           <div className="card mt-4">
+            {result.studentCredentials && result.studentCredentials.length > 0 && (
+              <div className="mb-5 border border-emerald-200 rounded-xl p-4 bg-emerald-50">
+                <h3 className="font-semibold text-emerald-900 mb-1">Learner logins created</h3>
+                <p className="text-xs text-emerald-700 mb-3">Share these one-time credentials with each learner. They can change their password after signing in.</p>
+                <ul className="space-y-2">
+                  {result.studentCredentials.map(s => (
+                    <li key={s.email} className="text-sm bg-white/70 rounded-lg px-3 py-2 flex flex-wrap gap-x-4 gap-y-1">
+                      <span className="font-medium text-gray-800">{s.email}</span>
+                      <span className="font-mono text-emerald-700">temp password: {s.tempPassword}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
             {result.guardianCredentials && result.guardianCredentials.length > 0 && (
               <div className="mb-5 border border-purple-200 rounded-xl p-4 bg-purple-50">
                 <h3 className="font-semibold text-purple-900 mb-1">Guardian logins created</h3>

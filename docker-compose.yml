@@ -79,7 +79,22 @@ services:
       MAIL_PORT: ${MAIL_PORT}
       MAIL_USERNAME: ${MAIL_USERNAME}
       MAIL_PASSWORD: ${MAIL_PASSWORD}
+      # Provider selectors: without these the container cannot see the host
+      # .env values and would silently run mock SMS/email/storage.
+      SMS_PROVIDER: ${SMS_PROVIDER:-mock}
+      EMAIL_PROVIDER: ${EMAIL_PROVIDER:-mock}
+      STORAGE_PROVIDER: ${STORAGE_PROVIDER:-mock}
+      # Daraja credentials (mpesa.* resolves them from the environment).
+      MPESA_CONSUMER_KEY: ${MPESA_CONSUMER_KEY:-}
+      MPESA_CONSUMER_SECRET: ${MPESA_CONSUMER_SECRET:-}
+      MPESA_PASSKEY: ${MPESA_PASSKEY:-}
+      MPESA_SHORTCODE: ${MPESA_SHORTCODE:-174379}
+      MPESA_ENVIRONMENT: ${MPESA_ENVIRONMENT:-production}
+      # Finance gateway mode: mock|live. Live requires the Daraja vars above.
+      FEES_MPESA_MODE: ${FEES_MPESA_MODE:-mock}
       MPESA_CALLBACK_URL: ${MPESA_CALLBACK_URL}
+      # Demo seed gate (V2__seed_demo.sql): keep FALSE on internet-facing hosts.
+      DEMO_SEED_ENABLED: ${DEMO_SEED_ENABLED:-FALSE}
       FRONTEND_URL: ${FRONTEND_URL}
       CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS}
       SENTRY_DSN: ${SENTRY_DSN_BACKEND}

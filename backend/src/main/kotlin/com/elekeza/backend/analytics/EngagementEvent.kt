@@ -1,6 +1,8 @@
 package com.elekeza.backend.analytics
 
 import jakarta.persistence.*
+import org.hibernate.annotations.JdbcTypeCode
+import org.hibernate.type.SqlTypes
 import java.time.Instant
 
 /**
@@ -26,6 +28,11 @@ data class EngagementEvent(
     val refType: String? = null,
     @Column(name = "ref_id")
     val refId: Long? = null,
+    // Stored as JSONB on PostgreSQL: without the JDBC type code the String
+    // binding is sent as varchar and every insert fails with
+    // "column \"metadata\" is of type jsonb but expression is of type
+    // character varying" on real PG (H2 in tests masks it).
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(nullable = false, columnDefinition = "jsonb")
     val metadata: String = "{}",
     @Column(name = "created_at", nullable = false)

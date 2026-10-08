@@ -138,7 +138,7 @@ export default function AttendancePage() {
         <label className="flex-1 text-sm font-medium">
           Class
           <select
-            className="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            className="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
             value={classId ?? ''}
             onChange={(e) => setClassId(Number(e.target.value))}
           >
@@ -152,7 +152,7 @@ export default function AttendancePage() {
           Date
           <input
             type="date"
-            className="mt-1 block rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            className="mt-1 block rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
             value={date}
             max={todayISO()}
             onChange={(e) => setDate(e.target.value)}
@@ -196,7 +196,7 @@ export default function AttendancePage() {
               <li key={r.learnerId} className="rounded-xl border border-gray-200 bg-white p-3">
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                   <div className="flex items-center gap-2">
-                    <span className="font-medium">{r.learnerName}</span>
+                    <span className="font-medium text-gray-900">{r.learnerName}</span>
                     <button
                       type="button"
                       className="text-xs text-emerald-700 underline underline-offset-2 hover:no-underline"
@@ -231,7 +231,7 @@ export default function AttendancePage() {
               type="button"
               onClick={save}
               disabled={saving || roster.length === 0}
-              className="w-full sm:w-auto rounded-xl bg-emerald-600 px-6 py-3 font-semibold text-white transition hover:bg-emerald-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2 disabled:opacity-50"
+              className="w-full sm:w-auto rounded-xl bg-purple-600 px-6 py-3 font-semibold text-white transition hover:bg-purple-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-600 focus-visible:ring-offset-2 disabled:opacity-50"
             >
               {saving ? 'Saving…' : 'Save register'}
             </button>

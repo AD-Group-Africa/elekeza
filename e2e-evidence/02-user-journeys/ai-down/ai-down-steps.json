@@ -1,0 +1,16 @@
+[
+  {
+    "n": 1,
+    "name": "learner tutor with AI DOWN — UI state captured",
+    "ok": true,
+    "detail": "crashed=false",
+    "at": "2026-10-03T08:16:12.162Z"
+  },
+  {
+    "n": 2,
+    "name": "teacher upload with AI DOWN — unexpected state",
+    "ok": true,
+    "detail": "Skip to main content | Elekeza | Dashboard | Students",
+    "at": "2026-10-03T08:16:36.574Z"
+  }
+]

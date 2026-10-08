@@ -1,0 +1,15 @@
+{
+  "mode": "recovery",
+  "tutorText": "Skip to main content\nElekeza\nAI Tutor\nDashboard\nMy Lessons\nAssignments\nQuizzes\nExams\nProgress\nHow I Learn\nProfile\nSettings\nLogout\n1\nAI Tutor\nLearning helper — built into your lesson\nWhich lesson are you studying?\nUnderstanding Fractions\nThe Water Cycle\nThe Water Cycle\n\nYou're close. Let's try another example.\n\nFractions are parts of a whole.\n\nThink of a pizza.\n\n1. Cut the pizza.\n2. Make 4 equal slices.\n3. Each slice is a part.\n4. One slice is 1/4.\n\nThe top number is the part.\nThe bottom number is the total.\n\nYou can add fractions.\nYou can subtract fractions.\n\nDo you want an example?\n\nLet's make it simpler\n Back to choices\n\nThe tutor helps you understand your lessons. It never replaces your teacher and never shares your information.",
+  "uploadText": "Skip to main content\nElekeza\nDashboard\nStudents\nLessons\nAssignments\nContent\nClasswork\nExams\nQuiz Results\nSupport Signals\nProgress\nLesson Plans\nTimetable\nCommunication\nSchedule\nAttendance\nProfile\nSettings\nLogout\n2\nCreate New Lesson\nDetails\nUpload\nAI Simplify\n4\nPreview\n5\nPersonalize\n6\nAssign\nPreview\n\nAI has simplified your lesson. Review below.\n\nPreview Lesson\nBack\nNext",
+  "apiEvents": [
+    {
+      "status": 200,
+      "url": "/api/tutor"
+    },
+    {
+      "status": 200,
+      "url": "/api/content/upload/text"
+    }
+  ]
+}

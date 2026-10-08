@@ -20,9 +20,12 @@ class AfricaTalkingSmsProvider(
     private val baseUrl = "https://api.africastalking.com/version1/messaging"
 
     override fun send(recipient: String, message: String): String {
+        // Fail-fast and honest: selecting africa_talking without a key must
+        // surface the misconfiguration, not silently fake a delivery with a
+        // mock message ID (that would hide lost guardian/teacher SMS).
         if (apiKey.isBlank()) {
-            log.warn("Africa's Talking API key not configured — returning mock message ID")
-            return "mock-msg-${System.currentTimeMillis()}"
+            log.error("Africa's Talking SMS provider selected but AFRICA_TALKING_API_KEY is not configured")
+            throw IllegalStateException("SMS provider is not configured")
         }
 
         val headers = org.springframework.http.HttpHeaders().apply {

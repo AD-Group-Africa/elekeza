@@ -189,6 +189,13 @@ class QuizController(
         val latest = attempts.maxByOrNull { it.createdAt }
             ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST, "No quiz attempt found — start the quiz before submitting answers")
 
+        // A finished attempt is final: re-submitting must never re-score it.
+        // (Audit EL-F-013: a duplicate /complete used to overwrite the stored
+        // score with a partial answer set and fire a second guardian alert.)
+        if (latest.completed) {
+            throw ResponseStatusException(HttpStatus.CONFLICT, "This quiz was already submitted")
+        }
+
         // Deduplicate by question id (last submission wins) before scoring: a
         // client that repeats a question must never be able to inflate the
         // score — each question counts exactly once, and the denominator is

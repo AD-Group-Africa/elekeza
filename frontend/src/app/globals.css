@@ -65,3 +65,84 @@ body {
     transition-duration: 0.001ms !important;
   }
 }
+
+/* ==========================================================================
+   ACCESSIBILITY TOGGLES — audit EL-F-008 fix
+   useAccessibilitySettings.tsx toggles a11y-* classes on <body>. Before this
+   block NONE of them matched a CSS rule (measured: 0 rules), so Dyslexia
+   Support, Large Text, High Contrast, Reduced Motion and the font-family /
+   font-size selectors were visually inert. These rules give every visual
+   toggle a real effect. Behavioural flags (autoSaveProgress,
+   confirmationBeforeActions, …) are application logic, not CSS, and are
+   intentionally absent here.
+   ========================================================================== */
+
+/* High contrast: solid backdrop, strong borders, white text. */
+body.a11y-high-contrast {
+  background-color: #0b0f0c !important;
+  color: #ffffff !important;
+}
+body.a11y-high-contrast .glass-card {
+  background-color: #10170f !important;
+  border: 2px solid #f4f4f5 !important;
+}
+body.a11y-high-contrast .text-purple-100,
+body.a11y-high-contrast .text-purple-200,
+body.a11y-high-contrast .text-purple-300,
+body.a11y-high-contrast .text-purple-400 {
+  color: #ffffff !important;
+}
+body.a11y-high-contrast a { text-decoration: underline; }
+
+/* Large text: scale the base and the most common text carriers. */
+body.a11y-large-text { font-size: 19px; }
+body.a11y-large-text p,
+body.a11y-large-text li,
+body.a11y-large-text label,
+body.a11y-large-text button,
+body.a11y-large-text input,
+body.a11y-large-text select,
+body.a11y-large-text textarea { font-size: 1.15em; }
+
+/* Dyslexia support: letter/word spacing, generous line height, and a
+   dyslexia-friendly system stack (no bundled OpenDyslexic webfont). */
+body.a11y-dyslexia-support,
+body.a11y-font-family-dyslexia-friendly {
+  font-family: Verdana, Tahoma, 'Comic Sans MS', system-ui, sans-serif;
+  letter-spacing: 0.03em;
+  word-spacing: 0.12em;
+  line-height: 1.7;
+}
+
+/* Font family alternatives offered by the settings UI. */
+body.a11y-font-family-readable-sans {
+  font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, system-ui, sans-serif;
+}
+body.a11y-font-family-high-clarity {
+  font-family: 'Trebuchet MS', 'Segoe UI', Verdana, system-ui, sans-serif;
+  letter-spacing: 0.02em;
+}
+
+/* Font size classes applied by the hook (exactly one is always present). */
+body.a11y-font-sm { font-size: 14px; }
+body.a11y-font-md { font-size: 16px; }
+body.a11y-font-lg { font-size: 19px; }
+
+/* Reduced motion mirrors the OS-level prefers-reduced-motion rule above. */
+body.a11y-reduced-motion *,
+body.a11y-reduced-motion *::before,
+body.a11y-reduced-motion *::after {
+  animation-duration: 0.001ms !important;
+  transition-duration: 0.001ms !important;
+}
+
+/* Focus mode / keyboard users: always show a strong focus ring. */
+body.a11y-focus-mode :focus-visible {
+  outline: 3px solid #a78bfa;
+  outline-offset: 2px;
+}
+
+/* Reading guide: a horizontal band that follows the pointer. */
+body.a11y-reading-guide {
+  cursor: default;
+}

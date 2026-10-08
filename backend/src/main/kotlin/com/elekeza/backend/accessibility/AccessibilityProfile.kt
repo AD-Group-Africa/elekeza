@@ -1,6 +1,8 @@
 package com.elekeza.backend.accessibility
 
 import jakarta.persistence.*
+import org.hibernate.annotations.JdbcTypeCode
+import org.hibernate.type.SqlTypes
 import java.time.Instant
 
 /**
@@ -18,6 +20,9 @@ data class AccessibilityProfile(
     val id: Long = 0,
     @Column(name = "user_id", nullable = false, unique = true)
     val userId: Long,
+    // JSONB column: needs the JDBC type code or PG rejects the varchar bind
+    // (same defect class as EngagementEvent.metadata).
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(nullable = false, columnDefinition = "jsonb")
     val settings: String = "{}",
     @Column(name = "updated_by")

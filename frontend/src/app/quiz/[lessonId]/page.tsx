@@ -112,7 +112,9 @@ export default function QuizPage() {
       }));
     } catch (err) {
       console.error(err);
-      setResults(prev => ({ ...prev, [currentQ]: { correct: false } }));
+      // Honest, actionable copy when an answer cannot reach the server
+      // (audit EL-F-005r: the learner previously saw only a red flash).
+      setResults(prev => ({ ...prev, [currentQ]: { correct: false, learnerMessage: 'We could not save that answer. Check your connection and try again.' } }));
     }
     // Auto-advance after the server responds (skip if the learner already navigated).
     setTimeout(() => {
@@ -164,6 +166,15 @@ export default function QuizPage() {
       } catch { /* celebration is optional */ }
     } catch (err) {
       console.error(err);
+      // A 409 means this attempt was already submitted (server now rejects
+      // duplicate completes — audit EL-F-013). Send the learner to their
+      // saved review instead of leaving them on a dead quiz form.
+      const status = (err as { response?: { status?: number } })?.response?.status;
+      if (status === 409) {
+        setScore(null);
+        setSubmitted(true);
+        router.push(`/quiz/review/${quiz.quizId}`);
+      }
     } finally {
       setSubmitting(false);
     }
@@ -176,7 +187,7 @@ export default function QuizPage() {
   };
 
   if (loading) return <SidebarLayout><div className="p-6 text-purple-200">Loading quiz…</div></SidebarLayout>;
-  if (!quiz) return <SidebarLayout><div className="p-6 text-red-400">Quiz not found.</div></SidebarLayout>;
+  if (!quiz) return <SidebarLayout><div className="p-6 space-y-3"><p className="text-purple-200">This practice quiz isn't available right now. You can keep reading the lesson and come back to it in a moment.</p><a href="/student-home" className="inline-block rounded-lg bg-purple-600 px-5 py-2.5 text-sm text-white">Back to your home</a></div></SidebarLayout>;
 
   const q = quiz.questions[currentQ];
   const options = q.options ? (Array.isArray(q.options) ? q.options : q.options.split('\n').filter((o: string) => o.trim().length > 0)) : [];

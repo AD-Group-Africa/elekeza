@@ -21,8 +21,11 @@ class SmsService(
     private val log = LoggerFactory.getLogger(javaClass)
 
     /**
-     * Send SMS notification.
-     * Idempotent: same recipient + same message within 60s returns existing message ID.
+     * Send SMS notification via the configured provider.
+     * Returns null when the recipient fails provider validation. Provider
+     * transport failures propagate to the caller ( NotificationService
+     * isolates them per recipient), and provider retries/dedup are the
+     * provider's responsibility — no local 60s idempotency window exists.
      */
     @Transactional
     fun sendSms(recipient: String, message: String): SmsResult? {

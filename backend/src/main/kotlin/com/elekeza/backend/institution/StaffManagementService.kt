@@ -51,6 +51,8 @@ class StaffManagementService(
         val role: String,
         val active: Boolean,
         val phone: String? = null,
+        /** Single-use setup password — populated ONLY in the create response. */
+        val tempPassword: String? = null,
     )
 
     /** Roles a school administrator may grant via this service. Never ADMIN. */
@@ -120,7 +122,11 @@ class StaffManagementService(
             detail = "role=$role email=$emailClean institution=$institutionId",
         )
         log.info("Staff created: {} ({}) at institution {} by {}", emailClean, role, institutionId, actor.id)
-        return user.toView()
+        // Return the single-use setup password ONCE in the create response, the
+        // same credential-handover contract as the CSV import (guardian/learner
+        // credentials are returned there). Audit fix: with mock email the temp
+        // password previously went nowhere — the school could not onboard staff.
+        return user.toView().copy(tempPassword = tempPassword)
     }
 
     /**

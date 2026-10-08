@@ -12,7 +12,7 @@ import java.time.Duration
 @Configuration
 class AiWebClientConfig(
     @Value("\${ai.base-url:http://localhost:8000}") private val baseUrl: String,
-    @Value("\${ai.internal-secret:dev-secret}") private val internalSecret: String
+    @Value("\${ai.internal-secret}") private val internalSecret: String
 ) {
     @Bean
     fun aiWebClient(): WebClient {

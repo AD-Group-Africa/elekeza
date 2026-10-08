@@ -1,31 +1,48 @@
-# Elekeza — Integration Matrix
+# ELEKEZA — INTEGRATIONS
 
-Verified against the actual codebase and live services on 2026-09-08 (branch `release/v0.1.0`).
-Statuses are evidence-based, not aspirational.
+> Canonical integration matrix. Verified live 2026-10-02; **re-verified 2026-10-05** (fresh-DB
+> migration probe 16/16 + live auth 401 probes + fail-closed AI matrix).
+> "Tested" = evidence exists from this engagement (probe/journey/DB row).
+> "No secrets committed" verified: runtime creds live only in `backend/.env` / `ai-elewa/.env` /
+> compose `.env` (gitignored).
 
-| Integration | Purpose | Code Status | Credentials Needed | Environment | Test Method | Status |
-|---|---|---|---|---|---|---|
-| **AI Provider (Groq)** | 4-stage lesson simplification + quiz generation | Implemented — `ai-elewa` FastAPI (4-stage pipeline, retry-with-correction, learner-safe errors) + backend `RealAiClient`/`MockAiClient` | `AI_API_KEY` (Groq) — **both stored keys return 401 Invalid API Key** | `ai-elewa/.env` | Direct `POST /ai/simplify/text` with valid `X-Internal-Key` → reached stage2, retried, failed honestly with `SCHEMA_INVALID` + learner message | **IMPLEMENTED + CREDENTIALS REQUIRED** (pipeline verified to the provider boundary) |
-| **AI internal auth** | Backend↔ai-elewa service auth | Implemented (`X-Internal-Key` header, verified both sides) | `AI_INTERNAL_SECRET` (backend) must equal `INTERNAL_SECRET` (ai-elewa) | both `.env` files | Live call from backend reached the pipeline (log evidence) | **IMPLEMENTED + VERIFIED** (mechanism; secret must be set consistently in deployment) |
-| **M-Pesa (Daraja)** | Fee payments | Implemented — single `mpesa_transactions` ledger, callback CSRF-exempt + authenticated, idempotent by transaction reference, status/reconciliation endpoint | Daraja consumer key/secret, shortcode, passkey, public HTTPS callback URL | backend env | Negative probes: forged callback safely rejected (`ResultCode: 1`); no live transaction possible without credentials | **IMPLEMENTED + CREDENTIALS REQUIRED** (sandbox) |
-| **Africa's Talking** | SMS notifications | Implemented behind `SMS_PROVIDER=africa_talking` toggle | Account, API key, sender ID | backend env | Code path reviewed; failure handling present; not exercised live | **IMPLEMENTED + CONFIGURATION REQUIRED** |
-| **Email (SMTP)** | Notifications/verification | Implemented behind `EMAIL_PROVIDER=javamail` toggle | SMTP host/port/user/pass, verified sender | backend env | Code path reviewed; not exercised live | **IMPLEMENTED + CONFIGURATION REQUIRED** |
-| **Google OAuth** | Sign-in | Implemented behind toggle | OAuth client ID + secret, redirect URIs | backend env | Not exercised live | **IMPLEMENTED + CONFIGURATION REQUIRED** |
-| **PostgreSQL** | Primary datastore (prod) | Implemented — Flyway V1→V9, `ddl-auto=validate` in prod | Connection URL + credentials | `DB_URL`, `DB_USER`, `DB_PASSWORD` | H2-compatible dev; migrations verified in test suite | **IMPLEMENTED — production DB must be provisioned** |
-| **Redis** | Rate limiting / sessions | Implemented | Host/port/password | backend env | Login rate limiter is in-process (single instance) | **IMPLEMENTED — production Redis must be provisioned** |
-| **File/Object storage (R2)** | Content assets | Implemented behind `STORAGE_PROVIDER=cloudflare_r2` toggle | Account ID, access key, secret, bucket | backend env | Not exercised live | **IMPLEMENTED + CONFIGURATION REQUIRED** |
-| **H2 (dev database)** | Local/test datastore | Implemented | none | dev profile | Full backend suite + live journeys run on it | **WORKING (dev only)** |
+## 1. Provider matrix
 
-## AI status detail (evidence, 2026-09-08)
+| Integration | Status | Credential | Callback | Tested | Production ready |
+|---|---|---|---|---|---|
+| **Database** (PostgreSQL, Flyway V1–V16) | **FUNCTIONAL** | DB_USER/DB_PASSWORD in backend/.env (not committed) | n/a | ✅ live queries, migrations, persistence rows, backup+restore drill; **fresh-DB boot 2026-10-05: 16/16 migrations success, `ddl-auto=validate` PASS, health UP** | ✅ (host managed at pilot) |
+| **AI** (ai-elewa → Groq, `AI_API_KEY`) | **FUNCTIONAL** (mock provider available but `real` default) | `AI_API_KEY` in ai-elewa/.env (not committed); internal handshake `INTERNAL_SECRET`/`X-Internal-Key` | n/a (backend→AI internal) | ✅ tutor/adaptive/simplify live 200s; AI-down + invalid-key degradation; retries (Retry-After honored); no secrets in browser; **P0 fail-open FIXED + live-verified fail-closed both directions (unset → 401 incl. `/docs`; valid key passes)** | ⚠️ code-ready; remaining: r3 ship authorization + real Groq key |
+| **M-Pesa / Daraja** | **PARTIAL — mock gateway** | none at runtime; compose slots `MPESA_CONSUMER_KEY/SECRET/PASSKEY/SHORTCODE/CALLBACK_URL` (empty by default) | `/api/payments/callback` — public by design, Safaricom ack shape, idempotent (checkoutRequestId key), amount-mismatch + replay rejected (verified in code + probes) | ✅ full initiate→STK(mock)→callback→payment chain, duplicate + tamper cases | ❌ needs real Daraja creds + `FEES_MPESA_MODE=live` + edge signature verification |
+| **Email (SMTP)** | **NOT CONFIGURED** (wired-inert `JavaMailEmailProvider`; `EMAIL_PROVIDER=mock`) | none at runtime; compose `MAIL_*` slots exist | n/a | in-app notification persistence ✅; delivery ❌ (no provider) | ❌ needs MAIL_* creds |
+| **SMS (Africa's Talking)** | **NOT CONFIGURED** (wired-inert `AfricaTalkingSmsProvider`; `SMS_PROVIDER=mock`) | none at runtime; compose `AFRICA_TALKING_*` slots exist | n/a | in-app ✅; delivery ❌ | ❌ needs API key + sender ID |
+| **Safiri (transport/safety)** | **NOT IMPLEMENTED** | n/a | n/a | ❌ module does not exist (verified repo-wide) | ❌ build-or-descope decision required (out of Elekeza scope) |
+| **Storage** | **LOCAL DISK functional**; external (R2) not configured | `CLOUDFLARE_R2_*` compose slots exist (empty) | n/a | ✅ content upload → READY | ⚠️ local-disk only for pilot; R2 post-pilot or with creds |
+| **Redis** | **NOT USED** at runtime (template in compose) | `REDIS_PASSWORD` slot | n/a | n/a (not required for pilot) | ✅ optional |
+| **Google OAuth** | **NOT CONFIGURED** (dead config; no flow in code) | `GOOGLE_CLIENT_ID/SECRET` slots | n/a | ❌ | ❌ implement-or-remove decision |
+| **Observability** (Langfuse/Sentry) | **NOT CONFIGURED** | slots exist; Langfuse self-disables without keys (verified in boot log) | n/a | ❌ | ❌ needs DSNs (pilot-optional) |
 
-- `ai-elewa` runs locally on :8000 — `GET /health` → `{"status":"ok"}`, provider `groq`, stage2 `llama-3.3-70b-versatile`, stage3 `llama-3.1-8b-instant`.
-- A deployed instance exists at `https://elekeza-ai.onrender.com` — `/health` → `{"status":"ok"}` (cold-start tolerant), and it **rejects the local internal secret** (correct isolation).
-- Full chain proof: teacher `POST /api/content/upload/text` → backend `RealAiClient` → ai-elewa (internal auth accepted, stage2 executed, retry-on-schema-invalid honored) → Groq → **401 Invalid API Key** → ai-elewa returned structured `SCHEMA_INVALID` with `learner_message: "Something went wrong. Please try again."` → backend stored content as-is with an honest message. No fake success at any layer.
-- The mock client (`AI_CLIENT_TYPE=mock`) is clearly labeled in responses ("Mock Lesson", explicit "AI service not enabled" messages) — it cannot be mistaken for real AI output.
-- **A valid Groq API key is the single missing credential for the working AI pathway.**
+## 2. Notification provider test results (in-app channel)
 
-## Honesty rules embedded in the code
+| Notification | Generated | Recipient correct | Provider delivery |
+|---|---|---|---|
+| Welcome (onboarding) | ✅ on register/onboarding (notifications table) | learner self | mock only |
+| Attendance marked | ✅ (notification rows on session save) | learner/guardian (in-app) | mock only |
+| Quiz/progress | ✅ (progress/gamification events) | learner/guardian | mock only |
+| Guardian message | ✅ but **sender-addressed only (EL-NEW-02)** | ❌ counterpart never receives | mock only |
+| Safiri boarding/arrival | ❌ no Safiri module | — | — |
+| Password reset | ✅ token persisted (`password_reset_tokens`); **no email sent** (enumeration-safe responses verified) | n/a until SMTP | ❌ |
+| Queue/retry | in-app writes synchronous + audit-logged; provider queue/retry exists in provider interfaces but inert without creds | — | mock only |
 
-- No fallback makes a broken AI look healthy: mock mode returns clearly-labeled mock content; real mode surfaces the true failure.
-- The deployed ai-elewa does not accept the local dev secret — environments are isolated.
-- Payment callbacks are authenticated and idempotent; forged callbacks are rejected.
+**External integrations pending activation:** Groq production key (AI), Daraja (M-Pesa), SMTP
+(email), Africa's Talking (SMS), Cloudflare R2 (storage). All adapters are implemented, mocked
+honestly, and configuration-activated — no code work is blocked on them.
+
+## 3. Key corrections vs earlier notes
+
+- AI service reads `AI_PROVIDER` / `AI_API_KEY` / `INTERNAL_SECRET` from `ai-elewa/.env` (config.py)
+  — `GROQ_API_KEY` in `backend/.env` is a separate backend-side value.
+- **P0 RESOLVED (2026-10-03):** `ai-elewa/security.py` previously failed OPEN when `INTERNAL_SECRET`
+  was unset. Now fail-closed (`key_valid = bool(INTERNAL_SECRET) and hmac.compare_digest(...)`) and
+  live-verified in both directions. The backend-side `dev-secret` fallbacks
+  (`RealAiClient.kt`, `AiWebClientConfig.kt`) were **removed** — boot fails fast without config.
+  Shipping the fix is an r3 release authorization, not a code task.

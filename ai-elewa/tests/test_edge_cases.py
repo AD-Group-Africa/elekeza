@@ -18,7 +18,10 @@ from pathlib import Path
 # only applies when the operator has not configured a real INTERNAL_SECRET.
 INTERNAL_KEY = os.environ.get("INTERNAL_SECRET", "elekeza-test-internal-key-not-a-secret")
 
-BASE_URL = "http://localhost:8000"
+# Target is read from the environment so the suite follows the running AI
+# service port (audit EL-F-AIport — was hardcoded to :8000 and produced 30
+# environment failures whenever the service ran on any other port).
+BASE_URL = os.environ.get("AI_TEST_BASE_URL", "http://localhost:8000")
 AUTH_HEADER = {"X-Internal-Key": INTERNAL_KEY}
 JSON_HEADER = {**AUTH_HEADER, "Content-Type": "application/json"}
 

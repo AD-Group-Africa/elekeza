@@ -60,10 +60,29 @@ class ConfigurableMpesaGateway(
 
 /** Deterministic mock STK flow — no network, no credentials, no secrets. */
 @Component
-class MockMpesaGateway {
+class MockMpesaGateway(
+    private val transactionRepo: com.elekeza.backend.payments.MpesaTransactionRepository
+) {
 
     fun push(phone: String, amount: Double, reference: String): Map<String, Any> {
         val checkoutId = "ws_CO_MOCK_${System.currentTimeMillis()}_${(0..999).random()}"
+        // Persist the mock transaction so the callback state machine (terminal
+        // states, amount binding, idempotency) and the finance mapping
+        // (ELEKEZA-FEES-<learnerId> → Payment) run exactly as they do in live
+        // mode. Previously the mock push recorded nothing (audit B2), so the
+        // fee-payment chain could not be completed or tested without real
+        // Daraja credentials.
+        transactionRepo.save(
+            com.elekeza.backend.payments.MpesaTransaction(
+                merchantRequestId = "mr_MOCK_${System.currentTimeMillis()}",
+                checkoutRequestId = checkoutId,
+                phoneNumber = phone,
+                amount = amount,
+                reference = reference,
+                description = "Mock STK push (no real money movement)",
+                status = "INITIATED"
+            )
+        )
         return mapOf(
             "checkoutRequestId" to checkoutId,
             "merchantRequestId" to "mr_MOCK_${System.currentTimeMillis()}",

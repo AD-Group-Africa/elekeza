@@ -108,6 +108,26 @@ class SecurityConfig(private val jwtAuthFilter: JwtAuthFilter) {
             }
             .formLogin { it.disable() }
             .httpBasic { it.disable() }
+            // With formLogin/httpBasic disabled, Spring's default entry point
+            // answers unauthenticated requests with a bare 403 — which the
+            // frontend's session-recovery logic (keyed on 401) can never
+            // recognize, so an expired access cookie left dashboards
+            // false-empty (audit EL-F-002/006). Emit a real 401 with a JSON
+            // body for authentication failures and a structured 403 body for
+            // authorization failures; statuses are otherwise unchanged.
+            .exceptionHandling { exceptions ->
+                exceptions
+                    .authenticationEntryPoint { _, response, _ ->
+                        response.status = 401
+                        response.contentType = "application/json"
+                        response.writer.write("{\"error\":\"Unauthorized\",\"code\":\"AUTH_REQUIRED\"}")
+                    }
+                    .accessDeniedHandler { _, response, _ ->
+                        response.status = 403
+                        response.contentType = "application/json"
+                        response.writer.write("{\"error\":\"Forbidden\",\"code\":\"ACCESS_DENIED\"}")
+                    }
+            }
         return http.build()
     }
 

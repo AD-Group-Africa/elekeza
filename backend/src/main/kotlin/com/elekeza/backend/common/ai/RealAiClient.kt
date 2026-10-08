@@ -15,7 +15,7 @@ import java.time.Duration
 class RealAiClient(
     private val objectMapper: ObjectMapper,
     @Value("\${ai.base-url:http://localhost:8000}") private val baseUrl: String,
-    @Value("\${ai.internal-secret:dev-secret}") private val internalSecret: String,
+    @Value("\${ai.internal-secret}") private val internalSecret: String,
     @Value("\${ai.timeout-seconds:60}") private val timeoutSeconds: Long
 ) : AiClient {
 

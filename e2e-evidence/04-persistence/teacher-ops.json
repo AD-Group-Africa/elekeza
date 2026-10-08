@@ -1,0 +1,12 @@
+{
+  "upload": {
+    "message": "AI has simplified your lesson. Review below.",
+    "aiAdapted": true,
+    "lessonTitle": "How Plants Make Food"
+  },
+  "attendance": {
+    "message": "Saved. Present 1 · Absent 0 · Late 0 · Excused 0",
+    "learnersMarked": 1,
+    "historyExcerpt": "Attendance\n\nMark the daily register for your class.\n\nClass\nGrade 4 Blue (1 learners)\nDate\nPRESENT: 1\nABSENT: 0\nLATE: 0\nEXCUSED: 0\nJuma Ali\nHistory\nPRESENT\nABSENT\nLATE\nEXCUSED\nSave register\nJuma Ali — history\n\nGrade 4 Blue · attendance rate 66.7% over 3 days\n\nClose\nPRESENT: 2\nABSENT: 1\nLATE: 0\nEXCUSED: 0\nAttendance records for Juma Ali\nDate\tClass\tStatus\n2026-10-03\tGrade 4 Blue\tPRESENT\n2026-10-02\tGrade 4 Blue\tPRESENT\n2026-10-01\tGrade 4 Blue\tABSENT"
+  }
+}

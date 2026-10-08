@@ -1,0 +1,142 @@
+[
+  {
+    "ts": "2026-10-03T07:52:51.913Z",
+    "type": "info",
+    "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"
+  },
+  {
+    "ts": "2026-10-03T07:52:52.137Z",
+    "type": "log",
+    "text": "[HMR] connected"
+  },
+  {
+    "ts": "2026-10-03T07:52:52.492Z",
+    "type": "error",
+    "text": "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+  },
+  {
+    "ts": "2026-10-03T07:52:52.505Z",
+    "type": "error",
+    "text": "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+  },
+  {
+    "ts": "2026-10-03T07:52:53.471Z",
+    "type": "log",
+    "text": "[Fast Refresh] rebuilding"
+  },
+  {
+    "ts": "2026-10-03T07:52:59.983Z",
+    "type": "log",
+    "text": "[Fast Refresh] done in 6514ms"
+  },
+  {
+    "ts": "2026-10-03T07:53:06.903Z",
+    "type": "log",
+    "text": "[Fast Refresh] rebuilding"
+  },
+  {
+    "ts": "2026-10-03T07:53:09.792Z",
+    "type": "log",
+    "text": "[Fast Refresh] done in 2896ms"
+  },
+  {
+    "ts": "2026-10-03T07:53:11.333Z",
+    "type": "log",
+    "text": "[Fast Refresh] rebuilding"
+  },
+  {
+    "ts": "2026-10-03T07:53:15.188Z",
+    "type": "log",
+    "text": "[Fast Refresh] done in 3856ms"
+  },
+  {
+    "ts": "2026-10-03T07:53:16.922Z",
+    "type": "info",
+    "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"
+  },
+  {
+    "ts": "2026-10-03T07:53:17.021Z",
+    "type": "log",
+    "text": "[HMR] connected"
+  },
+  {
+    "ts": "2026-10-03T07:53:17.406Z",
+    "type": "error",
+    "text": "A tree hydrated but some attributes of the server rendered HTML didn't match the client properties. This won't be patched up. This can happen if a SSR-ed Client Component used:\n\n- A server/client branch `if (typeof window !== 'undefined')`.\n- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.\n- Date formatting in a user's locale which doesn't match the server.\n- External changing data without sending a snapshot of it along with the HTML.\n- Invalid HTML tag nesting.\n\nIt can also happen if the client has a browser extension installed which messes with the HTML before React loaded.\n\n%s%s https://react.dev/link/hydration-mismatch \n\n  ...\n    <InnerScrollHandlerNew focusAndScrollRef={{scrollRef:null, ...}} cacheNode={{rsc:{...}, ...}}>\n      <ErrorBoundary errorComponent={undefined} errorStyles={undefined} errorScripts={undefined}>\n        <LoadingBoundary name=\"communicat...\" loading={null}>\n          <HTTPAccessFallbackBoundary notFound={undefined}"
+  },
+  {
+    "ts": "2026-10-03T07:53:20.451Z",
+    "type": "log",
+    "text": "[Fast Refresh] rebuilding"
+  },
+  {
+    "ts": "2026-10-03T07:53:23.818Z",
+    "type": "info",
+    "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"
+  },
+  {
+    "ts": "2026-10-03T07:53:23.905Z",
+    "type": "log",
+    "text": "[HMR] connected"
+  },
+  {
+    "ts": "2026-10-03T07:53:25.207Z",
+    "type": "log",
+    "text": "[Fast Refresh] rebuilding"
+  },
+  {
+    "ts": "2026-10-03T07:53:29.564Z",
+    "type": "info",
+    "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"
+  },
+  {
+    "ts": "2026-10-03T07:53:29.661Z",
+    "type": "log",
+    "text": "[HMR] connected"
+  },
+  {
+    "ts": "2026-10-03T07:53:30.910Z",
+    "type": "log",
+    "text": "[Fast Refresh] rebuilding"
+  },
+  {
+    "ts": "2026-10-03T07:53:35.345Z",
+    "type": "info",
+    "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"
+  },
+  {
+    "ts": "2026-10-03T07:53:35.482Z",
+    "type": "log",
+    "text": "[HMR] connected"
+  },
+  {
+    "ts": "2026-10-03T07:53:37.785Z",
+    "type": "info",
+    "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"
+  },
+  {
+    "ts": "2026-10-03T07:53:37.852Z",
+    "type": "log",
+    "text": "[HMR] connected"
+  },
+  {
+    "ts": "2026-10-03T07:53:37.999Z",
+    "type": "error",
+    "text": "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+  },
+  {
+    "ts": "2026-10-03T07:53:38.009Z",
+    "type": "error",
+    "text": "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+  },
+  {
+    "ts": "2026-10-03T07:53:41.727Z",
+    "type": "info",
+    "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"
+  },
+  {
+    "ts": "2026-10-03T07:53:42.003Z",
+    "type": "log",
+    "text": "[HMR] connected"
+  }
+]

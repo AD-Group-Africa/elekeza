@@ -1,0 +1,62 @@
+[
+  {
+    "ts": "2026-10-02T13:48:19.511Z",
+    "type": "info",
+    "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"
+  },
+  {
+    "ts": "2026-10-02T13:48:19.898Z",
+    "type": "log",
+    "text": "[HMR] connected"
+  },
+  {
+    "ts": "2026-10-02T13:48:20.687Z",
+    "type": "error",
+    "text": "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+  },
+  {
+    "ts": "2026-10-02T13:48:20.728Z",
+    "type": "error",
+    "text": "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+  },
+  {
+    "ts": "2026-10-02T13:48:23.967Z",
+    "type": "info",
+    "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"
+  },
+  {
+    "ts": "2026-10-02T13:48:24.088Z",
+    "type": "log",
+    "text": "[HMR] connected"
+  },
+  {
+    "ts": "2026-10-02T13:48:47.320Z",
+    "type": "info",
+    "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"
+  },
+  {
+    "ts": "2026-10-02T13:48:47.405Z",
+    "type": "log",
+    "text": "[HMR] connected"
+  },
+  {
+    "ts": "2026-10-02T13:48:47.790Z",
+    "type": "error",
+    "text": "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+  },
+  {
+    "ts": "2026-10-02T13:48:47.815Z",
+    "type": "error",
+    "text": "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+  },
+  {
+    "ts": "2026-10-02T13:48:51.677Z",
+    "type": "info",
+    "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"
+  },
+  {
+    "ts": "2026-10-02T13:48:51.874Z",
+    "type": "log",
+    "text": "[HMR] connected"
+  }
+]

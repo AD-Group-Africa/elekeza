@@ -1,6 +1,8 @@
 # ELEKEZA
-
-> Inclusive Education Infrastructure
+> **Documentation has been consolidated:** the canonical docs set now lives in [`docs/`](docs/ELEKEZA_MASTER.md)
+> — start at **[`docs/ELEKEZA_MASTER.md`](docs/ELEKEZA_MASTER.md)**. This README remains the developer
+> onboarding reference; superseded documents were moved to `docs/archive/`.
+> Inclusive Education Infrastructure
 
 **Status:** READY FOR MANUAL E2E — pilot-ready with documented limitations
 **Last verified:** 22 September 2026

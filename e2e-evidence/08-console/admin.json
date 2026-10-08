@@ -1,0 +1,142 @@
+[
+  {
+    "ts": "2026-10-03T07:53:50.339Z",
+    "type": "info",
+    "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"
+  },
+  {
+    "ts": "2026-10-03T07:53:50.474Z",
+    "type": "log",
+    "text": "[HMR] connected"
+  },
+  {
+    "ts": "2026-10-03T07:53:50.688Z",
+    "type": "error",
+    "text": "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+  },
+  {
+    "ts": "2026-10-03T07:53:50.708Z",
+    "type": "error",
+    "text": "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+  },
+  {
+    "ts": "2026-10-03T07:53:51.537Z",
+    "type": "log",
+    "text": "[Fast Refresh] rebuilding"
+  },
+  {
+    "ts": "2026-10-03T07:53:53.106Z",
+    "type": "log",
+    "text": "[Fast Refresh] done in 1572ms"
+  },
+  {
+    "ts": "2026-10-03T07:53:57.323Z",
+    "type": "log",
+    "text": "[Fast Refresh] rebuilding"
+  },
+  {
+    "ts": "2026-10-03T07:53:58.851Z",
+    "type": "log",
+    "text": "[Fast Refresh] done in 1529ms"
+  },
+  {
+    "ts": "2026-10-03T07:54:00.522Z",
+    "type": "info",
+    "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"
+  },
+  {
+    "ts": "2026-10-03T07:54:00.634Z",
+    "type": "log",
+    "text": "[HMR] connected"
+  },
+  {
+    "ts": "2026-10-03T07:54:04.736Z",
+    "type": "log",
+    "text": "[Fast Refresh] rebuilding"
+  },
+  {
+    "ts": "2026-10-03T07:54:08.655Z",
+    "type": "log",
+    "text": "[Fast Refresh] done in 3920ms"
+  },
+  {
+    "ts": "2026-10-03T07:54:10.596Z",
+    "type": "info",
+    "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"
+  },
+  {
+    "ts": "2026-10-03T07:54:10.695Z",
+    "type": "log",
+    "text": "[HMR] connected"
+  },
+  {
+    "ts": "2026-10-03T07:54:11.063Z",
+    "type": "error",
+    "text": "A tree hydrated but some attributes of the server rendered HTML didn't match the client properties. This won't be patched up. This can happen if a SSR-ed Client Component used:\n\n- A server/client branch `if (typeof window !== 'undefined')`.\n- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.\n- Date formatting in a user's locale which doesn't match the server.\n- External changing data without sending a snapshot of it along with the HTML.\n- Invalid HTML tag nesting.\n\nIt can also happen if the client has a browser extension installed which messes with the HTML before React loaded.\n\n%s%s https://react.dev/link/hydration-mismatch \n\n  ...\n    <ErrorBoundary errorComponent={undefined} errorStyles={undefined} errorScripts={undefined}>\n      <LoadingBoundary name=\"students/\" loading={null}>\n        <HTTPAccessFallbackBoundary notFound={undefined} forbidden={undefined} unauthorized={undefined}>\n          <RedirectBoundary>\n            <RedirectErrorBound"
+  },
+  {
+    "ts": "2026-10-03T07:54:19.313Z",
+    "type": "info",
+    "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"
+  },
+  {
+    "ts": "2026-10-03T07:54:19.614Z",
+    "type": "log",
+    "text": "[HMR] connected"
+  },
+  {
+    "ts": "2026-10-03T07:54:20.869Z",
+    "type": "info",
+    "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"
+  },
+  {
+    "ts": "2026-10-03T07:54:20.978Z",
+    "type": "log",
+    "text": "[HMR] connected"
+  },
+  {
+    "ts": "2026-10-03T07:54:27.919Z",
+    "type": "log",
+    "text": "[Fast Refresh] rebuilding"
+  },
+  {
+    "ts": "2026-10-03T07:54:29.125Z",
+    "type": "log",
+    "text": "[Fast Refresh] done in 1209ms"
+  },
+  {
+    "ts": "2026-10-03T07:54:30.968Z",
+    "type": "info",
+    "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"
+  },
+  {
+    "ts": "2026-10-03T07:54:31.086Z",
+    "type": "log",
+    "text": "[HMR] connected"
+  },
+  {
+    "ts": "2026-10-03T07:54:32.434Z",
+    "type": "log",
+    "text": "[Fast Refresh] rebuilding"
+  },
+  {
+    "ts": "2026-10-03T07:54:37.619Z",
+    "type": "info",
+    "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"
+  },
+  {
+    "ts": "2026-10-03T07:54:37.718Z",
+    "type": "log",
+    "text": "[HMR] connected"
+  },
+  {
+    "ts": "2026-10-03T07:54:39.349Z",
+    "type": "info",
+    "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"
+  },
+  {
+    "ts": "2026-10-03T07:54:39.447Z",
+    "type": "log",
+    "text": "[HMR] connected"
+  }
+]

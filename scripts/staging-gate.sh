@@ -69,12 +69,16 @@ PGPASSWORD=postgres "$PSQL" -h localhost -p 5433 -U postgres \
   || fail "could not create $GATE_DB"
 
 log "4. Backend on prod profile (Flyway + validate, fail-fast env)"
+# Gate-only: DEMO_SEED_ENABLED=true turns on the V2 demo seed so the login
+# smoke has its demo account. NEVER set this on an internet-facing deployment
+# (see application-prod.yaml).
 DB_URL="jdbc:postgresql://localhost:5433/$GATE_DB" \
 DB_USER=postgres DB_PASSWORD=postgres \
 JWT_SECRET="staging-gate-secret-0123456789abcdef0123456789abcdef" \
 AI_INTERNAL_SECRET="staging-gate-internal" \
 FRONTEND_URL="http://localhost:$FE_PORT" \
 CORS_ALLOWED_ORIGINS="http://localhost:$FE_PORT" \
+DEMO_SEED_ENABLED=true \
 java.exe -jar "$JAR" --spring.profiles.active=prod --server.port=$BE_PORT \
   >"$BE_LOG" 2>&1 & BE_PID=$!
 
@@ -89,7 +93,9 @@ grep -q "Successfully applied 15 migrations" "$BE_LOG" \
 echo "Flyway: 15/15 migrations applied; Hibernate validate OK; health 200"
 
 log "5. Production frontend (`next start`)"
-(cd "$FRONTEND" && npx next start -p $FE_PORT >"$FE_LOG" 2>&1) & FE_PID=$!
+# npm run start resolves the local next binary via package.json scripts,
+# which is more robust than npx under non-interactive Git Bash.
+(cd "$FRONTEND" && npm run start -- -p $FE_PORT >"$FE_LOG" 2>&1) & FE_PID=$!
 for i in $(seq 1 30); do
   if curl -sf -o /dev/null "http://localhost:$FE_PORT/login"; then break; fi
   sleep 2
@@ -100,8 +106,10 @@ echo "frontend /login 200 from production build"
 
 log "6. Smoke: login round-trip through the production origin"
 COOKIE_JAR="$(mktemp)"
-CSRF=$(curl -s -c "$COOKIE_JAR" "http://localhost:$FE_PORT/login" -o /dev/null \
-  && grep XSRF "$COOKIE_JAR" | awk '{print $7}' | head -1)
+# The CSRF cookie is materialized by GET /api/auth/csrf (deferred-token design:
+# plain page GETs issue no XSRF cookie), so fetch the token from that endpoint.
+CSRF=$(curl -s -c "$COOKIE_JAR" "http://localhost:$FE_PORT/api/auth/csrf" \
+  | grep -oE '"token":"[^"]+"' | cut -d'"' -f4)
 LOGIN_CODE=$(curl -s -b "$COOKIE_JAR" -c "$COOKIE_JAR" -o /dev/null -w "%{http_code}" \
   -X POST "http://localhost:$FE_PORT/api/auth/login" \
   -H "Content-Type: application/json" ${CSRF:+-H "X-XSRF-TOKEN: $CSRF"} \

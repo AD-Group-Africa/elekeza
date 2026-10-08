@@ -10,6 +10,9 @@ RUN gradle build --no-daemon -x test
 
 FROM eclipse-temurin:17-jre-jammy
 WORKDIR /app
+# curl is required by the compose healthcheck (jammy JRE image ships none).
+RUN apt-get update && apt-get install -y --no-install-recommends curl \
+    && rm -rf /var/lib/apt/lists/*
 COPY --from=build /home/gradle/src/build/libs/*.jar app.jar
 
 # Non-root user for security

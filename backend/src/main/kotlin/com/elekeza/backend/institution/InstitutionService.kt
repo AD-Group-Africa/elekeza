@@ -64,6 +64,14 @@ class InstitutionService(
         val errors: List<ImportRowResult>,
         /** Credentials for guardian accounts created by this import. */
         val guardianCredentials: List<GuardianCredential> = emptyList(),
+        /**
+         * Credentials for the learner accounts created by this import.
+         * Returned once, exactly like guardian credentials, so the school can
+         * hand each learner their first login (email delivery is optional/mock).
+         * Audit fix: previously the learner password was generated but never
+         * returned anywhere — with mock email, imported learners could not log in.
+         */
+        val studentCredentials: List<StudentCredential> = emptyList(),
     )
 
     data class ImportRowResult(
@@ -80,6 +88,12 @@ class InstitutionService(
         val tempPassword: String,
         val relationship: String,
         val studentEmail: String,
+    )
+
+    /** Temporary login for a learner account created during CSV import. */
+    data class StudentCredential(
+        val email: String,
+        val tempPassword: String,
     )
 
     data class StudentSummary(
@@ -134,6 +148,7 @@ class InstitutionService(
 
         val results = mutableListOf<ImportRowResult>()
         val guardianCredentials = mutableListOf<GuardianCredential>()
+        val studentCredentials = mutableListOf<StudentCredential>()
         val reader = CSVReader(InputStreamReader(file.inputStream))
         val rows = reader.readAll().drop(1)
         var succeeded = 0
@@ -169,14 +184,15 @@ class InstitutionService(
                 }
 
                 val studentEmail = generateStudentEmail(row.firstName, row.lastName, institutionId)
-                val tempPassword = generateTempPassword()
+                val learnerTempPassword = generateTempPassword()
                 userRepo.save(User(
                     email = studentEmail,
-                    password = passwordEncoder.encode(tempPassword),
+                    password = passwordEncoder.encode(learnerTempPassword),
                     name = "${row.firstName} ${row.lastName}",
                     role = UserRole.STUDENT,
                     institutionId = institutionId,
                 ))
+                studentCredentials.add(StudentCredential(email = studentEmail, tempPassword = learnerTempPassword))
 
                 val sneTypeEnum = try { SneType.valueOf(row.sneType ?: "NONE") } catch (e: IllegalArgumentException) { SneType.NONE }
                 learnerProfileRepo.save(LearnerProfile(
@@ -188,10 +204,10 @@ class InstitutionService(
 
                 if (row.guardianPhone != null || row.guardianEmail != null) {
                     val guardianEmail = row.guardianEmail ?: "guardian_${row.firstName.lowercase()}@placeholder.elekeza.app"
-                    var tempPassword: String? = null
+                    var guardianTempPassword: String? = null
                     val guardian = userRepo.findByEmail(guardianEmail) ?: run {
                         val generated = generateTempPassword()
-                        tempPassword = generated
+                        guardianTempPassword = generated
                         userRepo.save(User(
                             email = guardianEmail,
                             password = passwordEncoder.encode(generated),
@@ -209,17 +225,17 @@ class InstitutionService(
                     ))
                     // Return the temp password once so the school can hand the
                     // guardian their login (email delivery is optional/mock).
-                    if (tempPassword != null) {
+                    if (guardianTempPassword != null) {
                         guardianCredentials.add(GuardianCredential(
                             email = guardianEmail,
-                            tempPassword = tempPassword!!,
+                            tempPassword = guardianTempPassword!!,
                             relationship = row.guardianRelationship ?: "PARENT",
                             studentEmail = studentEmail,
                         ))
                     }
                 }
 
-                results.add(ImportRowResult(rowNum, "SUCCESS", email = studentEmail, password = tempPassword))
+                results.add(ImportRowResult(rowNum, "SUCCESS", email = studentEmail, password = learnerTempPassword))
                 succeeded++
                 log.debug("Imported student: {} {}", row.firstName, row.lastName)
             } catch (e: Exception) {
@@ -236,6 +252,7 @@ class InstitutionService(
             failedRows = failed,
             errors = results.filter { it.status == "FAILED" },
             guardianCredentials = guardianCredentials,
+            studentCredentials = studentCredentials,
         )
     }
 

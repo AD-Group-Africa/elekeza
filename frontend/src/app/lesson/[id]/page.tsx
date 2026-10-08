@@ -21,6 +21,8 @@ import api from '@/lib/axios';
 import SidebarLayout from '@/components/layout/SidebarLayout';
 import { useAuth } from '@/hooks/useAuth';
 import LearningCompanion, { CompanionState } from '@/components/learner/LearningCompanion';
+import { useTextToSpeech } from '@/hooks/useTextToSpeech';
+import { useAccessibilitySettings } from '@/hooks/useAccessibilitySettings';
 
 // ---------------------------------------------------------------------------
 // Types — mirror the backend lesson view payload exactly.
@@ -56,11 +58,13 @@ function SectionPanel({
   index,
   total,
   reduced,
+  serverTts,
 }: {
   section: LessonSection;
   index: number;
   total: number;
   reduced: boolean;
+  serverTts?: boolean;
 }) {
   const bodyText = plainBody(section);
   const heading = section.heading?.trim();
@@ -71,11 +75,43 @@ function SectionPanel({
         <h3 id={`lesson-section-${index}`} className="text-xl font-semibold text-purple-100 mb-3">
           {heading}
         </h3>
-      )}        <div className="leading-relaxed text-purple-200 whitespace-pre-line">
+      )}
+      <ListenButton text={`${heading ? heading + '. ' : ''}${bodyText}`} label={heading || `Section ${index + 1}`} serverTts={serverTts} />
+      <div className="leading-relaxed text-purple-200 whitespace-pre-line">
           {bodyText}
         </div>
       {reduced && <p className="mt-3 text-xs text-purple-300">Section {index + 1} of {total}</p>}
     </section>
+  );
+}
+
+/**
+ * Per-section read-aloud button. Honours the product's "Listen to lessons"
+ * accessibility preference: the hook is always mounted (so the control exists
+ * for anyone), but the button is only VISIBLE when the user enabled text-to-
+ * speech in accessibility settings (audit EL-F-008: the preference existed
+ * but never surfaced any UI). Uses the same browser speech engine as the
+ * ReadingToolbar. Hidden from AT when the preference is off.
+ */
+function ListenButton({ text, label, serverTts }: { text: string; label: string; serverTts?: boolean }) {
+  const { speak, stop, isSpeaking } = useTextToSpeech({ rate: 0.9 });
+  const { settings } = useAccessibilitySettings();
+  // The Listen control honours BOTH accessibility systems: the browser-local
+  // a11y settings (text-to-speech / read-aloud toggles) AND the learner's
+  // server-side "Listen to lessons" preference from /learner/preferences.
+  // Audit EL-NEW-01: the server preference existed but never surfaced any UI.
+  const ttsOn = settings.textToSpeech || settings.readTextAloud || serverTts === true;
+  if (!ttsOn) return null;
+  return (
+    <button
+      type="button"
+      onClick={() => (isSpeaking ? stop() : speak(text))}
+      className="mb-3 inline-flex items-center gap-1.5 rounded-full border border-purple-300/30 bg-white/10 px-3 py-1 text-xs text-purple-100 hover:bg-white/20"
+      aria-label={`${isSpeaking ? 'Stop reading' : 'Listen to'} ${label}`}
+    >
+      <span aria-hidden="true">🔊</span>
+      {isSpeaking ? 'Stop reading' : 'Listen'}
+    </button>
   );
 }
 
@@ -142,6 +178,10 @@ export default function LessonPage() {
   const [openedQuiz, setOpenedQuiz] = useState(false);
 
   const isStudent = user?.role === 'STUDENT';
+
+  // Server-side read-aloud preference (persisted, follows the learner across
+  // devices) — audit EL-NEW-01.
+  const serverTtsOn = prefs?.readAloud?.value === 'true';
 
   // ---------------------------------------------------------------------------
   // Load lesson
@@ -351,6 +391,7 @@ export default function LessonPage() {
               index={idx}
               total={totalSections}
               reduced={reduced || idx !== currentSection}
+              serverTts={serverTtsOn}
             />
           ))}
         </div>

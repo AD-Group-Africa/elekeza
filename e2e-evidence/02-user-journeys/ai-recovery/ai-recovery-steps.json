@@ -1,0 +1,16 @@
+[
+  {
+    "n": 1,
+    "name": "learner tutor RECOVERED — live response rendered",
+    "ok": true,
+    "detail": "crashed=false",
+    "at": "2026-10-02T13:48:45.181Z"
+  },
+  {
+    "n": 2,
+    "name": "teacher upload RECOVERED — AI adaptation ran",
+    "ok": true,
+    "detail": "Skip to main content | Elekeza | Dashboard",
+    "at": "2026-10-02T13:49:37.858Z"
+  }
+]

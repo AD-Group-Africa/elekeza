@@ -1,4 +1,5 @@
 ﻿import axios, { AxiosInstance } from 'axios'
+import { refreshSessionOnce } from './sessionRefresh'
 
 // Always call the Next.js proxy (same-origin '/api'): next.config.ts rewrites
 // /api/* to the backend. An absolute browser-side base (NEXT_PUBLIC_API_URL)
@@ -34,15 +35,27 @@ api.interceptors.request.use(async (config) => {
   return config;
 });
 
-// On 401: rotate the HTTP-only access cookie, then retry once.
+// On 401 (or a 403 that is really an authentication failure — expired/
+// invalid access cookie — which arrives with code AUTH_REQUIRED since audit
+// EL-F-002/006): rotate the HTTP-only access cookie via /auth/refresh, then
+// retry once. This is what used to leave dashboards false-empty after the
+// 15-minute access cookie expired mid-journey.
+const recoverSession = async (error: { response?: { status?: number; data?: { code?: string } } }) => {
+  const status = error.response?.status
+  const code = error.response?.data?.code
+  return status === 401 || code === 'AUTH_REQUIRED'
+}
 api.interceptors.response.use(
   res => res,
   async error => {
     const original = error.config
-    if (error.response?.status === 401 && !original._retried) {
+    if (original && !original._retried && (await recoverSession(error))) {
       original._retried = true
       try {
-        await axios.post(`${BASE_URL}/auth/refresh`, {}, { withCredentials: true })
+        // Single-flight: concurrent 401s share ONE refresh call. Without this,
+        // the second parallel /auth/refresh reuses the just-rotated token and
+        // the backend revokes the refresh family — logging the user out.
+        await refreshSessionOnce()
         return api(original)
       } catch { /* the caller will handle the unauthenticated response */ }
     }

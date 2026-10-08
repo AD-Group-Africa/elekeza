@@ -10,6 +10,7 @@ import {
   UserCheck, Wallet, NotebookPen, UserCog
 } from 'lucide-react';
 import NotificationBell from '@/components/layout/NotificationBell';
+import ElekezaAssist from '@/components/assist/ElekezaAssist';
 
 const teacherItems = [
   { href: '/teacher', label: 'Dashboard', icon: LayoutDashboard },
@@ -62,6 +63,35 @@ const commonItems = [
   { href: '/dashboard/profile', label: 'Profile', icon: User },
   { href: '/dashboard/settings', label: 'Settings', icon: Settings },
 ];
+
+// Mobile bottom navigation sets (Home | Learn | Progress | Help | Profile).
+type BottomItem = { label: string; href?: string; icon: React.ComponentType<{ size?: number | string }>; event?: boolean; overlay?: boolean; ariaLabel?: string };
+
+const studentBottomItems: BottomItem[] = [
+  { label: 'Home', href: '/student-home', icon: LayoutDashboard, ariaLabel: 'Home' },
+  { label: 'Learn', href: '/student-lessons', icon: BookOpen, ariaLabel: 'Learn' },
+  { label: 'Progress', href: '/progress', icon: TrendingUp, ariaLabel: 'Progress' },
+  { label: 'Help', icon: CircleHelpIcon, event: true, ariaLabel: 'Help — open Elekeza Assist' },
+  { label: 'Profile', href: '/dashboard/profile', icon: User, ariaLabel: 'Profile' },
+];
+
+const guardianBottomItems: BottomItem[] = [
+  { label: 'Home', href: '/guardian', icon: LayoutDashboard, ariaLabel: 'Home' },
+  { label: 'Child', href: '/guardian/wards', icon: User, ariaLabel: 'My child' },
+  { label: 'Reports', href: '/guardian/reports', icon: FileText, ariaLabel: 'Reports' },
+  { label: 'Messages', href: '/guardian/communication', icon: MessageSquare, ariaLabel: 'Messages' },
+  { label: 'More', icon: Menu, overlay: true, ariaLabel: 'More — open full menu' },
+];
+
+function CircleHelpIcon({ size }: { size?: number | string }) {
+  return (
+    <svg width={size ?? 20} height={size ?? 20} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <circle cx="12" cy="12" r="10" />
+      <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+      <line x1="12" y1="17" x2="12.01" y2="17" />
+    </svg>
+  );
+}
 
 export default function SidebarLayout({ children }: { children: React.ReactNode }) {
   const [collapsed, setCollapsed] = useState(false);
@@ -163,13 +193,52 @@ export default function SidebarLayout({ children }: { children: React.ReactNode 
         <Menu size={24} />
       </button>
 
-      {/* Main content */}
-      <main id="main-content" className="flex-1 overflow-auto p-4 md:p-6">
+      {/* Main content — extra bottom padding on mobile so the bottom nav and
+          Elekeza Assist never cover page content or forms */}
+      <main id="main-content" className="flex-1 overflow-auto p-4 pb-28 md:p-6 md:pb-6">
         <div className="flex justify-end mb-2">
           <NotificationBell />
         </div>
         {children}
       </main>
+
+      {/* Mobile bottom navigation (learner + guardian; staff keep the sidebar
+          menu because their item sets are operational and long) */}
+      {(role === 'STUDENT' || role === 'GUARDIAN') && (
+        <nav
+          aria-label="Primary"
+          className="md:hidden fixed bottom-0 inset-x-0 z-40 flex border-t"
+          style={{ background: 'var(--bg-card)', borderColor: 'var(--border-color)', paddingBottom: 'env(safe-area-inset-bottom)' }}
+        >
+          {(role === 'STUDENT' ? studentBottomItems : guardianBottomItems).map(item => {
+            const active = item.event !== true && pathname === item.href;
+            const cls = 'flex flex-1 flex-col items-center justify-center gap-0.5 py-2 text-[11px] font-medium min-h-[56px] ' +
+              (active ? 'text-white bg-purple-600/40' : 'text-purple-200 hover:bg-white/10');
+            const icon = <item.icon size={20} aria-hidden="true" />;
+            return item.event === true ? (
+              <button key={item.label} type="button" onClick={() => window.dispatchEvent(new CustomEvent('elekeza:assist-open'))} className={cls} aria-label={item.ariaLabel}>
+                {icon}
+                <span>{item.label}</span>
+              </button>
+            ) : item.overlay === true ? (
+              <button key={item.label} type="button" onClick={() => setMobileOpen(true)} className={cls} aria-label={item.ariaLabel}>
+                {icon}
+                <span>{item.label}</span>
+              </button>
+            ) : (
+              <Link key={item.label} href={item.href!} aria-current={active ? 'page' : undefined} className={cls}>
+                {icon}
+                <span>{item.label}</span>
+              </Link>
+            );
+          })}
+        </nav>
+      )}
+
+      {/* Elekeza Assist — bottom-left floating assistance interface.
+          `collapsed` keeps the desktop pill clear of the sidebar's Logout
+          button (the viewport's bottom-left corner belongs to the sidebar). */}
+      <ElekezaAssist collapsed={collapsed} />
     </div>
   );
 }

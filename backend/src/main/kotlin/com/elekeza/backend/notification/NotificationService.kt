@@ -102,10 +102,16 @@ class NotificationService(
                 userId = guardianUser.id, type = "QUIZ_COMPLETED",
                 title = "${student.name} completed a quiz", body = body
             ))
-            // Also send SMS to guardian if phone number is available
+            // Also send SMS to guardian if phone number is available.
+            // Isolated per guardian: one provider failure must not abort the
+            // remaining guardians' in-app record or SMS.
             val guardianPhone = guardianUser.phone ?: return@forEach
-            smsService.sendSms(guardianPhone, body)?.let { smsResult ->
-                log.debug("SMS sent to guardian for student quiz completion: ${smsResult.messageId}")
+            try {
+                smsService.sendSms(guardianPhone, body)?.let { smsResult ->
+                    log.debug("SMS sent to guardian for student quiz completion: ${smsResult.messageId}")
+                }
+            } catch (e: Exception) {
+                log.error("Guardian SMS dispatch failed for guardian={}: {}", guardianUser.email, e.message)
             }
             log.debug("Notified guardian={} for student={} score={}", guardianUser.email, student.email, scoreStr)
         }

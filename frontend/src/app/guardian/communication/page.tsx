@@ -11,6 +11,24 @@ interface MessageRow {
   timestamp: string;
 }
 
+// The backend returns NotificationDto rows ({type,title,body,createdAt});
+// this component used to expect {sender,message,timestamp}, so every row
+// rendered as an empty bubble and the thread showed "No messages yet."
+// even after a successful send (audit EL-F-009). Map defensively so both
+// shapes (and malformed rows) can never blank the thread again.
+function toMessageRows(data: unknown): MessageRow[] {
+  if (!Array.isArray(data)) return [];
+  return data
+    .map((row) => {
+      const r = row as Record<string, unknown>;
+      const body = typeof r.body === 'string' && r.body.trim() ? r.body : typeof r.message === 'string' ? r.message : '';
+      const created = typeof r.createdAt === 'string' ? r.createdAt : typeof r.timestamp === 'string' ? r.timestamp : '';
+      const isTeacher = r.title === 'Message sent' || (typeof r.type === 'string' && r.type === 'MESSAGE' && r.title !== 'Guardian message');
+      return { sender: isTeacher ? 'teacher' : 'guardian', message: body, timestamp: created };
+    })
+    .filter((m) => m.message.trim().length > 0);
+}
+
 export default function GuardianCommunication() {
   const [messages, setMessages] = useState<MessageRow[]>([]);
   const [newMsg, setNewMsg] = useState('');
@@ -20,7 +38,7 @@ export default function GuardianCommunication() {
   const fetchMessages = async () => {
     try {
       const res = await api.get('/guardian/messages');
-      setMessages(res.data);
+      setMessages(toMessageRows(res.data));
     } catch (err) {
       console.error(err);
     }

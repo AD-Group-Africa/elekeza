@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import api from '@/lib/axios';
 import { ClipboardCheck, Plus } from 'lucide-react';
+import Toast from '@/components/Toast';
 
 interface Assignment {
   id: number;
@@ -19,6 +20,10 @@ export default function AssignmentsPage() {
   const [contentId, setContentId] = useState('');
   const [studentId, setStudentId] = useState('');
   const [message, setMessage] = useState('');
+  const [toast, setToast] = useState('');
+  // Labelled targets for the form (audit EL-F-010: raw IDs replaced)
+  const [lessons, setLessons] = useState<{ id: number; title: string }[]>([]);
+  const [students, setStudents] = useState<{ id: number; name: string }[]>([]);
 
   const fetchAssignments = async () => {
     try {
@@ -33,6 +38,9 @@ export default function AssignmentsPage() {
 
   useEffect(() => {
     fetchAssignments();
+    // Load labelled choices for the assignment form (EL-F-010)
+    api.get('/content/list').then(res => setLessons(res.data || [])).catch(() => undefined);
+    api.get('/teacher/students').then(res => setStudents(res.data || [])).catch(() => undefined);
   }, []);
 
   const handleCreate = async (e: React.FormEvent) => {
@@ -45,7 +53,8 @@ export default function AssignmentsPage() {
       setShowForm(false);
       setContentId('');
       setStudentId('');
-      setMessage('Assignment created!');
+      setMessage('');
+      setToast('Assignment created!'); // audit EL-F-011: visible confirmation
       fetchAssignments();
     } catch (err) {
       setMessage('Failed to create assignment.');
@@ -69,26 +78,32 @@ export default function AssignmentsPage() {
           <h2 className="text-xl font-semibold text-purple-200 mb-4">Assign Lesson to Student</h2>
           <form onSubmit={handleCreate} className="space-y-4">
             <div>
-              <label className="block text-sm text-purple-300 mb-1">Lesson ID</label>
-              <input
-                type="number"
+              <label className="block text-sm text-purple-300 mb-1">Lesson</label>
+              <select
                 value={contentId}
                 onChange={(e) => setContentId(e.target.value)}
                 className="w-full px-4 py-3 bg-white/10 border border-purple-300/30 rounded-lg text-white"
-                placeholder="e.g. 1"
                 required
-              />
+              >
+                <option value="" className="text-gray-900">Choose a lesson…</option>
+                {lessons.map(l => (
+                  <option key={l.id} value={l.id} className="text-gray-900">{l.title} (#{l.id})</option>
+                ))}
+              </select>
             </div>
             <div>
-              <label className="block text-sm text-purple-300 mb-1">Student ID</label>
-              <input
-                type="number"
+              <label className="block text-sm text-purple-300 mb-1">Student</label>
+              <select
                 value={studentId}
                 onChange={(e) => setStudentId(e.target.value)}
                 className="w-full px-4 py-3 bg-white/10 border border-purple-300/30 rounded-lg text-white"
-                placeholder="e.g. 4"
                 required
-              />
+              >
+                <option value="" className="text-gray-900">Choose a student…</option>
+                {students.map(s => (
+                  <option key={s.id} value={s.id} className="text-gray-900">{s.name} (#{s.id})</option>
+                ))}
+              </select>
             </div>
             <button type="submit" className="bg-purple-600 text-white px-6 py-2 rounded-lg">Assign</button>
           </form>
@@ -118,6 +133,7 @@ export default function AssignmentsPage() {
           </div>
         )}
       </div>
+      {toast && <Toast message={toast} onClose={() => setToast('')} />}
     </div>
   );
 }
