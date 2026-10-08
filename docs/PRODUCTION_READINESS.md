@@ -154,3 +154,22 @@ AI r3 release authorization (the P0 fix is in-repo and verified; shipping it is 
 Sign the **AI r3 release authorization** and provision the **pilot host, domain/TLS and
 host-generated credentials** â€” the two acts that unblock the pilot. In parallel (small, in-repo):
 ship EL-NEW-02 and decide EL-F-007. Nothing else blocks.
+
+---
+
+## Session status — 2026-10-08
+
+Reconciliation brought onto release/v0.1.0: canonical 15-doc set, AI Gates 0-3, V13-V16 migrations, hardened fail-closed security.py, E2E evidence.
+
+Live-verified locally today:
+- Backend /actuator/health: UP (16 migrations validated, Flyway V1-V16 applied)
+- AI /health: ok
+- Frontend :3100: 200
+- AI fail-closed: 401 without X-Internal-Secret, 200 with correct secret (P0 fix confirmed live)
+
+Still blocking controlled pilot:
+- VPS + domain + TLS (external)
+- AI r3 release authorization (Harry)
+- Groq production key, SMTP, Africa's Talking, Daraya if required
+- EL-NEW-02 (messages sender-only) — open
+- EL-F-007 (class creation) — deferred, decision pending
