@@ -173,3 +173,7 @@ Still blocking controlled pilot:
 - Groq production key, SMTP, Africa's Talking, Daraya if required
 - EL-NEW-02 (messages sender-only) — open
 - EL-F-007 (class creation) — deferred, decision pending
+
+### EL-NEW-02 — corrected assessment (2026-10-08)
+
+Code inspection shows EL-NEW-02 is worse than originally classified: the messaging feature is a **UI shell with no plumbing**. MessageController ignores req.recipient, saves userId=sender.id; no sender_id column exists on notifications; no teacher-side read endpoint exists; frontend sends literal strings ('teacher', CSV of learner IDs) that cannot resolve to users. Scope: design change, ~3 hours. Deferred to pilot #2 unless Harry requires two-way messaging in pilot #1. Implementation plan to be authored as docs/EL-NEW-02_DESIGN.md before pilot #2 work begins.
