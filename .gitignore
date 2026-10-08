@@ -64,5 +64,13 @@ backend/.gradle-home/
 # stray nested gradle cache from an errant invocation
 backend/backend/
 
+<<<<<<< HEAD
 # Backup artifacts — never commit dumps
 backups/
+=======
+# Local artifacts — never commit
+.venv/
+ai-elewa/.venv/
+backups/
+ai-elewa/config.py.before-qwen.ps1
+>>>>>>> b6e399d (chore: ignore local venv, backups, and temp config backups)
