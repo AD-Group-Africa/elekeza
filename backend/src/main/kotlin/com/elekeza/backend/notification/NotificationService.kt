@@ -47,7 +47,11 @@ data class Notification(
 
     /** Optional in-app navigation target (e.g. "/lesson/42") for the recipient. */
     @Column(name = "link")
-    val link: String? = null
+    val link: String? = null,
+
+    /** User who composed this notification (EL-NEW-02); null = system-generated. */
+    @Column(name = "sender_id")
+    val senderId: Long? = null
 )
 
 // ── Repository ────────────────────────────────────────────────────────────────
@@ -56,6 +60,9 @@ data class Notification(
 interface NotificationRepository : JpaRepository<Notification, Long> {
     fun findByUserIdOrderByCreatedAtDesc(userId: Long): List<Notification>
     fun findByUserIdAndReadFalseOrderByCreatedAtDesc(userId: Long): List<Notification>
+
+    /** EL-NEW-02: thread view — received human messages for one user, newest first. */
+    fun findByUserIdAndTypeInOrderByCreatedAtDesc(userId: Long, types: Collection<String>): List<Notification>
 
     @Query("SELECT COUNT(n) FROM Notification n WHERE n.userId = :uid AND n.read = false")
     fun countUnread(@Param("uid") userId: Long): Long
@@ -66,9 +73,28 @@ interface NotificationRepository : JpaRepository<Notification, Long> {
 data class NotificationDto(
     val id: Long, val type: String, val title: String,
     val body: String, val read: Boolean, val createdAt: String,
-    val link: String? = null
+    val link: String? = null,
+    val senderId: Long? = null,
+    val senderName: String? = null
 )
-fun Notification.toDto() = NotificationDto(id, type, title, body, read, createdAt.toString(), link)
+fun Notification.toDto() = NotificationDto(id, type, title, body, read, createdAt.toString(), link, senderId)
+
+/**
+ * EL-NEW-02: resolve sender display names in one batch instead of one query
+ * per row. System-generated notifications (senderId = null) keep a null name.
+ */
+fun List<Notification>.toDtosWithSenderNames(userRepo: UserRepository): List<NotificationDto> {
+    val senderIds = mapNotNull { it.senderId }.toSet()
+    if (senderIds.isEmpty()) return map { it.toDto() }
+    val names = userRepo.findAllById(senderIds).associate { it.id to it.name }
+    return map { n ->
+        NotificationDto(
+            id = n.id, type = n.type, title = n.title, body = n.body, read = n.read,
+            createdAt = n.createdAt.toString(), link = n.link,
+            senderId = n.senderId, senderName = n.senderId?.let { names[it] }
+        )
+    }
+}
 
 // ── Service ───────────────────────────────────────────────────────────────────
 

@@ -98,6 +98,51 @@ class NotificationServiceTest {
         assertEquals("+254711223344", result!!.recipient)
         assertEquals(1, mock.getSentMessages().size)
     }
+
+    // ── EL-NEW-02 sender mapping ─────────────────────────────────────
+
+    @Test
+    fun `system notifications map without sender info`() {
+        val system = Notification(userId = 5L, type = "QUIZ_COMPLETED", title = "Quiz", body = "body")
+        val dto = listOf(system).toDtosWithSenderNames(userRepo)
+
+        assertEquals(1, dto.size)
+        assertEquals(null, dto[0].senderId)
+        assertEquals(null, dto[0].senderName)
+        // No user lookups should happen when no sender ids exist.
+        Mockito.verify(userRepo, Mockito.never()).findAllById(Mockito.anySet())
+    }
+
+    @Test
+    fun `sender names are batch-resolved for attributed notifications`() {
+        val guardian = user(101L, null)
+        val teacher = user(202L, null)
+        val fromGuardian = Notification(userId = 5L, type = "GUARDIAN_MESSAGE", title = "Guardian message", body = "hello", senderId = 101L)
+        val fromTeacher = Notification(userId = 5L, type = "MESSAGE", title = "Message", body = "hi back", senderId = 202L)
+        val system = Notification(userId = 5L, type = "QUIZ_COMPLETED", title = "Quiz", body = "body")
+
+        Mockito.`when`(userRepo.findAllById(setOf(101L, 202L))).thenReturn(listOf(guardian, teacher))
+
+        val dto = listOf(fromGuardian, fromTeacher, system).toDtosWithSenderNames(userRepo)
+
+        assertEquals("User 101", dto[0].senderName)
+        assertEquals(101L, dto[0].senderId)
+        assertEquals("User 202", dto[1].senderName)
+        assertEquals(202L, dto[1].senderId)
+        assertEquals(null, dto[2].senderName)
+        assertEquals(null, dto[2].senderId)
+    }
+
+    @Test
+    fun `unknown sender id maps to a null name instead of failing`() {
+        val orphan = Notification(userId = 5L, type = "GUARDIAN_MESSAGE", title = "t", body = "b", senderId = 999L)
+        Mockito.`when`(userRepo.findAllById(setOf(999L))).thenReturn(emptyList())
+
+        val dto = listOf(orphan).toDtosWithSenderNames(userRepo)
+
+        assertEquals(999L, dto[0].senderId)
+        assertEquals(null, dto[0].senderName)
+    }
 }
 
 /**
