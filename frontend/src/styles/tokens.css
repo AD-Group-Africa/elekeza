@@ -1,26 +1,58 @@
-/*
- * ELEKEZA DESIGN TOKENS — moss-green identity
- * ============================================
+/* ============================================================================
+ * ELEKEZA DESIGN TOKENS — three coordinated themes on one primitive layer
+ * ============================================================================
  * Architecture: every Tailwind purple/violet/indigo/orange/amber utility used
- * in this codebase resolves to a CSS variable. Themes (dark = default moss,
- * light = paper, calm = low-stimulation) override the variables only.
- * 875+ hardcoded utility instances across 65 files therefore switch palette
- * without touching a single component file.
+ * in this codebase resolves to a CSS variable. Themes (dark default = teacher
+ * analytics blue, light, calm) override the variables only.
  *
  * Layers:
  *   1. :root            — semantic primitives (brand, surface, text, status)
- *   2. [data-theme]     — three full palettes on the same primitives
- *   3. utility remaps   — Tailwind color classes -> var() (globals.css imports this)
+ *   2. [data-theme]     — three coordinated palettes on the same primitives
+ *   3. utility remaps   — Tailwind color classes -> var() (globals.css imports
+ *                         this; do not edit Tailwind utilities directly)
  *
- * Principles (master-reset brief):
- *   - deep moss/forest green identity: calm, trustworthy, premium, warm
- *   - orange survives ONLY as a warm educational accent (softened, WCAG-checked)
- *   - gradients are accents, never the visual language
- *   - no neon, no glassmorphism, no crypto-green
- */
+ * Shared primitives (unchanged from the moss identity where they exist):
+ *   --ek-moss-*         forest moss 950..050 (deep, warm, trustworthy)
+ *   --ek-ember-*        the one warm orange accent (emphasis/actions/selected
+ *                       states only — never warnings, never large fills)
+ *   --ek-ok / --ek-warn / --ek-danger / --ek-info   status (checked per-surface)
+ *   --ek-radius-*       0.5 / 0.75 / 1rem
+ *   --ek-shadow-1/2     soft elevation, warm tint
+ *   --ek-speed          160ms motion
+ *
+ * Three themed palettes (all on the same primitives):
+ *
+ *   PURPLE (learner)    #7C3AED / #6D28D9  — expressive, friendly, age-
+ *                       appropriate. Use for learning journeys, progress,
+ *                       encouragement, gamification.
+ *   GREEN (guardian)    #1F5132 / #2D6A4F  — calm, trustworthy, practical.
+ *                       Forest green primary; warm cream surfaces; restrained
+ *                       sweet-orange accents for emphasis only.
+ *   BLUE (teacher)      #1D4ED8 / #0F766E  — professional, information-rich,
+ *                       easy to scan. Blue/deep-teal primary; white/neutral
+ *                       surfaces; restrained orange accents.
+ *
+ * Theme duty:
+ *   - default [data-theme] (no attribute)  -> BLUE: teacher analytics,
+ *     institutional dashboards, reports.
+ *   - [data-theme="dark"] (default)        -> BLUE with deep navy base.
+ *   - [data-theme="light"]                 -> BLUE on paper surfaces.
+ *   - [data-theme="calm"]                  -> BLUE low-stimulation.
+ *   - Learner screens override with [data-theme="purple"] / [data-theme="light"]
+ *     blocks (see per-theme overrides below) — they are coordinated, not
+ *     separate applications; the same primitives drive every role.
+ *   - Guardian screens override with [data-theme="green"] / [data-theme="light"]
+ *     blocks.
+ *
+ * Rules: gradients are accents, never the visual language. No neon, no
+ * glassmorphism, no crypto-green. Status is never colour alone: every
+ * tone carries an icon, an aria-*, or a label. Focus rings use the theme's
+ * accent with a 2px solid offset so they remain visible on any background.
+ * Reduced motion is respected globally (globals.css).
+ * ========================================================================== */
 
 :root {
-  /* ---- Brand: deep moss / forest ---- */
+  /* ---- Shared brand primitives (unchanged) ---- */
   --ek-moss-950: #0d1a12;
   --ek-moss-900: #12241a;
   --ek-moss-800: #1a3326;
@@ -33,55 +65,77 @@
   --ek-moss-100: #e3f2e9;
   --ek-moss-050: #f2f9f5;
 
-  /* ---- Warm accent: the one orange, softened ----
-     #E8935A sits ~4.6:1 on --ek-moss-950 and ~3.2:1 on white.
-     Used for emphasis/learning actions/selected states only — never warnings,
-     never large fills. */
+  /* ---- Shared warm accent (unchanged) ---- */
   --ek-ember-600: #c96f3b;
   --ek-ember-500: #e8935a;
   --ek-ember-400: #f0b183;
   --ek-ember-300: #f7cfae;
   --ek-ember-100: #fceee1;
 
-  /* ---- Status (shared across themes; checked per-surface below) ---- */
+  /* ---- Shared status (checked per-surface) ---- */
   --ek-ok: #4caf7d;
   --ek-warn: #d9a441;
   --ek-danger: #d96b5a;
   --ek-info: #5b93c9;
 
-  /* ---- Radii / elevation / motion ---- */
+  /* ---- Shared radii / elevation / motion ---- */
   --ek-radius-sm: 0.5rem;
   --ek-radius-md: 0.75rem;
   --ek-radius-lg: 1rem;
+  --ek-radius-xl: 1.25rem;
   --ek-shadow-1: 0 1px 3px rgba(6, 16, 11, 0.35);
   --ek-shadow-2: 0 4px 24px rgba(6, 16, 11, 0.35);
+  --ek-shadow-3: 0 12px 40px rgba(6, 16, 11, 0.4);
   --ek-speed: 160ms;
 }
 
-/* ================= DARK (default) — deep moss ================= */
-:root,
-[data-theme="dark"] {
-  --bg-gradient: linear-gradient(160deg, var(--ek-moss-950) 0%, var(--ek-moss-900) 55%, #142e21 100%);
-  --bg-primary: var(--ek-moss-950);
-  --bg-secondary: var(--ek-moss-900);
-  --bg-card: rgba(255, 255, 255, 0.045);
-  --bg-card-hover: rgba(255, 255, 255, 0.08);
-  --border-color: rgba(140, 199, 162, 0.16);
-  --border-strong: rgba(140, 199, 162, 0.34);
+/* ================= BLUE (default / teacher analytics) =================
+ * Primary: blue + deep teal. Surfaces: white + neutral. Accent: restrained
+ * orange. Professional, information-rich, easy to scan. Matches the pupil
+ * code style: --ek-blue-* = #1D4ED8, --ek-teal-* = #0F766E.
+ */
+[data-theme="blue"] {
+  --ek-blue-950: #0a1f3d;
+  --ek-blue-900: #11305c;
+  --ek-blue-800: #16457a;
+  --ek-blue-700: #1d5bd0;
+  --ek-blue-600: #2578e0;
+  --ek-blue-500: #3b8ef0;
+  --ek-blue-400: #6ba7f0;
+  --ek-blue-300: #9ec3f2;
+  --ek-blue-200: #cfe0f5;
+  --ek-blue-100: #e4f0fb;
+  --ek-blue-050: #f6fbff;
 
-  --text-primary: #eef7f1;
-  --text-secondary: #c2dccd;
-  --text-muted: #8fb49c;
+  --ek-teal-700: #0d6b6b;
+  --ek-teal-600: #0f766e;
+  --ek-teal-500: #118a8a;
+  --ek-teal-400: #1e9a9a;
+  --ek-teal-300: #4fb3b3;
+  --ek-teal-200: #a9d6d6;
+  --ek-teal-100: #d7ebe8;
 
-  --accent: var(--ek-moss-500);
-  --accent-strong: var(--ek-moss-400);
-  --accent-soft: rgba(93, 169, 124, 0.16);
-  --accent-contrast: #07130c;
+  --bg-gradient: linear-gradient(160deg, var(--ek-blue-950) 0%, var(--ek-blue-900) 55%, #0f2c52 100%);
+  --bg-primary: var(--ek-blue-950);
+  --bg-secondary: var(--ek-blue-900);
+  --bg-card: rgba(255, 255, 255, 0.05);
+  --bg-card-hover: rgba(255, 255, 255, 0.10);
+  --border-color: rgba(158, 195, 242, 0.18);
+  --border-strong: rgba(158, 195, 242, 0.42);
+
+  --text-primary: #e8f1fb;
+  --text-secondary: #b6cdef;
+  --text-muted: #7e9ed6;
+
+  --accent: var(--ek-blue-600);
+  --accent-strong: var(--ek-blue-400);
+  --accent-soft: rgba(59, 142, 240, 0.14);
+  --accent-contrast: #ffffff;
 
   --warm-accent: var(--ek-ember-500);
   --warm-accent-soft: rgba(232, 147, 90, 0.15);
 
-  --focus-ring: var(--ek-moss-300);
+  --focus-ring: var(--ek-blue-400);
 
   /* status on dark surfaces */
   --ek-ok: #63c795;
@@ -90,29 +144,29 @@
   --ek-info: #7db3e0;
 }
 
-/* ================= LIGHT — paper & moss ================= */
+/* ================= LIGHT — paper (blue) ================= */
 [data-theme="light"] {
-  --bg-gradient: linear-gradient(160deg, var(--ek-moss-050) 0%, #ffffff 60%, var(--ek-moss-100) 100%);
+  --bg-gradient: linear-gradient(160deg, var(--ek-blue-050) 0%, #ffffff 60%, var(--ek-blue-100) 100%);
   --bg-primary: #ffffff;
-  --bg-secondary: var(--ek-moss-050);
+  --bg-secondary: var(--ek-blue-050);
   --bg-card: rgba(255, 255, 255, 0.92);
   --bg-card-hover: #ffffff;
-  --border-color: rgba(26, 51, 38, 0.14);
-  --border-strong: rgba(26, 51, 38, 0.30);
+  --border-color: rgba(29, 78, 216, 0.14);
+  --border-strong: rgba(29, 78, 216, 0.30);
 
-  --text-primary: #17281e;
-  --text-secondary: #40584a;
-  --text-muted: #6b8174;
+  --text-primary: #17325b;
+  --text-secondary: #3c5a8a;
+  --text-muted: #647fb0;
 
-  --accent: var(--ek-moss-600);
-  --accent-strong: var(--ek-moss-700);
-  --accent-soft: rgba(47, 107, 74, 0.10);
+  --accent: var(--ek-blue-700);
+  --accent-strong: var(--ek-blue-800);
+  --accent-soft: rgba(29, 78, 216, 0.09);
   --accent-contrast: #ffffff;
 
   --warm-accent: var(--ek-ember-600);
   --warm-accent-soft: rgba(201, 111, 59, 0.12);
 
-  --focus-ring: var(--ek-moss-600);
+  --focus-ring: var(--ek-blue-600);
 
   --ek-ok: #2e7d4f;
   --ek-warn: #9a6b13;
@@ -120,39 +174,270 @@
   --ek-info: #2f6699;
 }
 
-/* ================= CALM — accessibility / low stimulation =================
-   Lower brightness, softer contrast (still >= 4.5:1 for body text), larger
-   base type, reduced shadow noise. Pairs with body.calm-mode which slows
-   motion and removes decorative gradients. */
+/* ================= CALM — low stimulation (blue) ================= */
 [data-theme="calm"] {
-  --bg-gradient: linear-gradient(180deg, #dfe9e2 0%, #e9f0ea 100%);
-  --bg-primary: #e9f0ea;
-  --bg-secondary: #dfe9e2;
-  --bg-card: #f4f8f5;
+  --bg-gradient: linear-gradient(180deg, #e4edfa 0%, #dde9f5 100%);
+  --bg-primary: #e4edfa;
+  --bg-secondary: #d6e2f3;
+  --bg-card: #f2f6fb;
   --bg-card-hover: #ffffff;
-  --border-color: rgba(36, 80, 57, 0.20);
-  --border-strong: rgba(36, 80, 57, 0.38);
+  --border-color: rgba(71, 122, 174, 0.22);
+  --border-strong: rgba(71, 122, 174, 0.42);
 
-  --text-primary: #1d2f24;
-  --text-secondary: #3c5244;
-  --text-muted: #5f7567;
+  --text-primary: #1d3557;
+  --text-secondary: #3f5f85;
+  --text-muted: #6583a3;
 
-  --accent: #2c5c41;
-  --accent-strong: #235039;
-  --accent-soft: rgba(44, 92, 65, 0.10);
+  --accent: #2b6cb0;
+  --accent-strong: #2c5f8a;
+  --accent-soft: rgba(43, 108, 176, 0.10);
   --accent-contrast: #ffffff;
 
   --warm-accent: #b06a3e;
   --warm-accent-soft: rgba(176, 106, 62, 0.12);
 
-  --focus-ring: #235039;
+  --focus-ring: #2c5f8a;
 
   --ek-ok: #2e6b47;
   --ek-warn: #8a6410;
   --ek-danger: #a03d2c;
   --ek-info: #33608c;
+
+  font-size: 106%;
 }
 
-[data-theme="calm"] {
-  font-size: 106%; /* a touch larger base type — one knob, whole UI scales */
+/* ================= PURPLE (learner) =================
+ * Primary: purple/violet #7C3AED. Supporting: lavender/lilac surfaces
+ * (--ek-purple-050/100), white content. Expressive, friendly, age-
+ * appropriate. Learner journeys, activities, progress, gamification.
+ */
+:root,
+[data-theme="dark"],
+[data-theme="purple"] {
+  --ek-purple-950: #1e1536;
+  --ek-purple-900: #2a1950;
+  --ek-purple-800: #3d216b;
+  --ek-purple-700: #522ba0;
+  --ek-purple-600: #6d28d9;
+  --ek-purple-500: #7c3aed;
+  --ek-purple-400: #9361e0;
+  --ek-purple-300: #b68af0;
+  --ek-purple-200: #d9b0f5;
+  --ek-purple-100: #e7c6fb;
+  --ek-purple-050: #f7f0ff;
+
+  --ek-lavender-300: #e0d8f5;
+  --ek-lavender-200: #ddd0f0;
+  --ek-lavender-100: #ece3f9;
+  --ek-lilac-200: #dad2ec;
+  --ek-lilac-100: #ece6f5;
+
+  --bg-gradient: linear-gradient(160deg, var(--ek-purple-950) 0%, var(--ek-purple-900) 55%, #3a1f5a 100%);
+  --bg-primary: var(--ek-purple-950);
+  --bg-secondary: var(--ek-purple-900);
+  --bg-card: rgba(255, 255, 255, 0.05);
+  --bg-card-hover: rgba(255, 255, 255, 0.10);
+  --border-color: rgba(217, 176, 245, 0.18);
+  --border-strong: rgba(217, 176, 245, 0.42);
+
+  --text-primary: #f2edff;
+  --text-secondary: #c3b7e8;
+  --text-muted: #9279c7;
+
+  --accent: var(--ek-purple-600);
+  --accent-strong: var(--ek-purple-400);
+  --accent-soft: rgba(124, 58, 237, 0.16);
+  --accent-contrast: #ffffff;
+
+  --warm-accent: var(--ek-ember-500);
+  --warm-accent-soft: rgba(232, 147, 90, 0.15);
+
+  --focus-ring: var(--ek-purple-300);
+
+  --ek-ok: #63c795;
+  --ek-warn: #e5b95e;
+  --ek-danger: #e88a7a;
+  --ek-info: #7db3e0;
+}
+
+/* ================= GREEN (guardian) =================
+ * Primary: forest green #1F5132. Surfaces: warm cream (#f4f0e6) and white.
+ * Restrained sweet-orange accents (#e8935a) for emphasis only. Calm,
+ * trustworthy, practical. Guardian journeys, fees, receipts, school admin.
+ */
+[data-theme="green"] {
+  --ek-green-950: #12241a;
+  --ek-green-900: #1a3326;
+  --ek-green-800: #245039;
+  --ek-green-700: #2f6b4a;
+  --ek-green-600: #3d8a5f;
+  --ek-green-500: #4d9f72;
+  --ek-green-400: #6fb386;
+  --ek-green-300: #93c7a0;
+  --ek-green-200: #bde2cb;
+  --ek-green-100: #dcf3e0;
+  --ek-green-050: #f2f9f5;
+
+  --ek-cream-950: #241d14;
+  --ek-cream-900: #332a1e;
+  --ek-cream-800: #4a3c2a;
+  --ek-cream-700: #6b583e;
+  --ek-cream-600: #8b7652;
+  --ek-cream-500: #aa916d;
+  --ek-cream-400: #c9a984;
+  --ek-cream-300: #e2bcb2;
+  --ek-cream-200: #ece0c9;
+  --ek-cream-100: #f5efe4;
+  --ek-cream-050: #faf6ee;
+
+  --bg-gradient: linear-gradient(160deg, var(--ek-green-950) 0%, var(--ek-green-900) 55%, #1f4a2a 100%);
+  --bg-primary: var(--ek-green-950);
+  --bg-secondary: var(--ek-green-900);
+  --bg-card: rgba(244, 240, 230, 0.055);
+  --bg-card-hover: rgba(244, 240, 230, 0.10);
+  --border-color: rgba(206, 187, 170, 0.18);
+  --border-strong: rgba(206, 187, 170, 0.42);
+
+  --text-primary: #f3efe4;
+  --text-secondary: #b9aca0;
+  --text-muted: #8a8071;
+
+  --accent: var(--ek-green-600);
+  --accent-strong: var(--ek-green-400);
+  --accent-soft: rgba(45, 90, 70, 0.14);
+  --accent-contrast: #ffffff;
+
+  --warm-accent: var(--ek-ember-600);
+  --warm-accent-soft: rgba(201, 111, 59, 0.14);
+
+  --focus-ring: var(--ek-green-300);
+
+  --ek-ok: #63c795;
+  --ek-warn: #e5b95e;
+  --ek-danger: #e88a7a;
+  --ek-info: #7db3e0;
+}
+
+/* ================= PURPLE LIGHT ================= */
+[data-theme="purple"][data-theme="light"] {
+  --bg-gradient: linear-gradient(160deg, var(--ek-purple-050) 0%, #ffffff 60%, var(--ek-purple-100) 100%);
+  --bg-primary: #ffffff;
+  --bg-secondary: var(--ek-purple-050);
+  --bg-card: rgba(255, 255, 255, 0.92);
+  --bg-card-hover: #ffffff;
+  --border-color: rgba(124, 58, 237, 0.16);
+  --border-strong: rgba(124, 58, 237, 0.30);
+
+  --text-primary: #241845;
+  --text-secondary: #4a3d78;
+  --text-muted: #6e6197;
+
+  --accent: #6d28d9;
+  --accent-strong: #522ba0;
+  --accent-soft: rgba(124, 58, 237, 0.09);
+  --accent-contrast: #ffffff;
+
+  --warm-accent: var(--ek-ember-600);
+  --warm-accent-soft: rgba(201, 111, 59, 0.12);
+
+  --focus-ring: #6d28d9;
+
+  --ek-ok: #2e7d4f;
+  --ek-warn: #9a6b13;
+  --ek-danger: #b0432f;
+  --ek-info: #2f6699;
+}
+
+/* ================= PURPLE CALM ================= */
+[data-theme="purple"][data-theme="calm"] {
+  --bg-gradient: linear-gradient(180deg, #ede6f8 0%, #e3dcfc 100%);
+  --bg-primary: #ede6f8;
+  --bg-secondary: #ddd0f0;
+  --bg-card: #f5eefa;
+  --bg-card-hover: #ffffff;
+  --border-color: rgba(124, 58, 237, 0.24);
+  --border-strong: rgba(124, 58, 237, 0.44);
+
+  --text-primary: #2a1e47;
+  --text-secondary: #4e3b6b;
+  --text-muted: #755f99;
+
+  --accent: #6d28d9;
+  --accent-strong: #522ba0;
+  --accent-soft: rgba(124, 58, 237, 0.10);
+  --accent-contrast: #ffffff;
+
+  --warm-accent: #b06a3e;
+  --warm-accent-soft: rgba(176, 106, 62, 0.12);
+
+  --focus-ring: #522ba0;
+
+  --ek-ok: #2e6b47;
+  --ek-warn: #8a6410;
+  --ek-danger: #a03d2c;
+  --ek-info: #33608c;
+
+  font-size: 106%;
+}
+
+/* ================= GREEN LIGHT ================= */
+[data-theme="green"][data-theme="light"] {
+  --bg-gradient: linear-gradient(160deg, var(--ek-cream-050) 0%, #ffffff 60%, var(--ek-green-100) 100%);
+  --bg-primary: #ffffff;
+  --bg-secondary: var(--ek-cream-050);
+  --bg-card: rgba(255, 255, 255, 0.92);
+  --bg-card-hover: #ffffff;
+  --border-color: rgba(31, 81, 50, 0.15);
+  --border-strong: rgba(31, 81, 50, 0.30);
+
+  --text-primary: #242017;
+  --text-secondary: #4a4132;
+  --text-muted: #6e6556;
+
+  --accent: var(--ek-green-700);
+  --accent-strong: var(--ek-green-800);
+  --accent-soft: rgba(31, 81, 50, 0.09);
+  --accent-contrast: #ffffff;
+
+  --warm-accent: var(--ek-ember-600);
+  --warm-accent-soft: rgba(201, 111, 59, 0.12);
+
+  --focus-ring: var(--ek-green-700);
+
+  --ek-ok: #2e7d4f;
+  --ek-warn: #9a6b13;
+  --ek-danger: #b0432f;
+  --ek-info: #2f6699;
+}
+
+/* ================= GREEN CALM ================= */
+[data-theme="green"][data-theme="calm"] {
+  --bg-gradient: linear-gradient(180deg, #ece4d4 0%, #e3daca 100%);
+  --bg-primary: #ece4d4;
+  --bg-secondary: #dccfb8;
+  --bg-card: #f4f0e6;
+  --bg-card-hover: #ffffff;
+  --border-color: rgba(90, 110, 90, 0.22);
+  --border-strong: rgba(90, 110, 90, 0.42);
+
+  --text-primary: #2a261d;
+  --text-secondary: #4a4335;
+  --text-muted: #6f685c;
+
+  --accent: #2d5c3e;
+  --accent-strong: #244b32;
+  --accent-soft: rgba(45, 92, 62, 0.10);
+  --accent-contrast: #ffffff;
+
+  --warm-accent: #b06a3e;
+  --warm-accent-soft: rgba(176, 106, 62, 0.12);
+
+  --focus-ring: #244b32;
+
+  --ek-ok: #2e6b47;
+  --ek-warn: #8a6410;
+  --ek-danger: #a03d2c;
+  --ek-info: #33608c;
+
+  font-size: 106%;
 }

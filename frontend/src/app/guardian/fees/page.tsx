@@ -165,7 +165,7 @@ export default function GuardianFeesPage() {
 
       {receipt && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={() => setReceipt(null)}>
-          <div role="dialog" aria-modal="true" aria-label={`Receipt ${receipt.receiptNumber}`} className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl" onClick={(e) => e.stopPropagation()}>
+          <div role="dialog" aria-modal="true" aria-label={`Receipt ${receipt.receiptNumber}`} className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl text-gray-900" onClick={(e) => e.stopPropagation()}>
             <div className="mb-4 flex items-start justify-between">
               <div>
                 <h2 className="text-lg font-bold">Receipt {receipt.receiptNumber}</h2>

@@ -1,14 +1,17 @@
-/*
- * ELEKEZA UTILITY REMAPS (GENERATED 2026-09-17)
+/* ============================================================================
+ * ELEKEZA UTILITY REMAPS (extended for purple / green / blue themes)
+ * ============================================================================
  * Generated from the ACTUAL utility inventory of src/app + src/components
- * (89 distinct classes). Every legacy purple/indigo/violet/fuchsia/orange/
- * amber/rose/pink utility resolves to design tokens. Selectors are prefixed
- * with `:where(html)`-equivalent specificity bump (html) so they outrank the
+ * (now covers purple, green and blue families too). Every legacy
+ * purple/indigo/violet/fuchsia/orange/amber/rose/pink/blue/sky/green/teal
+ * utility resolves to design tokens. Selectors are prefixed with
+ * `:where(html)`-equivalent specificity bump (html) so they outrank the
  * later-emitted @tailwind utilities layer at equal specificity.
+ *
  * Regenerate: bump when new legacy colors appear (grep inventory).
- */
+ * ========================================================================== */
 
-/* ---- legacy-shade aliases: map purple/amber scale positions to tokens ---- */
+/* ---- legacy-shade aliases: map purple scale positions to tokens ---- */
 :root {
   --p300: var(--ek-moss-300);
   --p200: var(--ek-moss-200);
@@ -103,32 +106,63 @@ html .text-purple-800 { color: var(--text-primary); }
 html .text-purple-900 { color: var(--text-primary); }
 html .text-rose-800 { color: var(--text-primary); }
 html .text-violet-800 { color: var(--text-primary); }
-html .to-indigo-400 { --tw-gradient-to: var(--p400); }
-html .to-indigo-500 { --tw-gradient-to: var(--p600); }
-html .to-indigo-600 { --tw-gradient-to: var(--p600); }
-html .to-indigo-900 { --tw-gradient-to: var(--bg-secondary); }
-html .to-indigo-950 { --tw-gradient-to: var(--bg-secondary); }
-html .to-orange-500 { --tw-gradient-to: var(--p600); }
-html .to-purple-500 { --tw-gradient-to: var(--p600); }
-html .to-purple-600 { --tw-gradient-to: var(--p600); }
-html .to-violet-400 { --tw-gradient-to: var(--p400); }
-html .to-violet-500 { --tw-gradient-to: var(--p600); }
-html .to-violet-600 { --tw-gradient-to: var(--p600); }
-html .via-purple-900 { --tw-gradient-via: var(--bg-secondary); }
-html .via-purple-950 { --tw-gradient-via: var(--bg-secondary); }
 
-/* ================= BLUE/SKY/CYAN remaps (second inventory pass) =================
-   The login CTA and info surfaces used blue-family utilities; mapped to the
-   same moss tokens so accents stay one hue. */
-html .from-blue-600 { --tw-gradient-from: var(--p600) var(--tw-gradient-from-position); --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to); }
-html .from-blue-900 { --tw-gradient-from: var(--bg-secondary) var(--tw-gradient-from-position); --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to); }
-html .to-blue-600 { --tw-gradient-to: var(--p600) var(--tw-gradient-to-position); }
-html .to-cyan-900 { --tw-gradient-to: var(--bg-secondary) var(--tw-gradient-to-position); }
-html .to-cyan-50 { --tw-gradient-to: var(--p50) var(--tw-gradient-to-position); }
-html .text-blue-400 { color: var(--p400); }
-html .text-blue-200 { color: var(--p200); }
+/* ================= BLUE/SKY/CYAN remaps (teacher analytics) =================
+ * Blue + deep teal primary, white/neutral surfaces, restrained orange
+ * accent. Teacher analytics, reports, insights, institutional dashboards.
+ * Deep navy base for the default dark theme; paper for light; low-
+ * stimulation variants for calm.
+ */
+html .from-blue-600 { --tw-gradient-from: var(--ek-blue-600) var(--tw-gradient-from-position); --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to); }
+html .from-blue-900 { --tw-gradient-from: var(--ek-blue-900) var(--tw-gradient-from-position); --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to); }
+html .to-blue-600 { --tw-gradient-to: var(--ek-blue-600) var(--tw-gradient-to-position); }
+html .text-blue-400 { color: var(--ek-blue-400); }
+html .text-blue-200 { color: var(--ek-blue-200); }
 html .text-blue-900 { color: var(--text-primary); }
 html .text-sky-800 { color: var(--text-secondary); }
-html .bg-blue-50 { background-color: var(--p50); }
+html .from-teal-600 { --tw-gradient-from: var(--ek-teal-600) var(--tw-gradient-from-position); --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to); }
+html .from-teal-700 { --tw-gradient-from: var(--ek-teal-700) var(--tw-gradient-from-position); --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to); }
+html .to-teal-600 { --tw-gradient-to: var(--ek-teal-600) var(--tw-gradient-to-position); }
+html .to-teal-50 { --tw-gradient-to: var(--ek-teal-100) var(--tw-gradient-to-position); }
+html .text-teal-600 { color: var(--ek-teal-600); }
+html .bg-blue-50 { background-color: var(--ek-blue-050); }
 html .bg-sky-100 { background-color: var(--accent-soft); }
 html .border-sky-300 { border-color: var(--border-color); }
+
+/* ================= GREEN (guardian) remaps =================
+ * Forest green primary, warm cream surfaces, restrained sweet-orange
+ * accent for emphasis only. Guardian journeys, fees, receipts, school
+ * administration. Cream = grounded, warm, paper-like; orange used only
+ * for emphasis (never as a status colour on its own).
+ */
+html .from-green-600 { --tw-gradient-from: var(--ek-green-600) var(--tw-gradient-from-position); --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to); }
+html .from-green-700 { --tw-gradient-from: var(--ek-green-700) var(--tw-gradient-from-position); --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to); }
+html .to-green-600 { --tw-gradient-to: var(--ek-green-600) var(--tw-gradient-to-position); }
+html .to-green-100 { --tw-gradient-to: var(--ek-green-100) var(--tw-gradient-to-position); }
+html .text-green-400 { color: var(--ek-green-400); }
+html .text-green-600 { color: var(--ek-green-600); }
+html .bg-green-50 { background-color: var(--ek-green-050); }
+html .bg-cream-100 { background-color: var(--ek-cream-100); }
+html .bg-cream-50 { background-color: var(--ek-cream-050); }
+html .border-green-300 { border-color: var(--border-color); }
+html .border-green-400 { border-color: var(--border-color); }
+
+/* ================= PURPLE (learner) remaps =================
+ * Lavender/lilac supporting surfaces, white content. Expressive,
+ * friendly, age-appropriate. Learner journeys, activities, progress,
+ * gamification and encouragement.
+ */
+html .from-purple-500 { --tw-gradient-from: var(--ek-purple-600) var(--tw-gradient-from-position); --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to); }
+html .from-purple-700 { --tw-gradient-from: var(--ek-purple-700) var(--tw-gradient-from-position); --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to); }
+html .to-purple-500 { --tw-gradient-to: var(--ek-purple-500) var(--tw-gradient-to-position); }
+html .to-purple-050 { --tw-gradient-to: var(--ek-purple-050) var(--tw-gradient-to-position); }
+html .text-purple-400 { color: var(--ek-purple-400); }
+html .text-purple-500 { color: var(--ek-purple-500); }
+html .text-lavender-300 { color: var(--ek-lavender-300); }
+html .text-lavender-200 { color: var(--ek-lavender-200); }
+html .text-lilac-100 { color: var(--ek-lilac-100); }
+html .bg-purple-500 { background-color: var(--ek-purple-500); }
+html .bg-purple-100 { background-color: var(--ek-purple-100); }
+html .bg-lavender-300 { background-color: var(--ek-lavender-300); }
+html .bg-lavender-200 { background-color: var(--ek-lavender-200); }
+html .border-purple-400 { border-color: var(--border-color); }
