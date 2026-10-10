@@ -105,7 +105,7 @@ export default function TeacherDashboard() {
         <HubCard
           icon={<Users size={24} />}
           title="Student Management"
-          stat={`${data.totalLearners} learners`}
+          stat={`${data.totalLearners} ${data.totalLearners === 1 ? 'learner' : 'learners'}`}
           description="View, add, and manage your students."
           href="/teacher/students"
           color="#3B82F6"

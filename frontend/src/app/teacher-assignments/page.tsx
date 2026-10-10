@@ -10,6 +10,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { attendanceAPI, assignmentsAPI, type ClassInfo, type AssignmentInfo, type SubmissionInfo } from '@/lib/api';
+import { learnerCountLabel } from '@/lib/pluralize';
 
 export default function TeacherAssignmentsPage() {
   const [classes, setClasses] = useState<ClassInfo[]>([]);
@@ -130,22 +131,23 @@ export default function TeacherAssignmentsPage() {
   return (
     <main className="mx-auto max-w-4xl px-4 py-8">
       <h1 className="text-2xl font-bold mb-1">Assignments</h1>
-      <p className="text-gray-600 mb-6">Create work for your classes and grade what learners submit.</p>
+      <p className="mb-6" style={{ color: 'var(--text-secondary)' }}>Create work for your classes and grade what learners submit.</p>
 
       {message && (
         <div
           role="status"
-          className={`mb-4 rounded-lg border px-4 py-3 text-sm ${
-            message.tone === 'ok'
-              ? 'border-emerald-300 bg-emerald-50 text-emerald-800'
-              : 'border-rose-300 bg-rose-50 text-rose-800'
-          }`}
+          className="mb-4 rounded-lg border px-4 py-3 text-sm"
+          style={{
+            borderColor: message.tone === 'ok' ? 'var(--ek-ok)' : 'var(--ek-danger)',
+            background: message.tone === 'ok' ? 'rgba(99, 199, 149, 0.12)' : 'rgba(232, 138, 122, 0.12)',
+            color: message.tone === 'ok' ? 'var(--ek-ok)' : 'var(--ek-danger)',
+          }}
         >
           {message.text}
         </div>
       )}
 
-      <section aria-label="Create assignment" className="mb-8 rounded-xl border border-gray-200 bg-white p-5">
+      <section aria-label="Create assignment" className="mb-8 glass-card p-5">
         <h2 className="font-semibold mb-3">New assignment</h2>
         <div className="grid gap-3 sm:grid-cols-2">
           <label className="text-sm font-medium sm:col-span-2">
@@ -154,7 +156,8 @@ export default function TeacherAssignmentsPage() {
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               maxLength={200}
-              className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              className="mt-1 w-full rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              style={{ background: 'var(--bg-card)', border: '1px solid var(--border-strong)', color: 'var(--text-primary)' }}
               placeholder="e.g. Fractions practice set 2"
             />
           </label>
@@ -165,7 +168,8 @@ export default function TeacherAssignmentsPage() {
               onChange={(e) => setInstructions(e.target.value)}
               rows={3}
               maxLength={10000}
-              className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              className="mt-1 w-full rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              style={{ background: 'var(--bg-card)', border: '1px solid var(--border-strong)', color: 'var(--text-primary)' }}
               placeholder="What should learners do? Keep it clear and short."
             />
           </label>
@@ -175,7 +179,8 @@ export default function TeacherAssignmentsPage() {
               type="date"
               value={dueDate}
               onChange={(e) => setDueDate(e.target.value)}
-              className="mt-1 block rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              className="mt-1 block rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              style={{ background: 'var(--bg-card)', border: '1px solid var(--border-strong)', color: 'var(--text-primary)', colorScheme: 'dark' }}
             />
           </label>
           <label className="text-sm font-medium">
@@ -186,7 +191,8 @@ export default function TeacherAssignmentsPage() {
               max={1000}
               value={points}
               onChange={(e) => setPoints(e.target.value)}
-              className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              className="mt-1 block w-full rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              style={{ background: 'var(--bg-card)', border: '1px solid var(--border-strong)', color: 'var(--text-primary)' }}
             />
           </label>
           <label className="text-sm font-medium sm:col-span-2">
@@ -194,11 +200,12 @@ export default function TeacherAssignmentsPage() {
             <select
               value={classId ?? ''}
               onChange={(e) => setClassId(Number(e.target.value))}
-              className="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              className="mt-1 w-full rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              style={{ background: 'var(--bg-card)', border: '1px solid var(--border-strong)', color: 'var(--text-primary)' }}
             >
               {classes.length === 0 && <option value="">No classes yet</option>}
               {classes.map((c) => (
-                <option key={c.id} value={c.id}>{c.name} ({c.learnerCount} learners)</option>
+                <option key={c.id} value={c.id}>{c.name} ({learnerCountLabel(c.learnerCount)})</option>
               ))}
             </select>
           </label>
@@ -214,7 +221,7 @@ export default function TeacherAssignmentsPage() {
       </section>
 
       {loading ? (
-        <p className="py-8 text-center text-gray-500" role="status">Loading…</p>
+        <p className="py-8 text-center" role="status" style={{ color: 'var(--text-muted)' }}>Loading…</p>
       ) : assignments.length === 0 ? (
         <div className="rounded-xl border border-dashed border-gray-300 p-8 text-center text-gray-500">
           No assignments for this class yet — create the first one above.
@@ -222,11 +229,11 @@ export default function TeacherAssignmentsPage() {
       ) : (
         <ul className="space-y-3" aria-label="Class assignments">
           {assignments.map((a) => (
-            <li key={a.id} className="rounded-xl border border-gray-200 bg-white p-4">
+            <li key={a.id} className="glass-card p-4">
               <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                 <div>
                   <h3 className="font-semibold">{a.title}</h3>
-                  <p className="text-sm text-gray-600">
+                  <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
                     {a.dueDate ? `Due ${a.dueDate}` : 'No due date'} · {a.points} points ·{' '}
                     {a.gradedCount}/{a.submissionCount || 0} graded
                     {a.submissionCount > 0 ? ` (${a.submissionCount} submitted)` : ''}
@@ -237,6 +244,7 @@ export default function TeacherAssignmentsPage() {
                   onClick={() => openSubmissions(a.id)}
                   aria-expanded={openAssignmentId === a.id}
                   className="shrink-0 text-sm font-medium text-emerald-700 underline underline-offset-2 hover:no-underline"
+                  style={{ color: 'var(--accent-strong)' }}
                 >
                   {openAssignmentId === a.id ? 'Close submissions' : 'View submissions'}
                 </button>
@@ -245,13 +253,13 @@ export default function TeacherAssignmentsPage() {
               {openAssignmentId === a.id && (
                 <div className="mt-3">
                   {subsLoading ? (
-                    <p className="text-sm text-gray-500" role="status">Loading submissions…</p>
+                    <p className="text-sm" role="status" style={{ color: 'var(--text-muted)' }}>Loading submissions…</p>
                   ) : submissions.length === 0 ? (
-                    <p className="text-sm text-gray-500">No submissions yet.</p>
+                    <p className="text-sm" style={{ color: 'var(--text-muted)' }}>No submissions yet.</p>
                   ) : (
                     <ul className="space-y-2">
                       {submissions.map((s) => (
-                        <li key={s.id} className="rounded-lg border border-gray-200 p-3">
+                        <li key={s.id} className="rounded-lg border p-3" style={{ borderColor: 'var(--border-color)' }}>
                           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                             <span className="font-medium text-sm">{s.learnerName ?? `Learner ${s.learnerId}`}</span>
                             {s.graded ? (
@@ -269,7 +277,8 @@ export default function TeacherAssignmentsPage() {
                                   value={scores[s.id] ?? ''}
                                   onChange={(e) => setScores((m) => ({ ...m, [s.id]: e.target.value }))}
                                   placeholder={`0–${a.points}`}
-                                  className="w-24 rounded-lg border border-gray-300 px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                                  className="w-24 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                                  style={{ background: 'var(--bg-card)', border: '1px solid var(--border-strong)', color: 'var(--text-primary)' }}
                                 />
                                 <label className="sr-only" htmlFor={`fb-${s.id}`}>Feedback for {s.learnerName}</label>
                                 <input
@@ -278,7 +287,8 @@ export default function TeacherAssignmentsPage() {
                                   onChange={(e) => setFeedbacks((m) => ({ ...m, [s.id]: e.target.value }))}
                                   maxLength={2000}
                                   placeholder="Feedback (optional)"
-                                  className="w-full sm:w-56 rounded-lg border border-gray-300 px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                                  className="w-full sm:w-56 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                                  style={{ background: 'var(--bg-card)', border: '1px solid var(--border-strong)', color: 'var(--text-primary)' }}
                                 />
                                 <button
                                   type="button"
@@ -290,7 +300,7 @@ export default function TeacherAssignmentsPage() {
                               </div>
                             )}
                           </div>
-                          <p className="mt-2 whitespace-pre-wrap text-sm text-gray-700">{s.content}</p>
+                          <p className="mt-2 whitespace-pre-wrap text-sm" style={{ color: 'var(--text-secondary)' }}>{s.content}</p>
                         </li>
                       ))}
                     </ul>
