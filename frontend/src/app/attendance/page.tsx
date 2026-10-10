@@ -11,6 +11,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import api from '@/lib/axios';
 import { attendanceAPI, type ClassInfo, type RosterEntry, type LearnerAttendance } from '@/lib/api';
+import { learnerCountLabel } from '@/lib/pluralize';
 
 const STATUSES = ['PRESENT', 'ABSENT', 'LATE', 'EXCUSED'] as const;
 
@@ -138,13 +139,14 @@ export default function AttendancePage() {
         <label className="flex-1 text-sm font-medium">
           Class
           <select
-            className="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            className="mt-1 w-full rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            style={{ background: 'var(--bg-card)', border: '1px solid var(--border-strong)', color: 'var(--text-primary)' }}
             value={classId ?? ''}
             onChange={(e) => setClassId(Number(e.target.value))}
           >
             {classes.length === 0 && <option value="">No classes yet</option>}
             {classes.map((c) => (
-              <option key={c.id} value={c.id}>{c.name} ({c.learnerCount} learners)</option>
+              <option key={c.id} value={c.id}>{c.name} ({learnerCountLabel(c.learnerCount)})</option>
             ))}
           </select>
         </label>
@@ -152,7 +154,8 @@ export default function AttendancePage() {
           Date
           <input
             type="date"
-            className="mt-1 block rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            className="mt-1 block rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            style={{ background: 'var(--bg-card)', border: '1px solid var(--border-strong)', color: 'var(--text-primary)', colorScheme: 'dark' }}
             value={date}
             max={todayISO()}
             onChange={(e) => setDate(e.target.value)}
@@ -163,11 +166,12 @@ export default function AttendancePage() {
       {message && (
         <div
           role="status"
-          className={`mb-4 rounded-lg border px-4 py-3 text-sm ${
-            message.tone === 'ok'
-              ? 'border-emerald-300 bg-emerald-50 text-emerald-800'
-              : 'border-rose-300 bg-rose-50 text-rose-800'
-          }`}
+          className="mb-4 rounded-lg border px-4 py-3 text-sm"
+          style={{
+            borderColor: message.tone === 'ok' ? 'var(--ek-ok)' : 'var(--ek-danger)',
+            background: message.tone === 'ok' ? 'rgba(99, 199, 149, 0.12)' : 'rgba(232, 138, 122, 0.12)',
+            color: message.tone === 'ok' ? 'var(--ek-ok)' : 'var(--ek-danger)',
+          }}
         >
           {message.text}
         </div>
