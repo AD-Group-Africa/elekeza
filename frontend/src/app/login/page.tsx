@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { Eye, EyeOff } from 'lucide-react';
@@ -26,7 +27,15 @@ export default function LoginPage() {
   return (
     <main className="min-h-screen flex flex-col items-center justify-center p-4">
       <div className="glass-card p-8 max-w-md w-full">
-        <h1 className="text-3xl font-bold text-purple-200 text-center mb-6">Elekeza</h1>
+        <Image
+          src="/Elekeza Logo.png"
+          alt="Elekeza"
+          width={260}
+          height={260}
+          priority
+          className="mx-auto h-auto w-auto max-w-[240px] object-contain"
+        />
+        <h1 className="sr-only">Elekeza</h1>
         <h2 className="text-xl font-semibold text-purple-200 text-center mb-6">Welcome Back</h2>
         
         <form onSubmit={handleSubmit} className="space-y-4">

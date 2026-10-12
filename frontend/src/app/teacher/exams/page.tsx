@@ -1,7 +1,6 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import SidebarLayout from '@/components/layout/SidebarLayout';
 import { examAPI } from '@/lib/api';
 import { FileText, Plus, Trash2, Send, Lock, Unlock } from 'lucide-react';
 
@@ -188,8 +187,7 @@ export default function TeacherExams() {
   };
 
   return (
-    <SidebarLayout>
-      <div className="space-y-6">
+    <div className="space-y-6">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold text-purple-200">Exams &amp; CBT</h1>
           <button
@@ -417,6 +415,5 @@ export default function TeacherExams() {
           </div>
         )}
       </div>
-    </SidebarLayout>
   );
 }

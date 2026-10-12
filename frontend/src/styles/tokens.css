@@ -211,7 +211,9 @@
  * (--ek-purple-050/100), white content. Expressive, friendly, age-
  * appropriate. Learner journeys, activities, progress, gamification.
  */
-:root,
+/* Scope the purple-default tokens to the two dark/variations that use them.
+ * (:root here would re-assert dark tokens AFTER [data-theme="light"] in source
+ * order and defeat light mode at equal specificity — the 2026-10-12 cascade fix.) */
 [data-theme="dark"],
 [data-theme="purple"] {
   --ek-purple-950: #1e1536;

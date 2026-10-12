@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import {
@@ -116,7 +117,10 @@ export default function SidebarLayout({ children }: { children: React.ReactNode 
     <div className="flex flex-col h-full backdrop-blur-md border-r p-4" style={{ background: "var(--bg-card)", borderColor: "var(--border-color)" }}>
       <div className="flex items-center justify-between mb-6">
         {!collapsed && <Link href={role === 'STUDENT' ? '/student-home' : '/' + role.toLowerCase().replace
-        ('_', '-')} className="text-xl font-bold text-purple-200 hover:text-white transition">Elekeza</Link>}
+        ('_', '-')} className="text-xl font-bold text-purple-200 hover:text-white transition" aria-label="Elekeza home">
+          <Image src="/Elekeza Logo.png" alt="Elekeza" width={220} height={220}
+            className="h-auto w-auto max-w-[150px] max-h-9 object-contain" priority />
+        </Link>}
         <button onClick={() => setCollapsed(!collapsed)} className="text-purple-300 hover:text-white" aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}>
           {collapsed ? <Menu size={20} /> : <X size={20} />}
         </button>

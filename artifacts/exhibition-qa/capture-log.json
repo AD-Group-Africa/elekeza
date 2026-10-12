@@ -1,0 +1,51 @@
+{
+  "results": [
+    {
+      "journey": "Learner (dashboard, lessons, lesson reading, progress, a11y)",
+      "status": "captured",
+      "notes": []
+    },
+    {
+      "journey": "Teacher (dashboard, students, assignments, attendance, support, progress)",
+      "status": "captured",
+      "notes": []
+    },
+    {
+      "journey": "Guardian (dashboard, child, reports, communication)",
+      "status": "captured",
+      "notes": []
+    },
+    {
+      "journey": "Messaging round-trip",
+      "status": "captured",
+      "notes": []
+    },
+    {
+      "journey": "Mobile (390x844)",
+      "status": "captured",
+      "notes": []
+    }
+  ],
+  "consoleErrors": {
+    "learner": [
+      "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+      "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+    ],
+    "teacher": [
+      "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+      "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+    ],
+    "guardian": [
+      "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+      "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+    ],
+    "messaging": [
+      "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+      "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+    ],
+    "mobile": [
+      "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+      "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+    ]
+  }
+}

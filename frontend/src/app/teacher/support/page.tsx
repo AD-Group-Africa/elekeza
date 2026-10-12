@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import api from '@/lib/axios';
-import SidebarLayout from '@/components/layout/SidebarLayout';
 import { AlertTriangle, Check, X, Plus } from 'lucide-react';
 
 interface SupportSignal {
@@ -80,8 +79,7 @@ export default function TeacherSupport() {
   };
 
   return (
-    <SidebarLayout>
-      <div className="space-y-6">
+    <div className="space-y-6">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
             <h1 className="text-2xl font-bold text-purple-200">Support Signals</h1>
@@ -208,6 +206,5 @@ export default function TeacherSupport() {
           </>
         )}
       </div>
-    </SidebarLayout>
   );
 }

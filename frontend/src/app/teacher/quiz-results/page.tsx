@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import api from '@/lib/axios';
-import SidebarLayout from '@/components/layout/SidebarLayout';
 import { Check, X } from 'lucide-react';
 
 interface QuizResultRow {
@@ -31,8 +30,7 @@ export default function TeacherQuizResults() {
   const correctCount = filtered.filter(r => r.correct).length;
 
   return (
-    <SidebarLayout>
-      <div className="space-y-6">
+    <div className="space-y-6">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <h1 className="text-2xl font-bold text-purple-200">Per-Question Quiz Results</h1>
           <select
@@ -93,6 +91,5 @@ export default function TeacherQuizResults() {
           </>
         )}
       </div>
-    </SidebarLayout>
   );
 }
