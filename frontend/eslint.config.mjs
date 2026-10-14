@@ -9,6 +9,9 @@ const eslintConfig = defineConfig([
   globalIgnores([
     // Default ignores of eslint-config-next:
     ".next/**",
+    // Generated Playwright e2e build output — 1139 of the 1156
+    // lint errors came from here. Never lint generated bundles.
+    ".next-e2e/**",
     "out/**",
     "build/**",
     "android/**",

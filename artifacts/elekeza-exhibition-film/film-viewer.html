@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Elekeza exhibition film — review</title>
+<style>
+  :root {
+    --bg: #0a0a10;
+    --panel: #14141d;
+    --line: #2a2a38;
+    --text: #f0f0f7;
+    --muted: #9aa0b0;
+    --orange: #f59e0b;
+    --brand: #4f46e5;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 32px 24px 64px;
+    background: var(--bg); color: var(--text);
+    font: 16px/1.6 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  }
+  .wrap { max-width: 1100px; margin: 0 auto; }
+  header { border-bottom: 2px solid var(--orange); padding-bottom: 16px; margin-bottom: 32px; }
+  h1 { font-size: 26px; margin: 0 0 6px; letter-spacing: -0.01em; }
+  .sub { color: var(--muted); font-size: 14px; }
+  .sub b { color: var(--text); font-weight: 600; }
+  h2 { font-size: 18px; margin: 40px 0 4px; }
+  h2:first-of-type { margin-top: 0; }
+  .note { color: var(--muted); font-size: 13.5px; margin: 0 0 14px; }
+  .player {
+    background: var(--panel); border: 1px solid var(--line);
+    border-radius: 12px; padding: 14px; margin-bottom: 8px;
+  }
+  video { width: 100%; display: block; border-radius: 6px; background: #000; }
+  video.portrait { max-width: 420px; margin: 0 auto; }
+  .meta { display: flex; flex-wrap: wrap; gap: 16px; color: var(--muted); font-size: 13px; margin-top: 10px; }
+  .meta span b { color: var(--text); font-weight: 600; }
+  a { color: var(--brand); }
+  figure { margin: 0 0 24px; }
+  figure img { width: 100%; border: 1px solid var(--line); border-radius: 10px; }
+  figcaption { color: var(--muted); font-size: 13px; margin-top: 8px; }
+  footer { margin-top: 48px; padding-top: 16px; border-top: 1px solid var(--line); color: var(--muted); font-size: 13px; }
+  code { background: #1d1d29; padding: 1px 6px; border-radius: 4px; font-size: 13px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Elekeza — exhibition film</h1>
+    <div class="sub">
+      <b>58.70 s</b> · 30 fps · h.264 + AAC 48 kHz · 8 narration lines · first cut for review
+    </div>
+  </header>
+
+  <h2>Primary cut — 16:9, 1920×1080</h2>
+  <p class="note">This is the cut to screen on the venue's projector or main display.</p>
+  <div class="player">
+    <video id="landscape" controls preload="metadata" poster="">
+      <source src="elekeza-exhibition-film.mp4" type="video/mp4">
+    </video>
+    <div class="meta">
+      <span><b>File</b> elekeza-exhibition-film.mp4</span>
+      <span><b>Size</b> 31.9 MB</span>
+      <span><b>Duration</b> 58.70 s</span>
+      <span><a href="elekeza-exhibition-film.mp4" target="_blank" rel="noopener">open in a new tab</a></span>
+    </div>
+  </div>
+
+  <h2>Secondary cut — 9:16, 1080×1920</h2>
+  <p class="note">
+    For a side display, a phone or a social teaser. Same narration and same desktop
+    screenshots as the primary cut, laid out in a full-width band so the UI keeps its
+    true proportions — it does not pretend to be a mobile build.
+  </p>
+  <div class="player">
+    <video class="portrait" id="vertical" controls preload="metadata">
+      <source src="elekeza-exhibition-film-vertical.mp4" type="video/mp4">
+    </video>
+    <div class="meta">
+      <span><b>File</b> elekeza-exhibition-film-vertical.mp4</span>
+      <span><b>Size</b> 31.9 MB</span>
+      <span><b>Duration</b> 58.70 s</span>
+      <span><a href="elekeza-exhibition-film-vertical.mp4" target="_blank" rel="noopener">open in a new tab</a></span>
+    </div>
+  </div>
+
+  <h2>Storyboards</h2>
+  <p class="note">
+    Built by sampling the <em>rendered</em> video — one cell per screenshot beat, in
+    playing order, so what you see is what plays.
+  </p>
+  <figure>
+    <img src="storyboard-contact-sheet.png" alt="16:9 storyboard contact sheet">
+    <figcaption>storyboard-contact-sheet.png — the primary cut, every beat.</figcaption>
+  </figure>
+  <figure>
+    <img src="storyboard-contact-sheet-vertical.png" alt="9:16 storyboard contact sheet">
+    <figcaption>storyboard-contact-sheet-vertical.png — the portrait cut, every beat.</figcaption>
+  </figure>
+
+  <footer>
+    Behind the film: <code>elekeza-promo-project/</code> — <code>film_plan.py</code> holds the
+    timeline, narration and screenshots; <code>EDIT-BEFORE-EXHIBITION.md</code> lists what to
+    check before you screen it; <code>asset-manifest.md</code> records where every image came from.
+  </footer>
+</div>
+
+<script>
+  // Pause the portrait cut when the primary one starts, so the audio never overlaps.
+  const shots = [document.getElementById('landscape'), document.getElementById('vertical')];
+  shots.forEach(v => v.addEventListener('play', () => {
+    shots.forEach(o => { if (o !== v && !o.paused) o.pause(); });
+  }));
+</script>
+</body>
+</html>
