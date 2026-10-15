@@ -212,12 +212,27 @@ class AnalyticsController(
 
     @GetMapping("/admin")
     @PreAuthorize("hasAnyRole('ADMIN','SCHOOL_ADMIN')")
-    fun adminAnalytics(): ResponseEntity<Map<String, Any>> {
-        val allUsers = userRepo.findAll()
+    fun adminAnalytics(@AuthenticationPrincipal user: User): ResponseEntity<Map<String, Any>> {
+        // 2026-10-15 governance audit (T4): a SCHOOL_ADMIN must only ever see
+        // their own institution's aggregates — not platform-wide totals.
+        // Platform ADMIN is the platform-wide operator role (role matrix),
+        // regardless of the seed's institution assignment.
+        val platformWide = user.role == UserRole.ADMIN
+        val scopeInstitutionId = user.institutionId
+        val allUsers = userRepo.findAll().filter { platformWide || it.institutionId == scopeInstitutionId }
         val students = allUsers.filter { it.role == UserRole.STUDENT }
         val teachers = allUsers.filter { it.role == UserRole.TEACHER }
-        val guardians = allUsers.filter { it.role == UserRole.GUARDIAN }
-        val institutions = institutionRepo.count()
+        // Guardians do not always carry institution_id, so in scoped mode count
+        // them via active guardian_links into the same institution's learners.
+        val guardians: Int = if (platformWide) {
+            allUsers.filter { it.role == UserRole.GUARDIAN }.size
+        } else {
+            val scopedLearnerIds = students.map { it.id }.toSet()
+            guardianLinkRepo.findAll()
+                .filter { it.isActive && it.learnerId in scopedLearnerIds }
+                .map { it.guardianId }.toSet().size
+        }
+        val institutions = if (platformWide) institutionRepo.count() else 1
 
         val monthlyRegistrations = (5 downTo 0).map { monthsAgo ->
             val month = LocalDateTime.now().minusMonths(monthsAgo.toLong())
@@ -226,7 +241,7 @@ class AnalyticsController(
 
         return ResponseEntity.ok(mapOf(
             "totalLearners" to students.size, "totalTeachers" to teachers.size,
-            "totalGuardians" to guardians.size, "totalInstitutions" to institutions,
+            "totalGuardians" to guardians, "totalInstitutions" to institutions,
             "activeToday" to allUsers.count { it.updatedAt != null && java.time.LocalDateTime.ofInstant(it.updatedAt ?: java.time.Instant.now(), java.time.ZoneId.systemDefault()).toLocalDate() == java.time.LocalDate.now() },
             "totalContent" to contentRepo.count(), "totalQuizzes" to quizAttemptRepo.count(),
             "monthlyRegistrations" to monthlyRegistrations

@@ -67,6 +67,15 @@ class AuthController(
             throw ResponseStatusException(HttpStatus.UNAUTHORIZED, "Refresh token expired or revoked")
         }
         val user = stored.user
+        // Suspension must also cut the refresh leg: a deactivated account can
+        // no longer mint NEW tokens even though an old access cookie might
+        // still be within its validity window (2026-10-15 governance audit).
+        if (!user.active) {
+            stored.revoked = true
+            refreshTokenRepository.save(stored)
+            clearRefreshCookie(response)
+            throw ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid email or password")
+        }
         stored.revoked = true
         refreshTokenRepository.save(stored)
         return issueTokensAndRespond(user, response, HttpStatus.OK)

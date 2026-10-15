@@ -61,8 +61,9 @@ interface NotificationRepository : JpaRepository<Notification, Long> {
     fun findByUserIdOrderByCreatedAtDesc(userId: Long): List<Notification>
     fun findByUserIdAndReadFalseOrderByCreatedAtDesc(userId: Long): List<Notification>
 
-    /** EL-NEW-02: thread view — received human messages for one user, newest first. */
+    /** EL-NEW-02: thread view — human messages a user received or sent, newest first. */
     fun findByUserIdAndTypeInOrderByCreatedAtDesc(userId: Long, types: Collection<String>): List<Notification>
+    fun findBySenderIdInOrderByCreatedAtDesc(senderIds: Collection<Long>): List<Notification>
 
     @Query("SELECT COUNT(n) FROM Notification n WHERE n.userId = :uid AND n.read = false")
     fun countUnread(@Param("uid") userId: Long): Long

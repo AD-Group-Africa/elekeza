@@ -36,7 +36,9 @@ class JwtAuthFilter(
             runCatching {
                 val email = jwtUtil.getEmail(token)
                 val user  = userRepository.findByEmail(email)
-                if (user != null) {
+                // Suspended/deactivated accounts must not keep working with an
+                // already-issued unexpired JWT (2026-10-15 governance audit, T10).
+                if (user != null && user.active) {
                     val auth = UsernamePasswordAuthenticationToken(
                         user, null,
                         listOf(SimpleGrantedAuthority("ROLE_${user.role.name}"))

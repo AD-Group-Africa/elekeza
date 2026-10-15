@@ -158,12 +158,19 @@ class MessageController(
 
     // ── Helpers ───────────────────────────────────────────────────────────
 
-    /** Human messages addressed to this user; system notifications excluded. */
-    private fun receivedMessages(userId: Long): List<NotificationDto> =
-        notificationRepo.findByUserIdAndTypeInOrderByCreatedAtDesc(userId, MESSAGE_TYPES)
+    /** Human messages addressed to this user, plus their own sent leg so the
+     *  guardian/teacher thread shows both directions (Oct-2026 audit P1). */
+    private fun receivedMessages(userId: Long): List<NotificationDto> {
+        val received = notificationRepo.findByUserIdAndTypeInOrderByCreatedAtDesc(userId, MESSAGE_TYPES)
             .filter { it.senderId != null }
+        val sent = notificationRepo.findBySenderIdInOrderByCreatedAtDesc(listOf(userId))
+            .filter { it.type in MESSAGE_TYPES }
+        return (received + sent)
+            .distinctBy { it.id }
+            .sortedByDescending { it.createdAt }
             .take(50)
             .toDtosWithSenderNames(userRepo)
+    }
 
     /**
      * The institution a guardian acts within, derived from active guardian
