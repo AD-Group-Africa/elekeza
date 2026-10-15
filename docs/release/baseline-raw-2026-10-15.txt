@@ -1,0 +1,975 @@
+﻿
+
+==============================================================================
+== ELEKEZA BASELINE CAPTURE - 2026-10-15 15:28:43 +03:00
+==============================================================================
+Host                             | DESKTOP-9GIIFCA
+User                             | DESKTOP-9GIIFCA\thrillerpark
+PowerShell                       | 5.1.19041.6456
+Project path                     | C:\Users\thrillerpark\Desktop\Flagship Projects\Elekeza
+Output file                      | C:\Users\thrillerpark\Desktop\Flagship Projects\Elekeza\docs\release\baseline-raw-2026-10-15.txt
+
+==============================================================================
+== 0. PROJECT ROOT CHECK
+==============================================================================
+Working dir                      | C:\Users\thrillerpark\Desktop\Flagship Projects\Elekeza
+backend exists?                  | True
+frontend exists?                 | True
+docs exists?                     | True
+.git exists?                     | True
+
+==============================================================================
+== 1. GIT STATE
+==============================================================================
+
+> git --version
+git version 2.45.1.windows.1
+
+> git rev-parse --show-toplevel
+C:/Users/thrillerpark/Desktop/Flagship Projects/Elekeza
+
+> git branch --show-current
+feat/elekeza-pilot-completion
+
+> git rev-parse HEAD
+4b366139923eb95d1f1aff927a12f070f2b140ef
+
+> git rev-parse --short HEAD
+4b36613
+
+> git log --oneline -20
+4b36613 feat(exhibition): add Elekeza exhibition film assets and final cut
+b0b4906 feat(ui): brand assets, manifest encoding, theme polish; preserve sidebar fix
+bab0ba2 fix(ui): assignment form theme tokens, learner-count pluralization, attendance controls
+b9d54bb feat(ui): purple-primary theme; receipt modal contrast fix
+f2ccba9 feat(messaging): two-way guardian-teacher messaging with tenant isolation (EL-NEW-02)
+09e7f41 docs(release): capture baseline ΓÇö release/v0.1.0 at 35d2804
+35d2804 docs(matrix): mark EL-NEW-02 deferred ΓÇö UI shell, not bounded bug
+bf55917 docs(readiness): correct EL-NEW-02 assessment ΓÇö UI shell, not a bounded bug
+35ccdda revert(ai): remove import of non-existent stage3b_readability module from merge
+e5ccbc4 merge: integrate remote process.py update into reconciliation line
+f821a9c docs(readiness): session status 2026-10-08 ΓÇö reconciliation live-verified locally
+8b17436 feat: reconciliation ΓÇö canonical docs (15), AI Gates 0-3, V13-V16, fail-closed security, E2E evidence
+351df08 chore: ignore local venv, backups, and temp config backups
+aac38cb docs: add PROJECT_STATE_DOSSIER.md (read-only reconnaissance)
+b139b8e fix(ai): reconcile Groq model IDs with live catalog
+b2da56e chore(release): prepare ai-elewa v0.1.0-pilot
+035d449 feat(ai): provider-guaranteed Stage 2 JSON + explicit completion bound (Gate 3)
+305ca5f feat(ai): system-owned adaptive directive; LLM writes only the message (Gate 2)
+39f0583 feat(ai): deterministic directive engine for adaptive responses (Gate 1)
+7651aad fix(ai): harden provider retry layer and gate live test matrix (Gate 0)
+
+> git remote -v
+origin	https://github.com/AD-Group-Africa/elekeza.git (fetch)
+origin	https://github.com/AD-Group-Africa/elekeza.git (push)
+
+> git tag --list (last 20)
+freebuff-snapshot/8ce52d92-57cf-405d-9dbd-7bc0652e8a2d
+freebuff-snapshot/93064f28-f998-4bf1-9269-92ffc3dd00aa
+freebuff-snapshot/a26f7a57-2b33-4045-ab97-3abb4920ad96
+safety/pre-pilot-2026-10-13
+v0.1.0-exhibition-rc1
+v0.1.0-exhibition-rc2
+v0.1.0-exhibition-rc3
+v0.1.0-exhibition-rc4
+v0.1.0-pilot
+v0.1.0-pilot-final
+v0.1.0-pilot-r2
+
+> git stash list
+stash@{0}: On integration/staging-reconciliation: Elekeza reconciliation WIP before returning to release/v0.1.0
+stash@{1}: filter-branch: rewrite
+stash@{2}: WIP on staging: d755f52 deploy: add pre-built jar for Railway
+stash@{3}: On staging: gradle build artifacts
+
+> git status --short
+ D artifacts/elekeza-exhibition-film/elekeza-exhibition-film-vertical.mp4
+ D artifacts/elekeza-exhibition-film/elekeza-exhibition-film.mp4
+ M backend/src/main/kotlin/com/elekeza/backend/analytics/AnalyticsController.kt
+ M backend/src/main/kotlin/com/elekeza/backend/auth/AuthController.kt
+ M backend/src/main/kotlin/com/elekeza/backend/notification/MessageController.kt
+ M backend/src/main/kotlin/com/elekeza/backend/notification/NotificationService.kt
+ M backend/src/main/kotlin/com/elekeza/backend/security/JwtAuthFilter.kt
+A  docs/AUDIT_2026-10-15_FINAL_PILOT_READINESS.md
+ M e2e-evidence/02-user-journeys/admin/A01-admin-dashboard.png
+ M e2e-evidence/02-user-journeys/admin/A02-staff.png
+ M e2e-evidence/02-user-journeys/admin/A03-learners-via-admin.png
+ M e2e-evidence/02-user-journeys/admin/A04-admin-attendance-view.png
+ M e2e-evidence/02-user-journeys/admin/A05-analytics-reports.png
+ M e2e-evidence/02-user-journeys/admin/A06-school-import.png
+ M e2e-evidence/02-user-journeys/admin/A07-school-payment.png
+ M e2e-evidence/02-user-journeys/admin/admin-steps.json
+ M e2e-evidence/02-user-journeys/ai-down/ai-down-steps.json
+ M e2e-evidence/02-user-journeys/guardian/G01-guardian-dashboard.png
+ M e2e-evidence/02-user-journeys/guardian/G02-child-detail.png
+ M e2e-evidence/02-user-journeys/guardian/G03-communication-thread.png
+A  e2e-evidence/02-user-journeys/guardian/G04-aborted-state.png
+ M e2e-evidence/02-user-journeys/guardian/guardian-steps.json
+ M e2e-evidence/02-user-journeys/learner/L00-login-page.png
+ M e2e-evidence/02-user-journeys/learner/L02-student-home.png
+ M e2e-evidence/02-user-journeys/learner/L03-profile.png
+ M e2e-evidence/02-user-journeys/learner/L04-preferences-tts-on.png
+ M e2e-evidence/02-user-journeys/learner/L07-lessons-list.png
+ M e2e-evidence/02-user-journeys/learner/L08-lesson-top.png
+ M e2e-evidence/02-user-journeys/learner/L09-lesson-listening.png
+ M e2e-evidence/02-user-journeys/learner/L10-lesson-reading-mode.png
+ M e2e-evidence/02-user-journeys/learner/L12-lesson-practice-ready.png
+ M e2e-evidence/02-user-journeys/learner/L13-quiz-celebration.png
+ M e2e-evidence/02-user-journeys/learner/L13-quiz-final-question.png
+ M e2e-evidence/02-user-journeys/learner/L13-quiz-result.png
+ M e2e-evidence/02-user-journeys/learner/L15-progress.png
+ M e2e-evidence/02-user-journeys/learner/L16-ai-tutor-explain.png
+ M e2e-evidence/02-user-journeys/learner/L17-after-logout.png
+ M e2e-evidence/02-user-journeys/learner/L20-quiz-review-persisted.png
+ M e2e-evidence/02-user-journeys/learner/L21-preferences-persisted.png
+ M e2e-evidence/02-user-journeys/learner/learner-steps.json
+ M e2e-evidence/02-user-journeys/teacher/T00-login-page.png
+ M e2e-evidence/02-user-journeys/teacher/T01-teacher-dashboard.png
+ M e2e-evidence/02-user-journeys/teacher/T02-students.png
+ M e2e-evidence/02-user-journeys/teacher/T03-lessons.png
+ M e2e-evidence/02-user-journeys/teacher/T04-ai-simplify-preview.png
+ M e2e-evidence/02-user-journeys/teacher/T04-upload-step.png
+ M e2e-evidence/02-user-journeys/teacher/T05-new-lesson-as-learner-view.png
+ M e2e-evidence/02-user-journeys/teacher/T06-quiz-results.png
+ M e2e-evidence/02-user-journeys/teacher/T07-attendance-marked.png
+ M e2e-evidence/02-user-journeys/teacher/T07-attendance-page.png
+ M e2e-evidence/02-user-journeys/teacher/T07-attendance-saved.png
+ M e2e-evidence/02-user-journeys/teacher/T08-attendance-history-persisted.png
+ M e2e-evidence/02-user-journeys/teacher/T09-teacher-progress.png
+ M e2e-evidence/02-user-journeys/teacher/T10-assignments.png
+ M e2e-evidence/02-user-journeys/teacher/teacher-steps.json
+ M e2e-evidence/04-persistence/admin-ops.json
+ M e2e-evidence/04-persistence/learner-persistence.json
+ M e2e-evidence/04-persistence/teacher-ops.json
+ M e2e-evidence/05-ai/A00-tutor-down.png
+ M e2e-evidence/05-ai/A01-upload-down.png
+ M e2e-evidence/05-ai/A02-tutor-badkey.png
+ M e2e-evidence/05-ai/A03-upload-badkey.png
+ M e2e-evidence/05-ai/down-observations.json
+ M e2e-evidence/07-video/admin-journey.webm
+ M e2e-evidence/07-video/ai-down-journey.webm
+ M e2e-evidence/07-video/guardian-journey.webm
+ M e2e-evidence/07-video/learner-journey.webm
+ M e2e-evidence/07-video/teacher-journey.webm
+ M e2e-evidence/08-console/admin-errors.txt
+ M e2e-evidence/08-console/admin.json
+ M e2e-evidence/08-console/ai-down-errors.txt
+ M e2e-evidence/08-console/ai-down.json
+ M e2e-evidence/08-console/guardian-errors.txt
+ M e2e-evidence/08-console/guardian.json
+ M e2e-evidence/08-console/learner-errors.txt
+ M e2e-evidence/08-console/learner.json
+ M e2e-evidence/08-console/teacher-errors.txt
+ M e2e-evidence/08-console/teacher.json
+ M e2e-evidence/09-network/admin.ndjson
+ M e2e-evidence/09-network/ai-down.ndjson
+ M e2e-evidence/09-network/guardian.ndjson
+ M e2e-evidence/09-network/learner.ndjson
+ M e2e-evidence/09-network/teacher.ndjson
+A  guardian-abort-tmp.png
+A  guardian-sent-tmp.png
+?? docs/release/baseline-raw-2026-10-15.txt
+
+> git status
+On branch feat/elekeza-pilot-completion
+Your branch is up to date with 'origin/feat/elekeza-pilot-completion'.
+
+Changes to be committed:
+  (use "git restore --staged <file>..." to unstage)
+	new file:   docs/AUDIT_2026-10-15_FINAL_PILOT_READINESS.md
+	new file:   e2e-evidence/02-user-journeys/guardian/G04-aborted-state.png
+	new file:   guardian-abort-tmp.png
+	new file:   guardian-sent-tmp.png
+
+Changes not staged for commit:
+  (use "git add/rm <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	deleted:    artifacts/elekeza-exhibition-film/elekeza-exhibition-film-vertical.mp4
+	deleted:    artifacts/elekeza-exhibition-film/elekeza-exhibition-film.mp4
+	modified:   backend/src/main/kotlin/com/elekeza/backend/analytics/AnalyticsController.kt
+	modified:   backend/src/main/kotlin/com/elekeza/backend/auth/AuthController.kt
+	modified:   backend/src/main/kotlin/com/elekeza/backend/notification/MessageController.kt
+	modified:   backend/src/main/kotlin/com/elekeza/backend/notification/NotificationService.kt
+	modified:   backend/src/main/kotlin/com/elekeza/backend/security/JwtAuthFilter.kt
+	modified:   e2e-evidence/02-user-journeys/admin/A01-admin-dashboard.png
+	modified:   e2e-evidence/02-user-journeys/admin/A02-staff.png
+	modified:   e2e-evidence/02-user-journeys/admin/A03-learners-via-admin.png
+	modified:   e2e-evidence/02-user-journeys/admin/A04-admin-attendance-view.png
+	modified:   e2e-evidence/02-user-journeys/admin/A05-analytics-reports.png
+	modified:   e2e-evidence/02-user-journeys/admin/A06-school-import.png
+	modified:   e2e-evidence/02-user-journeys/admin/A07-school-payment.png
+	modified:   e2e-evidence/02-user-journeys/admin/admin-steps.json
+	modified:   e2e-evidence/02-user-journeys/ai-down/ai-down-steps.json
+	modified:   e2e-evidence/02-user-journeys/guardian/G01-guardian-dashboard.png
+	modified:   e2e-evidence/02-user-journeys/guardian/G02-child-detail.png
+	modified:   e2e-evidence/02-user-journeys/guardian/G03-communication-thread.png
+	modified:   e2e-evidence/02-user-journeys/guardian/guardian-steps.json
+	modified:   e2e-evidence/02-user-journeys/learner/L00-login-page.png
+	modified:   e2e-evidence/02-user-journeys/learner/L02-student-home.png
+	modified:   e2e-evidence/02-user-journeys/learner/L03-profile.png
+	modified:   e2e-evidence/02-user-journeys/learner/L04-preferences-tts-on.png
+	modified:   e2e-evidence/02-user-journeys/learner/L07-lessons-list.png
+	modified:   e2e-evidence/02-user-journeys/learner/L08-lesson-top.png
+	modified:   e2e-evidence/02-user-journeys/learner/L09-lesson-listening.png
+	modified:   e2e-evidence/02-user-journeys/learner/L10-lesson-reading-mode.png
+	modified:   e2e-evidence/02-user-journeys/learner/L12-lesson-practice-ready.png
+	modified:   e2e-evidence/02-user-journeys/learner/L13-quiz-celebration.png
+	modified:   e2e-evidence/02-user-journeys/learner/L13-quiz-final-question.png
+	modified:   e2e-evidence/02-user-journeys/learner/L13-quiz-result.png
+	modified:   e2e-evidence/02-user-journeys/learner/L15-progress.png
+	modified:   e2e-evidence/02-user-journeys/learner/L16-ai-tutor-explain.png
+	modified:   e2e-evidence/02-user-journeys/learner/L17-after-logout.png
+	modified:   e2e-evidence/02-user-journeys/learner/L20-quiz-review-persisted.png
+	modified:   e2e-evidence/02-user-journeys/learner/L21-preferences-persisted.png
+	modified:   e2e-evidence/02-user-journeys/learner/learner-steps.json
+	modified:   e2e-evidence/02-user-journeys/teacher/T00-login-page.png
+	modified:   e2e-evidence/02-user-journeys/teacher/T01-teacher-dashboard.png
+	modified:   e2e-evidence/02-user-journeys/teacher/T02-students.png
+	modified:   e2e-evidence/02-user-journeys/teacher/T03-lessons.png
+	modified:   e2e-evidence/02-user-journeys/teacher/T04-ai-simplify-preview.png
+	modified:   e2e-evidence/02-user-journeys/teacher/T04-upload-step.png
+	modified:   e2e-evidence/02-user-journeys/teacher/T05-new-lesson-as-learner-view.png
+	modified:   e2e-evidence/02-user-journeys/teacher/T06-quiz-results.png
+	modified:   e2e-evidence/02-user-journeys/teacher/T07-attendance-marked.png
+	modified:   e2e-evidence/02-user-journeys/teacher/T07-attendance-page.png
+	modified:   e2e-evidence/02-user-journeys/teacher/T07-attendance-saved.png
+	modified:   e2e-evidence/02-user-journeys/teacher/T08-attendance-history-persisted.png
+	modified:   e2e-evidence/02-user-journeys/teacher/T09-teacher-progress.png
+	modified:   e2e-evidence/02-user-journeys/teacher/T10-assignments.png
+	modified:   e2e-evidence/02-user-journeys/teacher/teacher-steps.json
+	modified:   e2e-evidence/04-persistence/admin-ops.json
+	modified:   e2e-evidence/04-persistence/learner-persistence.json
+	modified:   e2e-evidence/04-persistence/teacher-ops.json
+	modified:   e2e-evidence/05-ai/A00-tutor-down.png
+	modified:   e2e-evidence/05-ai/A01-upload-down.png
+	modified:   e2e-evidence/05-ai/A02-tutor-badkey.png
+	modified:   e2e-evidence/05-ai/A03-upload-badkey.png
+	modified:   e2e-evidence/05-ai/down-observations.json
+	modified:   e2e-evidence/07-video/admin-journey.webm
+	modified:   e2e-evidence/07-video/ai-down-journey.webm
+	modified:   e2e-evidence/07-video/guardian-journey.webm
+	modified:   e2e-evidence/07-video/learner-journey.webm
+	modified:   e2e-evidence/07-video/teacher-journey.webm
+	modified:   e2e-evidence/08-console/admin-errors.txt
+	modified:   e2e-evidence/08-console/admin.json
+	modified:   e2e-evidence/08-console/ai-down-errors.txt
+	modified:   e2e-evidence/08-console/ai-down.json
+	modified:   e2e-evidence/08-console/guardian-errors.txt
+	modified:   e2e-evidence/08-console/guardian.json
+	modified:   e2e-evidence/08-console/learner-errors.txt
+	modified:   e2e-evidence/08-console/learner.json
+	modified:   e2e-evidence/08-console/teacher-errors.txt
+	modified:   e2e-evidence/08-console/teacher.json
+	modified:   e2e-evidence/09-network/admin.ndjson
+	modified:   e2e-evidence/09-network/ai-down.ndjson
+	modified:   e2e-evidence/09-network/guardian.ndjson
+	modified:   e2e-evidence/09-network/learner.ndjson
+	modified:   e2e-evidence/09-network/teacher.ndjson
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	docs/release/baseline-raw-2026-10-15.txt
+
+> git diff --stat (unstaged)
+git : warning: in the working copy of 'backend/src/main/kotlin/com/elekeza/backend/security/JwtAuthFilter.kt', LF will be replaced by CRLF 
+the next time Git touches it
+At line:1 char:51
++ Invoke-Captured "git diff --stat (unstaged)"    { git diff --stat }
++                                                   ~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (warning: in the... Git touches it:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+warning: in the working copy of 'e2e-evidence/02-user-journeys/admin/admin-steps.json', LF will be replaced by CRLF the next time Git touches 
+it
+warning: in the working copy of 'e2e-evidence/02-user-journeys/ai-down/ai-down-steps.json', LF will be replaced by CRLF the next time Git 
+touches it
+warning: in the working copy of 'e2e-evidence/02-user-journeys/guardian/guardian-steps.json', LF will be replaced by CRLF the next time Git 
+touches it
+warning: in the working copy of 'e2e-evidence/02-user-journeys/learner/learner-steps.json', LF will be replaced by CRLF the next time Git 
+touches it
+warning: in the working copy of 'e2e-evidence/02-user-journeys/teacher/teacher-steps.json', LF will be replaced by CRLF the next time Git 
+touches it
+warning: in the working copy of 'e2e-evidence/04-persistence/admin-ops.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'e2e-evidence/04-persistence/learner-persistence.json', LF will be replaced by CRLF the next time Git touches 
+it
+warning: in the working copy of 'e2e-evidence/04-persistence/teacher-ops.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'e2e-evidence/05-ai/down-observations.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'e2e-evidence/08-console/admin-errors.txt', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'e2e-evidence/08-console/admin.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'e2e-evidence/08-console/ai-down-errors.txt', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'e2e-evidence/08-console/ai-down.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'e2e-evidence/08-console/guardian-errors.txt', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'e2e-evidence/08-console/guardian.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'e2e-evidence/08-console/learner-errors.txt', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'e2e-evidence/08-console/learner.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'e2e-evidence/08-console/teacher-errors.txt', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'e2e-evidence/08-console/teacher.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'e2e-evidence/09-network/admin.ndjson', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'e2e-evidence/09-network/ai-down.ndjson', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'e2e-evidence/09-network/guardian.ndjson', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'e2e-evidence/09-network/learner.ndjson', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'e2e-evidence/09-network/teacher.ndjson', LF will be replaced by CRLF the next time Git touches it
+ .../elekeza-exhibition-film-vertical.mp4           | Bin 33480186 -> 0 bytes
+ .../elekeza-exhibition-film.mp4                    | Bin 33432744 -> 0 bytes
+ .../backend/analytics/AnalyticsController.kt       |  25 +-
+ .../com/elekeza/backend/auth/AuthController.kt     |   9 +
+ .../backend/notification/MessageController.kt      |  13 +-
+ .../backend/notification/NotificationService.kt    |   3 +-
+ .../com/elekeza/backend/security/JwtAuthFilter.kt  |   4 +-
+ .../02-user-journeys/admin/A01-admin-dashboard.png | Bin 279581 -> 344453 bytes
+ e2e-evidence/02-user-journeys/admin/A02-staff.png  | Bin 288839 -> 351180 bytes
+ .../admin/A03-learners-via-admin.png               | Bin 247339 -> 311252 bytes
+ .../admin/A04-admin-attendance-view.png            | Bin 244108 -> 310061 bytes
+ .../admin/A05-analytics-reports.png                | Bin 243852 -> 302910 bytes
+ .../02-user-journeys/admin/A06-school-import.png   | Bin 285533 -> 341649 bytes
+ .../02-user-journeys/admin/A07-school-payment.png  | Bin 253870 -> 316134 bytes
+ .../02-user-journeys/admin/admin-steps.json        |  20 +-
+ .../02-user-journeys/ai-down/ai-down-steps.json    |   6 +-
+ .../guardian/G01-guardian-dashboard.png            | Bin 237421 -> 298248 bytes
+ .../02-user-journeys/guardian/G02-child-detail.png | Bin 236270 -> 296790 bytes
+ .../guardian/G03-communication-thread.png          | Bin 249519 -> 317214 bytes
+ .../02-user-journeys/guardian/guardian-steps.json  |  58 +--
+ .../02-user-journeys/learner/L00-login-page.png    | Bin 265738 -> 323534 bytes
+ .../02-user-journeys/learner/L02-student-home.png  | Bin 115553 -> 181826 bytes
+ .../02-user-journeys/learner/L03-profile.png       | Bin 289000 -> 356459 bytes
+ .../learner/L04-preferences-tts-on.png             | Bin 294966 -> 367911 bytes
+ .../02-user-journeys/learner/L07-lessons-list.png  | Bin 263814 -> 327327 bytes
+ .../02-user-journeys/learner/L08-lesson-top.png    | Bin 272373 -> 348164 bytes
+ .../learner/L09-lesson-listening.png               | Bin 277731 -> 347989 bytes
+ .../learner/L10-lesson-reading-mode.png            | Bin 272443 -> 345575 bytes
+ .../learner/L12-lesson-practice-ready.png          | Bin 251277 -> 321303 bytes
+ .../learner/L13-quiz-celebration.png               | Bin 81723 -> 99119 bytes
+ .../learner/L13-quiz-final-question.png            | Bin 276236 -> 338729 bytes
+ .../02-user-journeys/learner/L13-quiz-result.png   | Bin 265575 -> 329127 bytes
+ .../02-user-journeys/learner/L15-progress.png      | Bin 277368 -> 346224 bytes
+ .../learner/L16-ai-tutor-explain.png               | Bin 298940 -> 347920 bytes
+ .../02-user-journeys/learner/L17-after-logout.png  | Bin 265738 -> 345405 bytes
+ .../learner/L20-quiz-review-persisted.png          | Bin 312225 -> 383551 bytes
+ .../learner/L21-preferences-persisted.png          | Bin 294966 -> 367911 bytes
+ .../02-user-journeys/learner/learner-steps.json    |  58 +--
+ .../02-user-journeys/teacher/T00-login-page.png    | Bin 265738 -> 345405 bytes
+ .../teacher/T01-teacher-dashboard.png              | Bin 259864 -> 321960 bytes
+ .../02-user-journeys/teacher/T02-students.png      | Bin 273627 -> 338773 bytes
+ .../02-user-journeys/teacher/T03-lessons.png       | Bin 221143 -> 276577 bytes
+ .../teacher/T04-ai-simplify-preview.png            | Bin 278350 -> 342958 bytes
+ .../02-user-journeys/teacher/T04-upload-step.png   | Bin 302299 -> 381149 bytes
+ .../teacher/T05-new-lesson-as-learner-view.png     | Bin 301657 -> 377174 bytes
+ .../02-user-journeys/teacher/T06-quiz-results.png  | Bin 293112 -> 299621 bytes
+ .../teacher/T07-attendance-marked.png              | Bin 250224 -> 310058 bytes
+ .../teacher/T07-attendance-page.png                | Bin 250239 -> 309616 bytes
+ .../teacher/T07-attendance-saved.png               | Bin 246494 -> 314321 bytes
+ .../teacher/T08-attendance-history-persisted.png   | Bin 233932 -> 277281 bytes
+ .../teacher/T09-teacher-progress.png               | Bin 257914 -> 299113 bytes
+ .../02-user-journeys/teacher/T10-assignments.png   | Bin 266635 -> 307858 bytes
+ .../02-user-journeys/teacher/teacher-steps.json    |  30 +-
+ e2e-evidence/04-persistence/admin-ops.json         |   2 +-
+ .../04-persistence/learner-persistence.json        |  28 +-
+ e2e-evidence/04-persistence/teacher-ops.json       |   2 +-
+ e2e-evidence/05-ai/A00-tutor-down.png              | Bin 300264 -> 345761 bytes
+ e2e-evidence/05-ai/A01-upload-down.png             | Bin 278350 -> 343007 bytes
+ e2e-evidence/05-ai/A02-tutor-badkey.png            | Bin 310076 -> 355848 bytes
+ e2e-evidence/05-ai/A03-upload-badkey.png           | Bin 298255 -> 343007 bytes
+ e2e-evidence/05-ai/down-observations.json          |   4 +-
+ e2e-evidence/07-video/admin-journey.webm           | Bin 2606029 -> 2111179 bytes
+ e2e-evidence/07-video/ai-down-journey.webm         | Bin 2245139 -> 2784862 bytes
+ e2e-evidence/07-video/guardian-journey.webm        | Bin 3099786 -> 2591926 bytes
+ e2e-evidence/07-video/learner-journey.webm         | Bin 5542168 -> 6389752 bytes
+ e2e-evidence/07-video/teacher-journey.webm         | Bin 3493974 -> 3616312 bytes
+ e2e-evidence/08-console/admin-errors.txt           |  40 +-
+ e2e-evidence/08-console/admin.json                 |  81 +--
+ e2e-evidence/08-console/ai-down.json               |  56 +-
+ e2e-evidence/08-console/guardian-errors.txt        |  13 +-
+ e2e-evidence/08-console/guardian.json              | 121 +----
+ e2e-evidence/08-console/learner.json               | 118 +++--
+ e2e-evidence/08-console/teacher.json               |  70 ++-
+ e2e-evidence/09-network/admin.ndjson               | 264 +++++-----
+ e2e-evidence/09-network/ai-down.ndjson             | 168 +++---
+ e2e-evidence/09-network/guardian.ndjson            | 206 +++-----
+ e2e-evidence/09-network/learner.ndjson             | 564 +++++++++++----------
+ e2e-evidence/09-network/teacher.ndjson             | 361 ++++++-------
+ 78 files changed, 1120 insertions(+), 1204 deletions(-)
+
+> git diff --stat --cached (staged)
+ docs/AUDIT_2026-10-15_FINAL_PILOT_READINESS.md     | 214 +++++++++++++++++++++
+ .../guardian/G04-aborted-state.png                 | Bin 0 -> 327547 bytes
+ guardian-abort-tmp.png                             | Bin 0 -> 239577 bytes
+ guardian-sent-tmp.png                              | Bin 0 -> 232170 bytes
+ 4 files changed, 214 insertions(+)
+
+> git rev-list --count HEAD
+196
+
+> upstream branch
+origin/feat/elekeza-pilot-completion
+
+> ahead/behind vs upstream
+0	0
+
+==============================================================================
+== 2. DISK SPACE
+==============================================================================
+
+Name UsedGB FreeGB TotalGB Root
+---- ------ ------ ------- ----
+C    234.71   2.74  237.46 C:\
+
+==============================================================================
+== 3. SERVICES / PORTS
+==============================================================================
+Backend  (8097)                  | LISTENING
+Postgres (5433)                  | LISTENING
+AI       (8001)                  | LISTENING
+Frontend (3100)                  | LISTENING
+
+> HTTP GET /api/auth/csrf  (backend)
+200
+
+> HTTP GET /api/health       (backend)
+unreachable: The remote server returned an error: (401) Unauthorized.
+
+> HTTP GET /                 (frontend)
+200
+
+> HTTP GET /health           (AI)
+200
+
+> Get-NetTCPConnection on 8097/3100/8001/5433
+
+LocalAddress LocalPort OwningProcess Process 
+------------ --------- ------------- ------- 
+::                8097         49932 java    
+::                5433          7412 postgres
+::                3100         45296 node    
+127.0.0.1         8001         40640 python  
+0.0.0.0           5433          7412 postgres
+
+==============================================================================
+== 4. RUNTIME VERSIONS
+==============================================================================
+
+> java -version
+java : openjdk version "21.0.9" 2025-10-21 LTS
+At line:1 char:41
++ Invoke-Captured "java -version"       { java -version }
++                                         ~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (openjdk version "21.0.9" 2025-10-21 LTS:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+OpenJDK Runtime Environment Temurin-21.0.9+10 (build 21.0.9+10-LTS)
+OpenJDK 64-Bit Server VM Temurin-21.0.9+10 (build 21.0.9+10-LTS, mixed mode, sharing)
+
+> node --version
+v24.19.0
+
+> npm --version
+11.14.1
+
+> python --version
+Python 3.14.4
+
+> gradlew --version
+
+------------------------------------------------------------
+Gradle 8.14.4
+------------------------------------------------------------
+
+Build time:    2026-01-23 16:30:23 UTC
+Revision:      ad5ff774b4b0e9a8a0cf1a14ca70d7230003c3ad
+
+Kotlin:        2.0.21
+Groovy:        3.0.25
+Ant:           Apache Ant(TM) version 1.10.15 compiled on August 25 2024
+Launcher JVM:  21.0.9 (Eclipse Adoptium 21.0.9+10-LTS)
+Daemon JVM:    C:\Program Files\Eclipse Adoptium\jdk-21.0.9.10-hotspot (no JDK specified, using current Java home)
+OS:            Windows 10 10.0 amd64
+
+==============================================================================
+== 5. FLYWAY MIGRATIONS
+==============================================================================
+Migration dir                    | C:\Users\thrillerpark\Desktop\Flagship Projects\Elekeza\backend\src\main\resources\db\migration
+V1__baseline_schema.sql
+V10__attendance.sql
+V11__school_fees.sql
+V12__assignments.sql
+V13__pilot_completion.sql
+V14__curriculum_hierarchy.sql
+V15__devices_regions_billing.sql
+V16__fix_demo_admin_institution.sql
+V17__messaging_sender.sql
+V2__seed_demo.sql
+V3__quiz_answers.sql
+V4__support_interventions_deadlines.sql
+V5__content_raw_text.sql
+V6__notification_links.sql
+V7__personalization.sql
+V8__exams.sql
+V9__exam_marking.sql
+Latest migration                 | V17__messaging_sender.sql
+
+==============================================================================
+== 6. CODE MARKERS (governance fixes present?)
+==============================================================================
+Audit report                     | MISSING
+AnalyticsController.kt           | present (14705 bytes, mtime 2026-10-15 15:08)
+AuthController.kt                | present (9122 bytes, mtime 2026-10-15 14:59)
+UserRole.kt                      | present (114 bytes, mtime 2026-07-06 18:49)
+JwtAuthFilter.kt                 | present (2495 bytes, mtime 2026-10-15 14:59)
+
+> grep .active in JwtAuthFilter.kt
+(no output)
+
+> grep institution scope in AnalyticsController.kt
+L13: import com.elekeza.backend.institution.GuardianLinkRepository
+L33: private val guardianLinkRepo: GuardianLinkRepository
+L36: @PreAuthorize("hasAnyRole('TEACHER','ADMIN','SCHOOL_ADMIN')")
+L38: val institutionId = teacher.institutionId
+L39: val students = if (institutionId != null) {
+L40: userRepo.findByInstitutionIdAndRole(institutionId, UserRole.STUDENT)
+L108: @PreAuthorize("hasAnyRole('TEACHER','ADMIN','SCHOOL_ADMIN')")
+L110: val institutionId = teacher.institutionId
+L111: val students = if (institutionId != null) {
+L112: userRepo.findByInstitutionIdAndRole(institutionId, UserRole.STUDENT)
+L195: val linkedLearnerIds = guardianLinkRepo.findByGuardianId(guardian.id).map { it.learnerId }.toSet()
+L214: @PreAuthorize("hasAnyRole('ADMIN','SCHOOL_ADMIN')")
+L216: // 2026-10-15 governance audit (T4): a SCHOOL_ADMIN must only ever see
+L221: val scopeInstitutionId = user.institutionId
+L222: val allUsers = userRepo.findAll().filter { platformWide || it.institutionId == scopeInstitutionId }
+L231: guardianLinkRepo.findAll()
+
+==============================================================================
+== 7. POSTGRES SCRATCH DB (read-only)
+==============================================================================
+psql                             | C:\Program Files\PostgreSQL\15\bin\psql.exe
+
+> list databases
+accessibledocs
+dukapro
+elekeza
+elekeza_chain_scratch
+elekeza_migration_gate
+elekeza_pilot_gate
+elekeza_release_test
+elekeza_scratch
+freebuff
+pcea
+postgres
+trustmark
+trustmark_test
+
+> scratch DB: users by role
+ADMIN|1
+GUARDIAN|7
+SCHOOL_ADMIN|9
+STUDENT|8
+TEACHER|10
+
+> scratch DB: institutions count
+9
+
+> scratch DB: flyway schema history (latest 5)
+17|17|messaging sender|t
+16|16|fix demo admin institution|t
+15|15|devices regions billing|t
+14|14|curriculum hierarchy|t
+13|13|pilot completion|t
+
+==============================================================================
+== 8. SECRET HYGIENE
+==============================================================================
+
+> .env files tracked by git?
+.env.example
+ai-elewa/.env.example
+
+> .env files on disk (untracked)
+C:\Users\thrillerpark\Desktop\Flagship Projects\Elekeza\.env.example
+C:\Users\thrillerpark\Desktop\Flagship Projects\Elekeza\ai-elewa\.env
+C:\Users\thrillerpark\Desktop\Flagship Projects\Elekeza\ai-elewa\.env.example
+C:\Users\thrillerpark\Desktop\Flagship Projects\Elekeza\backend\.env
+C:\Users\thrillerpark\Desktop\Flagship Projects\Elekeza\frontend\.env
+C:\Users\thrillerpark\Desktop\Flagship Projects\Elekeza\frontend\.env.local
+
+> credentials/keys in tree
+C:\Users\thrillerpark\Desktop\Flagship Projects\Elekeza\ai-elewa\.venv\Lib\site-packages\certifi\cacert.pem
+C:\Users\thrillerpark\Desktop\Flagship Projects\Elekeza\ai-elewa\.venv\Lib\site-packages\grpc\_cython\_credentials\roots.pem
+C:\Users\thrillerpark\Desktop\Flagship Projects\Elekeza\ai-elewa\.venv\Lib\site-packages\pip\_vendor\certifi\cacert.pem
+C:\Users\thrillerpark\Desktop\Flagship Projects\Elekeza\ai-elewa\venv\Lib\site-packages\certifi\cacert.pem
+C:\Users\thrillerpark\Desktop\Flagship Projects\Elekeza\ai-elewa\venv\Lib\site-packages\grpc\_cython\_credentials\roots.pem
+C:\Users\thrillerpark\Desktop\Flagship Projects\Elekeza\ai-elewa\venv\Lib\site-packages\pip\_vendor\certifi\cacert.pem
+
+==============================================================================
+== 9. UNCOMMITTED DIFF DETAIL
+==============================================================================
+
+> git diff (full, first 200 lines)
+git : warning: in the working copy of 'backend/src/main/kotlin/com/elekeza/backend/security/JwtAuthFilter.kt', LF will be replaced by CRLF 
+the next time Git touches it
+At line:2 char:10
++     $d = git diff
++          ~~~~~~~~
+    + CategoryInfo          : NotSpecified: (warning: in the... Git touches it:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+warning: in the working copy of 'e2e-evidence/02-user-journeys/admin/admin-steps.json', LF will be replaced by CRLF the next time Git touches 
+it
+warning: in the working copy of 'e2e-evidence/02-user-journeys/ai-down/ai-down-steps.json', LF will be replaced by CRLF the next time Git 
+touches it
+warning: in the working copy of 'e2e-evidence/02-user-journeys/guardian/guardian-steps.json', LF will be replaced by CRLF the next time Git 
+touches it
+warning: in the working copy of 'e2e-evidence/02-user-journeys/learner/learner-steps.json', LF will be replaced by CRLF the next time Git 
+touches it
+warning: in the working copy of 'e2e-evidence/02-user-journeys/teacher/teacher-steps.json', LF will be replaced by CRLF the next time Git 
+touches it
+warning: in the working copy of 'e2e-evidence/04-persistence/admin-ops.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'e2e-evidence/04-persistence/learner-persistence.json', LF will be replaced by CRLF the next time Git touches 
+it
+warning: in the working copy of 'e2e-evidence/04-persistence/teacher-ops.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'e2e-evidence/05-ai/down-observations.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'e2e-evidence/08-console/admin-errors.txt', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'e2e-evidence/08-console/admin.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'e2e-evidence/08-console/ai-down-errors.txt', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'e2e-evidence/08-console/ai-down.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'e2e-evidence/08-console/guardian-errors.txt', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'e2e-evidence/08-console/guardian.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'e2e-evidence/08-console/learner-errors.txt', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'e2e-evidence/08-console/learner.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'e2e-evidence/08-console/teacher-errors.txt', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'e2e-evidence/08-console/teacher.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'e2e-evidence/09-network/admin.ndjson', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'e2e-evidence/09-network/ai-down.ndjson', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'e2e-evidence/09-network/guardian.ndjson', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'e2e-evidence/09-network/learner.ndjson', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'e2e-evidence/09-network/teacher.ndjson', LF will be replaced by CRLF the next time Git touches it
+diff --git a/artifacts/elekeza-exhibition-film/elekeza-exhibition-film-vertical.mp4 b/artifacts/elekeza-exhibition-film/elekeza-exhibition-film-vertical.mp4
+deleted file mode 100644
+index dee29a3..0000000
+Binary files a/artifacts/elekeza-exhibition-film/elekeza-exhibition-film-vertical.mp4 and /dev/null differ
+diff --git a/artifacts/elekeza-exhibition-film/elekeza-exhibition-film.mp4 b/artifacts/elekeza-exhibition-film/elekeza-exhibition-film.mp4
+deleted file mode 100644
+index 65d90a1..0000000
+Binary files a/artifacts/elekeza-exhibition-film/elekeza-exhibition-film.mp4 and /dev/null differ
+diff --git a/backend/src/main/kotlin/com/elekeza/backend/analytics/AnalyticsController.kt b/backend/src/main/kotlin/com/elekeza/backend/analytics/AnalyticsController.kt
+index a830118..a09417f 100644
+--- a/backend/src/main/kotlin/com/elekeza/backend/analytics/AnalyticsController.kt
++++ b/backend/src/main/kotlin/com/elekeza/backend/analytics/AnalyticsController.kt
+@@ -212,12 +212,27 @@ class AnalyticsController(
+ 
+     @GetMapping("/admin")
+     @PreAuthorize("hasAnyRole('ADMIN','SCHOOL_ADMIN')")
+-    fun adminAnalytics(): ResponseEntity<Map<String, Any>> {
+-        val allUsers = userRepo.findAll()
++    fun adminAnalytics(@AuthenticationPrincipal user: User): ResponseEntity<Map<String, Any>> {
++        // 2026-10-15 governance audit (T4): a SCHOOL_ADMIN must only ever see
++        // their own institution's aggregates ΓÇö not platform-wide totals.
++        // Platform ADMIN is the platform-wide operator role (role matrix),
++        // regardless of the seed's institution assignment.
++        val platformWide = user.role == UserRole.ADMIN
++        val scopeInstitutionId = user.institutionId
++        val allUsers = userRepo.findAll().filter { platformWide || it.institutionId == scopeInstitutionId }
+         val students = allUsers.filter { it.role == UserRole.STUDENT }
+         val teachers = allUsers.filter { it.role == UserRole.TEACHER }
+-        val guardians = allUsers.filter { it.role == UserRole.GUARDIAN }
+-        val institutions = institutionRepo.count()
++        // Guardians do not always carry institution_id, so in scoped mode count
++        // them via active guardian_links into the same institution's learners.
++        val guardians: Int = if (platformWide) {
++            allUsers.filter { it.role == UserRole.GUARDIAN }.size
++        } else {
++            val scopedLearnerIds = students.map { it.id }.toSet()
++            guardianLinkRepo.findAll()
++                .filter { it.isActive && it.learnerId in scopedLearnerIds }
++                .map { it.guardianId }.toSet().size
++        }
++        val institutions = if (platformWide) institutionRepo.count() else 1
+ 
+         val monthlyRegistrations = (5 downTo 0).map { monthsAgo ->
+             val month = LocalDateTime.now().minusMonths(monthsAgo.toLong())
+@@ -226,7 +241,7 @@ class AnalyticsController(
+ 
+         return ResponseEntity.ok(mapOf(
+             "totalLearners" to students.size, "totalTeachers" to teachers.size,
+-            "totalGuardians" to guardians.size, "totalInstitutions" to institutions,
++            "totalGuardians" to guardians, "totalInstitutions" to institutions,
+             "activeToday" to allUsers.count { it.updatedAt != null && java.time.LocalDateTime.ofInstant(it.updatedAt ?: java.time.Instant.now(), java.time.ZoneId.systemDefault()).toLocalDate() == java.time.LocalDate.now() },
+             "totalContent" to contentRepo.count(), "totalQuizzes" to quizAttemptRepo.count(),
+             "monthlyRegistrations" to monthlyRegistrations
+diff --git a/backend/src/main/kotlin/com/elekeza/backend/auth/AuthController.kt b/backend/src/main/kotlin/com/elekeza/backend/auth/AuthController.kt
+index 23ec596..23df645 100644
+--- a/backend/src/main/kotlin/com/elekeza/backend/auth/AuthController.kt
++++ b/backend/src/main/kotlin/com/elekeza/backend/auth/AuthController.kt
+@@ -67,6 +67,15 @@ class AuthController(
+             throw ResponseStatusException(HttpStatus.UNAUTHORIZED, "Refresh token expired or revoked")
+         }
+         val user = stored.user
++        // Suspension must also cut the refresh leg: a deactivated account can
++        // no longer mint NEW tokens even though an old access cookie might
++        // still be within its validity window (2026-10-15 governance audit).
++        if (!user.active) {
++            stored.revoked = true
++            refreshTokenRepository.save(stored)
++            clearRefreshCookie(response)
++            throw ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid email or password")
++        }
+         stored.revoked = true
+         refreshTokenRepository.save(stored)
+         return issueTokensAndRespond(user, response, HttpStatus.OK)
+diff --git a/backend/src/main/kotlin/com/elekeza/backend/notification/MessageController.kt b/backend/src/main/kotlin/com/elekeza/backend/notification/MessageController.kt
+index a06777c..d78c1e4 100644
+--- a/backend/src/main/kotlin/com/elekeza/backend/notification/MessageController.kt
++++ b/backend/src/main/kotlin/com/elekeza/backend/notification/MessageController.kt
+@@ -158,12 +158,19 @@ class MessageController(
+ 
+     // ΓöÇΓöÇ Helpers ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+ 
+-    /** Human messages addressed to this user; system notifications excluded. */
+-    private fun receivedMessages(userId: Long): List<NotificationDto> =
+-        notificationRepo.findByUserIdAndTypeInOrderByCreatedAtDesc(userId, MESSAGE_TYPES)
++    /** Human messages addressed to this user, plus their own sent leg so the
++     *  guardian/teacher thread shows both directions (Oct-2026 audit P1). */
++    private fun receivedMessages(userId: Long): List<NotificationDto> {
++        val received = notificationRepo.findByUserIdAndTypeInOrderByCreatedAtDesc(userId, MESSAGE_TYPES)
+             .filter { it.senderId != null }
++        val sent = notificationRepo.findBySenderIdInOrderByCreatedAtDesc(listOf(userId))
++            .filter { it.type in MESSAGE_TYPES }
++        return (received + sent)
++            .distinctBy { it.id }
++            .sortedByDescending { it.createdAt }
+             .take(50)
+             .toDtosWithSenderNames(userRepo)
++    }
+ 
+     /**
+      * The institution a guardian acts within, derived from active guardian
+diff --git a/backend/src/main/kotlin/com/elekeza/backend/notification/NotificationService.kt b/backend/src/main/kotlin/com/elekeza/backend/notification/NotificationService.kt
+index fd30062..40eb800 100644
+--- a/backend/src/main/kotlin/com/elekeza/backend/notification/NotificationService.kt
++++ b/backend/src/main/kotlin/com/elekeza/backend/notification/NotificationService.kt
+@@ -61,8 +61,9 @@ interface NotificationRepository : JpaRepository<Notification, Long> {
+     fun findByUserIdOrderByCreatedAtDesc(userId: Long): List<Notification>
+     fun findByUserIdAndReadFalseOrderByCreatedAtDesc(userId: Long): List<Notification>
+ 
+-    /** EL-NEW-02: thread view ΓÇö received human messages for one user, newest first. */
++    /** EL-NEW-02: thread view ΓÇö human messages a user received or sent, newest first. */
+     fun findByUserIdAndTypeInOrderByCreatedAtDesc(userId: Long, types: Collection<String>): List<Notification>
++    fun findBySenderIdInOrderByCreatedAtDesc(senderIds: Collection<Long>): List<Notification>
+ 
+     @Query("SELECT COUNT(n) FROM Notification n WHERE n.userId = :uid AND n.read = false")
+     fun countUnread(@Param("uid") userId: Long): Long
+diff --git a/backend/src/main/kotlin/com/elekeza/backend/security/JwtAuthFilter.kt b/backend/src/main/kotlin/com/elekeza/backend/security/JwtAuthFilter.kt
+index 0cc342d..e1ea24d 100644
+--- a/backend/src/main/kotlin/com/elekeza/backend/security/JwtAuthFilter.kt
++++ b/backend/src/main/kotlin/com/elekeza/backend/security/JwtAuthFilter.kt
+@@ -36,7 +36,9 @@ class JwtAuthFilter(
+             runCatching {
+                 val email = jwtUtil.getEmail(token)
+                 val user  = userRepository.findByEmail(email)
+-                if (user != null) {
++                // Suspended/deactivated accounts must not keep working with an
++                // already-issued unexpired JWT (2026-10-15 governance audit, T10).
++                if (user != null && user.active) {
+                     val auth = UsernamePasswordAuthenticationToken(
+                         user, null,
+                         listOf(SimpleGrantedAuthority("ROLE_${user.role.name}"))
+diff --git a/e2e-evidence/02-user-journeys/admin/A01-admin-dashboard.png b/e2e-evidence/02-user-journeys/admin/A01-admin-dashboard.png
+index 45312a7..483bda5 100644
+Binary files a/e2e-evidence/02-user-journeys/admin/A01-admin-dashboard.png and b/e2e-evidence/02-user-journeys/admin/A01-admin-dashboard.png differ
+diff --git a/e2e-evidence/02-user-journeys/admin/A02-staff.png b/e2e-evidence/02-user-journeys/admin/A02-staff.png
+index c29b234..001bdba 100644
+Binary files a/e2e-evidence/02-user-journeys/admin/A02-staff.png and b/e2e-evidence/02-user-journeys/admin/A02-staff.png differ
+diff --git a/e2e-evidence/02-user-journeys/admin/A03-learners-via-admin.png b/e2e-evidence/02-user-journeys/admin/A03-learners-via-admin.png
+index 242f886..30ffa63 100644
+Binary files a/e2e-evidence/02-user-journeys/admin/A03-learners-via-admin.png and b/e2e-evidence/02-user-journeys/admin/A03-learners-via-admin.png differ
+diff --git a/e2e-evidence/02-user-journeys/admin/A04-admin-attendance-view.png b/e2e-evidence/02-user-journeys/admin/A04-admin-attendance-view.png
+index d8f8481..b954d9d 100644
+Binary files a/e2e-evidence/02-user-journeys/admin/A04-admin-attendance-view.png and b/e2e-evidence/02-user-journeys/admin/A04-admin-attendance-view.png differ
+diff --git a/e2e-evidence/02-user-journeys/admin/A05-analytics-reports.png b/e2e-evidence/02-user-journeys/admin/A05-analytics-reports.png
+index 60a0e5c..bbeb5f2 100644
+Binary files a/e2e-evidence/02-user-journeys/admin/A05-analytics-reports.png and b/e2e-evidence/02-user-journeys/admin/A05-analytics-reports.png differ
+diff --git a/e2e-evidence/02-user-journeys/admin/A06-school-import.png b/e2e-evidence/02-user-journeys/admin/A06-school-import.png
+index e9a28c7..40a2c86 100644
+Binary files a/e2e-evidence/02-user-journeys/admin/A06-school-import.png and b/e2e-evidence/02-user-journeys/admin/A06-school-import.png differ
+diff --git a/e2e-evidence/02-user-journeys/admin/A07-school-payment.png b/e2e-evidence/02-user-journeys/admin/A07-school-payment.png
+index fc13a79..01268e1 100644
+Binary files a/e2e-evidence/02-user-journeys/admin/A07-school-payment.png and b/e2e-evidence/02-user-journeys/admin/A07-school-payment.png differ
+diff --git a/e2e-evidence/02-user-journeys/admin/admin-steps.json b/e2e-evidence/02-user-journeys/admin/admin-steps.json
+index fa2d09e..033571a 100644
+--- a/e2e-evidence/02-user-journeys/admin/admin-steps.json
++++ b/e2e-evidence/02-user-journeys/admin/admin-steps.json
+@@ -4,62 +4,62 @@
+     "name": "login as school admin ΓåÆ admin home",
+     "ok": true,
+     "detail": "",
+-    "at": "2026-10-03T07:53:53.241Z"
++    "at": "2026-10-15T11:28:28.823Z"
+   },
+   {
+     "n": 2,
+     "name": "school dashboard rendered",
+     "ok": true,
+-    "detail": "Skip to main content | Elekeza | Dashboard | Staff Accounts | Finance | Attendance",
+-    "at": "2026-10-03T07:53:53.702Z"
++    "detail": "Skip to main content | Dashboard | Staff Accounts | Finance | Attendance | Schools",
++    "at": "2026-10-15T11:28:29.383Z"
+   },
+   {
+     "n": 3,
+     "name": "staff page rendered (settled)",
+     "ok": true,
+     "detail": "Staff Accounts | Create teacher and school-admin accounts, and manage who can sign in. | Add a staff account",
+-    "at": "2026-10-03T07:54:01.523Z"
++    "at": "2026-10-15T11:28:33.443Z"
+   },
+   {
+     "n": 4,
+     "name": "learners management rendered",
+     "ok": true,
+     "detail": "",
+-    "at": "2026-10-03T07:54:11.083Z"
++    "at": "2026-10-15T11:28:38.535Z"
+   },
+   {
+     "n": 5,
+     "name": "attendance view accessible to admin",
+     "ok": true,
+     "detail": "",
+-    "at": "2026-10-03T07:54:14.214Z"
++    "at": "2026-10-15T11:28:40.923Z"
+   },
+   {
+     "n": 6,
+     "name": "reports/analytics rendered",
+     "ok": true,
+     "detail": "",
+
+> git diff --name-status
+git : warning: in the working copy of 'backend/src/main/kotlin/com/elekeza/backend/security/JwtAuthFilter.kt', LF will be replaced by CRLF 
+the next time Git touches it
+At line:1 char:44
++ Invoke-Captured "git diff --name-status" { git diff --name-status }
++                                            ~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (warning: in the... Git touches it:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+warning: in the working copy of 'e2e-evidence/02-user-journeys/admin/admin-steps.json', LF will be replaced by CRLF the next time Git touches 
+it
+warning: in the working copy of 'e2e-evidence/02-user-journeys/ai-down/ai-down-steps.json', LF will be replaced by CRLF the next time Git 
+touches it
+warning: in the working copy of 'e2e-evidence/02-user-journeys/guardian/guardian-steps.json', LF will be replaced by CRLF the next time Git 
+touches it
+warning: in the working copy of 'e2e-evidence/02-user-journeys/learner/learner-steps.json', LF will be replaced by CRLF the next time Git 
+touches it
+warning: in the working copy of 'e2e-evidence/02-user-journeys/teacher/teacher-steps.json', LF will be replaced by CRLF the next time Git 
+touches it
+warning: in the working copy of 'e2e-evidence/04-persistence/admin-ops.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'e2e-evidence/04-persistence/learner-persistence.json', LF will be replaced by CRLF the next time Git touches 
+it
+warning: in the working copy of 'e2e-evidence/04-persistence/teacher-ops.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'e2e-evidence/05-ai/down-observations.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'e2e-evidence/08-console/admin-errors.txt', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'e2e-evidence/08-console/admin.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'e2e-evidence/08-console/ai-down-errors.txt', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'e2e-evidence/08-console/ai-down.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'e2e-evidence/08-console/guardian-errors.txt', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'e2e-evidence/08-console/guardian.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'e2e-evidence/08-console/learner-errors.txt', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'e2e-evidence/08-console/learner.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'e2e-evidence/08-console/teacher-errors.txt', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'e2e-evidence/08-console/teacher.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'e2e-evidence/09-network/admin.ndjson', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'e2e-evidence/09-network/ai-down.ndjson', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'e2e-evidence/09-network/guardian.ndjson', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'e2e-evidence/09-network/learner.ndjson', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'e2e-evidence/09-network/teacher.ndjson', LF will be replaced by CRLF the next time Git touches it
+D	artifacts/elekeza-exhibition-film/elekeza-exhibition-film-vertical.mp4
+D	artifacts/elekeza-exhibition-film/elekeza-exhibition-film.mp4
+M	backend/src/main/kotlin/com/elekeza/backend/analytics/AnalyticsController.kt
+M	backend/src/main/kotlin/com/elekeza/backend/auth/AuthController.kt
+M	backend/src/main/kotlin/com/elekeza/backend/notification/MessageController.kt
+M	backend/src/main/kotlin/com/elekeza/backend/notification/NotificationService.kt
+M	backend/src/main/kotlin/com/elekeza/backend/security/JwtAuthFilter.kt
+M	e2e-evidence/02-user-journeys/admin/A01-admin-dashboard.png
+M	e2e-evidence/02-user-journeys/admin/A02-staff.png
+M	e2e-evidence/02-user-journeys/admin/A03-learners-via-admin.png
+M	e2e-evidence/02-user-journeys/admin/A04-admin-attendance-view.png
+M	e2e-evidence/02-user-journeys/admin/A05-analytics-reports.png
+M	e2e-evidence/02-user-journeys/admin/A06-school-import.png
+M	e2e-evidence/02-user-journeys/admin/A07-school-payment.png
+M	e2e-evidence/02-user-journeys/admin/admin-steps.json
+M	e2e-evidence/02-user-journeys/ai-down/ai-down-steps.json
+M	e2e-evidence/02-user-journeys/guardian/G01-guardian-dashboard.png
+M	e2e-evidence/02-user-journeys/guardian/G02-child-detail.png
+M	e2e-evidence/02-user-journeys/guardian/G03-communication-thread.png
+M	e2e-evidence/02-user-journeys/guardian/guardian-steps.json
+M	e2e-evidence/02-user-journeys/learner/L00-login-page.png
+M	e2e-evidence/02-user-journeys/learner/L02-student-home.png
+M	e2e-evidence/02-user-journeys/learner/L03-profile.png
+M	e2e-evidence/02-user-journeys/learner/L04-preferences-tts-on.png
+M	e2e-evidence/02-user-journeys/learner/L07-lessons-list.png
+M	e2e-evidence/02-user-journeys/learner/L08-lesson-top.png
+M	e2e-evidence/02-user-journeys/learner/L09-lesson-listening.png
+M	e2e-evidence/02-user-journeys/learner/L10-lesson-reading-mode.png
+M	e2e-evidence/02-user-journeys/learner/L12-lesson-practice-ready.png
+M	e2e-evidence/02-user-journeys/learner/L13-quiz-celebration.png
+M	e2e-evidence/02-user-journeys/learner/L13-quiz-final-question.png
+M	e2e-evidence/02-user-journeys/learner/L13-quiz-result.png
+M	e2e-evidence/02-user-journeys/learner/L15-progress.png
+M	e2e-evidence/02-user-journeys/learner/L16-ai-tutor-explain.png
+M	e2e-evidence/02-user-journeys/learner/L17-after-logout.png
+M	e2e-evidence/02-user-journeys/learner/L20-quiz-review-persisted.png
+M	e2e-evidence/02-user-journeys/learner/L21-preferences-persisted.png
+M	e2e-evidence/02-user-journeys/learner/learner-steps.json
+M	e2e-evidence/02-user-journeys/teacher/T00-login-page.png
+M	e2e-evidence/02-user-journeys/teacher/T01-teacher-dashboard.png
+M	e2e-evidence/02-user-journeys/teacher/T02-students.png
+M	e2e-evidence/02-user-journeys/teacher/T03-lessons.png
+M	e2e-evidence/02-user-journeys/teacher/T04-ai-simplify-preview.png
+M	e2e-evidence/02-user-journeys/teacher/T04-upload-step.png
+M	e2e-evidence/02-user-journeys/teacher/T05-new-lesson-as-learner-view.png
+M	e2e-evidence/02-user-journeys/teacher/T06-quiz-results.png
+M	e2e-evidence/02-user-journeys/teacher/T07-attendance-marked.png
+M	e2e-evidence/02-user-journeys/teacher/T07-attendance-page.png
+M	e2e-evidence/02-user-journeys/teacher/T07-attendance-saved.png
+M	e2e-evidence/02-user-journeys/teacher/T08-attendance-history-persisted.png
+M	e2e-evidence/02-user-journeys/teacher/T09-teacher-progress.png
+M	e2e-evidence/02-user-journeys/teacher/T10-assignments.png
+M	e2e-evidence/02-user-journeys/teacher/teacher-steps.json
+M	e2e-evidence/04-persistence/admin-ops.json
+M	e2e-evidence/04-persistence/learner-persistence.json
+M	e2e-evidence/04-persistence/teacher-ops.json
+M	e2e-evidence/05-ai/A00-tutor-down.png
+M	e2e-evidence/05-ai/A01-upload-down.png
+M	e2e-evidence/05-ai/A02-tutor-badkey.png
+M	e2e-evidence/05-ai/A03-upload-badkey.png
+M	e2e-evidence/05-ai/down-observations.json
+M	e2e-evidence/07-video/admin-journey.webm
+M	e2e-evidence/07-video/ai-down-journey.webm
+M	e2e-evidence/07-video/guardian-journey.webm
+M	e2e-evidence/07-video/learner-journey.webm
+M	e2e-evidence/07-video/teacher-journey.webm
+M	e2e-evidence/08-console/admin-errors.txt
+M	e2e-evidence/08-console/admin.json
+M	e2e-evidence/08-console/ai-down.json
+M	e2e-evidence/08-console/guardian-errors.txt
+M	e2e-evidence/08-console/guardian.json
+M	e2e-evidence/08-console/learner.json
+M	e2e-evidence/08-console/teacher.json
+M	e2e-evidence/09-network/admin.ndjson
+M	e2e-evidence/09-network/ai-down.ndjson
+M	e2e-evidence/09-network/guardian.ndjson
+M	e2e-evidence/09-network/learner.ndjson
+M	e2e-evidence/09-network/teacher.ndjson
+
+> git diff --name-status --cached
+A	docs/AUDIT_2026-10-15_FINAL_PILOT_READINESS.md
+A	e2e-evidence/02-user-journeys/guardian/G04-aborted-state.png
+A	guardian-abort-tmp.png
+A	guardian-sent-tmp.png
+
+> untracked files
+docs/release/baseline-raw-2026-10-15.txt
+
+==============================================================================
+== CAPTURE COMPLETE
+==============================================================================
+Output saved to                  | C:\Users\thrillerpark\Desktop\Flagship Projects\Elekeza\docs\release\baseline-raw-2026-10-15.txt
+Completed at                     | 2026-10-15 15:32:12 +03:00
