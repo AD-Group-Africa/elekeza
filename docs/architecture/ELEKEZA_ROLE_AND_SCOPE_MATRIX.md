@@ -17,12 +17,28 @@ not authorise building either.
 | Platform role enum (STUDENT...SCHOOL_ADMIN) | IMPLEMENTED |
 | Tenant isolation (institution-scoped access) | IMPLEMENTED |
 | Platform admin (ADMIN role) | IMPLEMENTED (partial — see 1.5) |
-| Geographic hierarchy (county / sub-county / national) | NOT IMPLEMENTED |
+| Geographic columns on institutions (county, sub_county) | IMPLEMENTED as free-text metadata; NOT used for access control |
+| Geographic hierarchy with official-scope enforcement | NOT IMPLEMENTED |
 | Education-official roles | NOT IMPLEMENTED |
 | Afrika Digitalis operations support role | NOT IMPLEMENTED |
 | Curriculum / SEN / inspector specialists | NOT IMPLEMENTED — not yet justified |
 | Approvals workflow (institution lifecycle etc.) | PARTIAL |
 
+### 0.1 State of geographic columns (corrected 2026-10-15)
+
+`institutions.county` and `institutions.sub_county` exist as `character varying`
+(nullable) since V2. They are populated for at least one institution (Demo Academy
+= Nairobi / Central) but not enforced anywhere in authorization.
+
+The gap is therefore:
+- Roles for national / county / sub-county officials — NOT IMPLEMENTED
+- A scope table linking an official to a jurisdiction — NOT IMPLEMENTED
+- Authorization checks that read county / sub_county — NOT IMPLEMENTED
+- Free-text columns themselves — EXIST
+
+The "geography" gap is smaller than initially documented: buildable by wiring
+the existing columns plus an officials scope table, not by adding geography from
+scratch.
 ---
 
 ## 1. Implemented roles

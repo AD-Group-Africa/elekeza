@@ -116,7 +116,10 @@ Enum: STUDENT, TEACHER, GUARDIAN, ADMIN, SCHOOL_ADMIN.
 
 - No SUPER_ADMIN.
 - No national / county / sub-county / curriculum / SEN / inspector roles.
-- No geographic columns on institutions. country_configs is deployment config.
+- institutions HAS county and sub_county columns (character varying, nullable).
+  Populated: institution 1 = Nairobi / Central; institutions 2-9 = Nairobi / NULL.
+  No authorization path uses them — metadata only. country_configs remains
+  deployment configuration.
 - ADMIN = platform role, keyed on role not on institutionId (V16 seeds superadmin@elekeza.app with institutionId=1).
 
 See companion: docs/architecture/ELEKEZA_ROLE_AND_SCOPE_MATRIX.md.
