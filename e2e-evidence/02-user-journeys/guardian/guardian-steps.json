@@ -4,69 +4,27 @@
     "name": "login as guardian → guardian home",
     "ok": true,
     "detail": "",
-    "at": "2026-10-03T07:53:01.935Z"
+    "at": "2026-10-15T11:18:18.518Z"
   },
   {
     "n": 2,
     "name": "guardian dashboard rendered",
     "ok": true,
     "detail": "linked learners: Juma Ali, View Details",
-    "at": "2026-10-03T07:53:02.394Z"
+    "at": "2026-10-15T11:18:19.077Z"
   },
   {
     "n": 3,
     "name": "child detail rendered",
     "ok": true,
-    "detail": "Skip to main content | Elekeza | Dashboard",
-    "at": "2026-10-03T07:53:10.408Z"
+    "detail": "Skip to main content | Dashboard | My Child",
+    "at": "2026-10-15T11:18:20.038Z"
   },
   {
     "n": 4,
-    "name": "guardian message sent",
-    "ok": true,
-    "detail": "Automated closure check-in 07:52:47",
-    "at": "2026-10-03T07:53:18.921Z"
-  },
-  {
-    "n": 5,
-    "name": "fees page rendered",
-    "ok": true,
-    "detail": "Skip to main content | Elekeza | Dashboard",
-    "at": "2026-10-03T07:53:24.751Z"
-  },
-  {
-    "n": 6,
-    "name": "reports page rendered",
-    "ok": true,
-    "detail": "",
-    "at": "2026-10-03T07:53:30.555Z"
-  },
-  {
-    "n": 7,
-    "name": "notifications page rendered",
-    "ok": true,
-    "detail": "",
-    "at": "2026-10-03T07:53:35.902Z"
-  },
-  {
-    "n": 8,
-    "name": "logout",
-    "ok": true,
-    "detail": "",
-    "at": "2026-10-03T07:53:36.495Z"
-  },
-  {
-    "n": 9,
-    "name": "re-login",
-    "ok": true,
-    "detail": "",
-    "at": "2026-10-03T07:53:38.985Z"
-  },
-  {
-    "n": 10,
-    "name": "PERSISTED: guardian message survives logout/login",
-    "ok": true,
-    "detail": "Automated closure check-in 07:52:47",
-    "at": "2026-10-03T07:53:42.761Z"
+    "name": "journey aborted",
+    "ok": false,
+    "detail": "locator.waitFor: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByText('Automated closure check-in 11:18:12').first() to be visible\u001b[22m\n",
+    "at": "2026-10-15T11:18:52.176Z"
   }
 ]

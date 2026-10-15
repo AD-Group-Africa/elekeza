@@ -4,153 +4,153 @@
     "name": "login page rendered",
     "ok": true,
     "detail": "",
-    "at": "2026-10-03T08:14:32.438Z"
+    "at": "2026-10-15T11:12:05.215Z"
   },
   {
     "n": 2,
     "name": "login as learner → student-home",
     "ok": true,
     "detail": "",
-    "at": "2026-10-03T08:14:35.261Z"
+    "at": "2026-10-15T11:12:10.588Z"
   },
   {
     "n": 3,
     "name": "dashboard rendered",
     "ok": true,
-    "detail": "points=124 level=3 (Explorer)",
-    "at": "2026-10-03T08:14:35.818Z"
+    "detail": "points=176 level=4 (Adventurer)",
+    "at": "2026-10-15T11:12:12.822Z"
   },
   {
     "n": 4,
     "name": "profile page rendered",
     "ok": true,
-    "detail": "Skip to main content | Elekeza | AI Tutor",
-    "at": "2026-10-03T08:14:41.485Z"
+    "detail": "Skip to main content | AI Tutor | Dashboard",
+    "at": "2026-10-15T11:12:17.288Z"
   },
   {
     "n": 5,
     "name": "accessibility: read-aloud preference set",
     "ok": true,
     "detail": "before=true after=true",
-    "at": "2026-10-03T08:14:45.415Z"
+    "at": "2026-10-15T11:12:20.572Z"
   },
   {
     "n": 6,
     "name": "adaptive preference sources captured",
     "ok": true,
-    "detail": "{\"How much on each screen\":\"Standard setting\",\"Text size\":\"Chosen by you\",\"Screen contrast\":\"Chosen by you\",\"How explanations are written\":\"Standard setting\",\"Examples\":\"Standard setting\"}",
-    "at": "2026-10-03T08:14:45.419Z"
+    "detail": "{\"How much on each screen\":\"Chosen by you\",\"Text size\":\"Chosen by you\",\"Screen contrast\":\"Chosen by you\",\"How explanations are written\":\"Chosen by you\",\"Examples\":\"Standard setting\"}",
+    "at": "2026-10-15T11:12:20.575Z"
   },
   {
     "n": 7,
     "name": "a11y settings: Text-to-Speech enabled via /dashboard/settings (server profile mirrored)",
     "ok": true,
     "detail": "",
-    "at": "2026-10-03T08:14:50.093Z"
+    "at": "2026-10-15T11:12:26.497Z"
   },
   {
     "n": 8,
     "name": "lessons list rendered",
     "ok": true,
     "detail": "",
-    "at": "2026-10-03T08:14:54.294Z"
+    "at": "2026-10-15T11:12:29.984Z"
   },
   {
     "n": 9,
     "name": "lesson rendered",
     "ok": true,
     "detail": "Understanding Fractions listenButtons=true",
-    "at": "2026-10-03T08:15:00.223Z"
+    "at": "2026-10-15T11:12:47.000Z"
   },
   {
     "n": 10,
     "name": "text-to-speech listen button works",
     "ok": true,
     "detail": "",
-    "at": "2026-10-03T08:15:01.956Z"
+    "at": "2026-10-15T11:12:48.812Z"
   },
   {
     "n": 11,
     "name": "reading-mode toggle works",
     "ok": true,
     "detail": "Reading mode on",
-    "at": "2026-10-03T08:15:02.852Z"
+    "at": "2026-10-15T11:12:49.655Z"
   },
   {
     "n": 12,
     "name": "navigated to final section",
     "ok": true,
     "detail": "",
-    "at": "2026-10-03T08:15:04.239Z"
+    "at": "2026-10-15T11:12:51.018Z"
   },
   {
     "n": 13,
     "name": "entered practice quiz",
     "ok": true,
     "detail": "",
-    "at": "2026-10-03T08:15:09.778Z"
+    "at": "2026-10-15T11:12:57.034Z"
   },
   {
     "n": 14,
     "name": "quiz submitted and scored",
     "ok": true,
     "detail": "score=20% quizId=3",
-    "at": "2026-10-03T08:15:19.248Z"
+    "at": "2026-10-15T11:13:07.260Z"
   },
   {
     "n": 15,
     "name": "gamification after quiz",
     "ok": true,
-    "detail": "points=134 (before=124)",
-    "at": "2026-10-03T08:15:20.927Z"
+    "detail": "points=186 (before=176)",
+    "at": "2026-10-15T11:13:08.982Z"
   },
   {
     "n": 16,
     "name": "progress page rendered",
     "ok": true,
     "detail": "",
-    "at": "2026-10-03T08:15:26.210Z"
+    "at": "2026-10-15T11:13:14.388Z"
   },
   {
     "n": 17,
     "name": "AI tutor EXPLAIN responded from frontend",
     "ok": true,
-    "detail": "latency≈1.7s",
-    "at": "2026-10-03T08:15:33.917Z"
+    "detail": "latency≈1.8s",
+    "at": "2026-10-15T11:13:20.323Z"
   },
   {
     "n": 18,
     "name": "logout",
     "ok": true,
     "detail": "",
-    "at": "2026-10-03T08:15:34.385Z"
+    "at": "2026-10-15T11:13:21.876Z"
   },
   {
     "n": 19,
     "name": "re-login",
     "ok": true,
     "detail": "",
-    "at": "2026-10-03T08:15:36.471Z"
+    "at": "2026-10-15T11:13:24.317Z"
   },
   {
     "n": 20,
     "name": "PERSISTED: gamification points survive logout/login",
     "ok": true,
-    "detail": "134 pts",
-    "at": "2026-10-03T08:15:36.738Z"
+    "detail": "186 pts",
+    "at": "2026-10-15T11:13:24.545Z"
   },
   {
     "n": 21,
     "name": "PERSISTED: quiz result review survives logout/login",
     "ok": true,
-    "detail": "Skip to main content | Elekeza",
-    "at": "2026-10-03T08:15:45.545Z"
+    "detail": "Skip to main content | AI Tutor",
+    "at": "2026-10-15T11:13:31.679Z"
   },
   {
     "n": 22,
     "name": "PERSISTED: read-aloud preference survives logout/login",
     "ok": true,
     "detail": "",
-    "at": "2026-10-03T08:15:47.274Z"
+    "at": "2026-10-15T11:13:34.850Z"
   }
 ]

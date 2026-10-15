@@ -4,62 +4,62 @@
     "name": "login as school admin → admin home",
     "ok": true,
     "detail": "",
-    "at": "2026-10-03T07:53:53.241Z"
+    "at": "2026-10-15T11:28:28.823Z"
   },
   {
     "n": 2,
     "name": "school dashboard rendered",
     "ok": true,
-    "detail": "Skip to main content | Elekeza | Dashboard | Staff Accounts | Finance | Attendance",
-    "at": "2026-10-03T07:53:53.702Z"
+    "detail": "Skip to main content | Dashboard | Staff Accounts | Finance | Attendance | Schools",
+    "at": "2026-10-15T11:28:29.383Z"
   },
   {
     "n": 3,
     "name": "staff page rendered (settled)",
     "ok": true,
     "detail": "Staff Accounts | Create teacher and school-admin accounts, and manage who can sign in. | Add a staff account",
-    "at": "2026-10-03T07:54:01.523Z"
+    "at": "2026-10-15T11:28:33.443Z"
   },
   {
     "n": 4,
     "name": "learners management rendered",
     "ok": true,
     "detail": "",
-    "at": "2026-10-03T07:54:11.083Z"
+    "at": "2026-10-15T11:28:38.535Z"
   },
   {
     "n": 5,
     "name": "attendance view accessible to admin",
     "ok": true,
     "detail": "",
-    "at": "2026-10-03T07:54:14.214Z"
+    "at": "2026-10-15T11:28:40.923Z"
   },
   {
     "n": 6,
     "name": "reports/analytics rendered",
     "ok": true,
     "detail": "",
-    "at": "2026-10-03T07:54:21.927Z"
+    "at": "2026-10-15T11:28:45.455Z"
   },
   {
     "n": 7,
     "name": "CSV import configuration rendered",
     "ok": true,
     "detail": "",
-    "at": "2026-10-03T07:54:31.769Z"
+    "at": "2026-10-15T11:28:49.422Z"
   },
   {
     "n": 8,
     "name": "school payment configuration rendered",
     "ok": true,
     "detail": "",
-    "at": "2026-10-03T07:54:38.197Z"
+    "at": "2026-10-15T11:28:53.291Z"
   },
   {
     "n": 9,
     "name": "logout",
     "ok": true,
     "detail": "",
-    "at": "2026-10-03T07:54:40.216Z"
+    "at": "2026-10-15T11:28:55.775Z"
   }
 ]

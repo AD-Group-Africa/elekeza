@@ -1,226 +1,246 @@
 [
   {
-    "ts": "2026-10-03T08:14:33.371Z",
+    "ts": "2026-10-15T11:12:06.454Z",
     "type": "info",
     "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"
   },
   {
-    "ts": "2026-10-03T08:14:33.444Z",
+    "ts": "2026-10-15T11:12:06.610Z",
     "type": "log",
     "text": "[HMR] connected"
   },
   {
-    "ts": "2026-10-03T08:14:33.647Z",
+    "ts": "2026-10-15T11:12:07.264Z",
     "type": "error",
     "text": "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
   },
   {
-    "ts": "2026-10-03T08:14:33.648Z",
+    "ts": "2026-10-15T11:12:07.282Z",
     "type": "error",
     "text": "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
   },
   {
-    "ts": "2026-10-03T08:14:34.133Z",
+    "ts": "2026-10-15T11:12:08.771Z",
     "type": "log",
     "text": "[Fast Refresh] rebuilding"
   },
   {
-    "ts": "2026-10-03T08:14:35.181Z",
+    "ts": "2026-10-15T11:12:10.403Z",
     "type": "log",
-    "text": "[Fast Refresh] done in 1049ms"
+    "text": "[Fast Refresh] done in 1627ms"
   },
   {
-    "ts": "2026-10-03T08:14:36.227Z",
+    "ts": "2026-10-15T11:12:13.094Z",
     "type": "log",
     "text": "[Fast Refresh] rebuilding"
   },
   {
-    "ts": "2026-10-03T08:14:40.737Z",
+    "ts": "2026-10-15T11:12:16.377Z",
     "type": "info",
     "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"
   },
   {
-    "ts": "2026-10-03T08:14:40.832Z",
+    "ts": "2026-10-15T11:12:16.442Z",
     "type": "log",
     "text": "[HMR] connected"
   },
   {
-    "ts": "2026-10-03T08:14:42.101Z",
+    "ts": "2026-10-15T11:12:17.464Z",
     "type": "log",
     "text": "[Fast Refresh] rebuilding"
   },
   {
-    "ts": "2026-10-03T08:14:44.652Z",
+    "ts": "2026-10-15T11:12:19.533Z",
     "type": "info",
     "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"
   },
   {
-    "ts": "2026-10-03T08:14:44.721Z",
+    "ts": "2026-10-15T11:12:19.637Z",
     "type": "log",
     "text": "[HMR] connected"
   },
   {
-    "ts": "2026-10-03T08:14:45.835Z",
+    "ts": "2026-10-15T11:12:21.088Z",
     "type": "log",
     "text": "[Fast Refresh] rebuilding"
   },
   {
-    "ts": "2026-10-03T08:14:48.194Z",
+    "ts": "2026-10-15T11:12:24.632Z",
     "type": "info",
     "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"
   },
   {
-    "ts": "2026-10-03T08:14:48.306Z",
+    "ts": "2026-10-15T11:12:24.704Z",
     "type": "log",
     "text": "[HMR] connected"
   },
   {
-    "ts": "2026-10-03T08:14:50.471Z",
+    "ts": "2026-10-15T11:12:26.841Z",
     "type": "log",
     "text": "[Fast Refresh] rebuilding"
   },
   {
-    "ts": "2026-10-03T08:14:53.575Z",
+    "ts": "2026-10-15T11:12:29.267Z",
     "type": "info",
     "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"
   },
   {
-    "ts": "2026-10-03T08:14:53.718Z",
+    "ts": "2026-10-15T11:12:29.410Z",
     "type": "log",
     "text": "[HMR] connected"
   },
   {
-    "ts": "2026-10-03T08:14:54.223Z",
+    "ts": "2026-10-15T11:12:29.601Z",
     "type": "error",
     "text": "A tree hydrated but some attributes of the server rendered HTML didn't match the client properties. This won't be patched up. This can happen if a SSR-ed Client Component used:\n\n- A server/client branch `if (typeof window !== 'undefined')`.\n- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.\n- Date formatting in a user's locale which doesn't match the server.\n- External changing data without sending a snapshot of it along with the HTML.\n- Invalid HTML tag nesting.\n\nIt can also happen if the client has a browser extension installed which messes with the HTML before React loaded.\n\n%s%s https://react.dev/link/hydration-mismatch \n\n  ...\n    <HTTPAccessFallbackBoundary notFound={undefined} forbidden={undefined} unauthorized={undefined}>\n      <RedirectBoundary>\n        <RedirectErrorBoundary router={{...}}>\n          <InnerLayoutRouter url=\"/student-l...\" tree={[...]} params={{}} cacheNode={{rsc:{...}, ...}} ...>\n            <SegmentViewNode type=\"p"
   },
   {
-    "ts": "2026-10-03T08:14:55.013Z",
+    "ts": "2026-10-15T11:12:30.556Z",
     "type": "log",
     "text": "[Fast Refresh] rebuilding"
   },
   {
-    "ts": "2026-10-03T08:14:55.872Z",
+    "ts": "2026-10-15T11:12:40.448Z",
     "type": "log",
-    "text": "[Fast Refresh] done in 861ms"
+    "text": "[Fast Refresh] done in 9893ms"
   },
   {
-    "ts": "2026-10-03T08:14:58.161Z",
+    "ts": "2026-10-15T11:12:45.741Z",
     "type": "info",
     "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"
   },
   {
-    "ts": "2026-10-03T08:14:58.270Z",
+    "ts": "2026-10-15T11:12:45.879Z",
     "type": "log",
     "text": "[HMR] connected"
   },
   {
-    "ts": "2026-10-03T08:15:05.698Z",
+    "ts": "2026-10-15T11:12:52.302Z",
     "type": "log",
     "text": "[Fast Refresh] rebuilding"
   },
   {
-    "ts": "2026-10-03T08:15:07.139Z",
+    "ts": "2026-10-15T11:12:54.642Z",
     "type": "log",
-    "text": "[Fast Refresh] done in 1442ms"
+    "text": "[Fast Refresh] done in 2340ms"
   },
   {
-    "ts": "2026-10-03T08:15:09.667Z",
+    "ts": "2026-10-15T11:12:56.928Z",
     "type": "info",
     "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"
   },
   {
-    "ts": "2026-10-03T08:15:09.776Z",
+    "ts": "2026-10-15T11:12:57.032Z",
     "type": "log",
     "text": "[HMR] connected"
   },
   {
-    "ts": "2026-10-03T08:15:20.436Z",
+    "ts": "2026-10-15T11:13:08.447Z",
     "type": "info",
     "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"
   },
   {
-    "ts": "2026-10-03T08:15:20.514Z",
+    "ts": "2026-10-15T11:13:08.548Z",
     "type": "log",
     "text": "[HMR] connected"
   },
   {
-    "ts": "2026-10-03T08:15:21.327Z",
+    "ts": "2026-10-15T11:13:09.739Z",
     "type": "log",
     "text": "[Fast Refresh] rebuilding"
   },
   {
-    "ts": "2026-10-03T08:15:25.133Z",
+    "ts": "2026-10-15T11:13:13.230Z",
     "type": "info",
     "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"
   },
   {
-    "ts": "2026-10-03T08:15:25.226Z",
+    "ts": "2026-10-15T11:13:13.308Z",
     "type": "log",
     "text": "[HMR] connected"
   },
   {
-    "ts": "2026-10-03T08:15:26.476Z",
+    "ts": "2026-10-15T11:13:14.704Z",
     "type": "log",
     "text": "[Fast Refresh] rebuilding"
   },
   {
-    "ts": "2026-10-03T08:15:31.453Z",
+    "ts": "2026-10-15T11:13:17.596Z",
     "type": "info",
     "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"
   },
   {
-    "ts": "2026-10-03T08:15:31.599Z",
+    "ts": "2026-10-15T11:13:17.760Z",
     "type": "log",
     "text": "[HMR] connected"
   },
   {
-    "ts": "2026-10-03T08:15:35.287Z",
+    "ts": "2026-10-15T11:13:20.706Z",
+    "type": "log",
+    "text": "[Fast Refresh] rebuilding"
+  },
+  {
+    "ts": "2026-10-15T11:13:21.279Z",
+    "type": "log",
+    "text": "[Fast Refresh] done in 578ms"
+  },
+  {
+    "ts": "2026-10-15T11:13:23.347Z",
     "type": "info",
     "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"
   },
   {
-    "ts": "2026-10-03T08:15:35.349Z",
+    "ts": "2026-10-15T11:13:23.423Z",
     "type": "log",
     "text": "[HMR] connected"
   },
   {
-    "ts": "2026-10-03T08:15:35.498Z",
+    "ts": "2026-10-15T11:13:23.725Z",
     "type": "error",
     "text": "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
   },
   {
-    "ts": "2026-10-03T08:15:35.514Z",
+    "ts": "2026-10-15T11:13:23.743Z",
     "type": "error",
     "text": "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
   },
   {
-    "ts": "2026-10-03T08:15:38.478Z",
+    "ts": "2026-10-15T11:13:25.399Z",
     "type": "log",
     "text": "[Fast Refresh] rebuilding"
   },
   {
-    "ts": "2026-10-03T08:15:41.139Z",
+    "ts": "2026-10-15T11:13:27.219Z",
     "type": "log",
-    "text": "[Fast Refresh] done in 2661ms"
+    "text": "[Fast Refresh] done in 1820ms"
   },
   {
-    "ts": "2026-10-03T08:15:44.285Z",
+    "ts": "2026-10-15T11:13:30.311Z",
     "type": "info",
     "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"
   },
   {
-    "ts": "2026-10-03T08:15:44.349Z",
+    "ts": "2026-10-15T11:13:30.381Z",
     "type": "log",
     "text": "[HMR] connected"
   },
   {
-    "ts": "2026-10-03T08:15:46.504Z",
+    "ts": "2026-10-15T11:13:31.874Z",
+    "type": "log",
+    "text": "[Fast Refresh] rebuilding"
+  },
+  {
+    "ts": "2026-10-15T11:13:32.485Z",
+    "type": "log",
+    "text": "[Fast Refresh] done in 610ms"
+  },
+  {
+    "ts": "2026-10-15T11:13:34.053Z",
     "type": "info",
     "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"
   },
   {
-    "ts": "2026-10-03T08:15:46.561Z",
+    "ts": "2026-10-15T11:13:34.109Z",
     "type": "log",
     "text": "[HMR] connected"
   }

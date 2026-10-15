@@ -1,22 +1,22 @@
 {
   "gamification": {
     "before": {
-      "toNext": 26,
-      "points": 124,
-      "level": 3,
-      "levelName": "Explorer"
+      "toNext": 24,
+      "points": 176,
+      "level": 4,
+      "levelName": "Adventurer"
     },
     "afterQuiz": {
-      "toNext": 16,
-      "points": 134,
-      "level": 3,
-      "levelName": "Explorer"
+      "toNext": 14,
+      "points": 186,
+      "level": 4,
+      "levelName": "Adventurer"
     },
     "afterRelogin": {
-      "toNext": 16,
-      "points": 134,
-      "level": 3,
-      "levelName": "Explorer"
+      "toNext": 14,
+      "points": 186,
+      "level": 4,
+      "levelName": "Adventurer"
     },
     "note": "points derived server-side: quizzes*10 + lessons*2 (level period 50)"
   },
@@ -31,10 +31,10 @@
     "wiringGap": "server read-aloud pref does not gate lesson Listen buttons (localStorage a11y system separate)"
   },
   "prefSources": {
-    "How much on each screen": "Standard setting",
+    "How much on each screen": "Chosen by you",
     "Text size": "Chosen by you",
     "Screen contrast": "Chosen by you",
-    "How explanations are written": "Standard setting",
+    "How explanations are written": "Chosen by you",
     "Examples": "Standard setting"
   }
 }
