@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import api from '@/lib/axios';
 import SidebarLayout from '@/components/layout/SidebarLayout';
+import { useAuth } from '@/hooks/useAuth';
 import { Building2, Users, GraduationCap, Search, Bell } from 'lucide-react';
 
 interface AdminOverview {
@@ -17,17 +18,35 @@ interface SchoolRow {
 }
 
 export default function SuperAdminDashboard() {
+  // 2026-10-16: client-side role guard. Backend /api/analytics/admin(overview)
+  // already enforces ADMIN server-side; this keeps the admin shell and its
+  // data requests from rendering/firing before authorization is established.
+  const { user, loading: authLoading } = useAuth();
   const [stats, setStats] = useState<AdminOverview | null>(null);
   const [schools, setSchools] = useState<SchoolRow[]>([]);
   const [selectedSchool, setSelectedSchool] = useState('all');
   const [notifications, setNotifications] = useState<Array<{ id: number; title?: string; message?: string; createdAt?: string }>>([]);
 
   useEffect(() => {
+    if (!user || user.role !== 'ADMIN') return; // backend re-verifies every request
     api.get('/analytics/admin/overview').then(res => setStats(res.data)).catch(() => {});
     // Fetch schools list (assuming endpoint exists; otherwise use mock)
     api.get('/institutions').then(res => setSchools(res.data || [])).catch(() => {});
     api.get('/notifications').then(res => setNotifications(res.data || [])).catch(() => {});
-  }, []);
+  }, [user]);
+
+  if (authLoading) return null; // authentication being re-established
+  if (!user || user.role !== 'ADMIN') {
+    return (
+      <main className="min-h-screen flex items-center justify-center p-6">
+        <div className="glass-card p-8 max-w-md text-center" style={{ background: "var(--bg-card)" }}>
+          <h1 className="text-xl font-bold text-purple-200 mb-2">Platform Administration</h1>
+          <p className="text-purple-300">You are not authorized to view this page.</p>
+          <a href="/admin" className="text-purple-400 underline mt-4 inline-block">Return to your dashboard</a>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <SidebarLayout>
