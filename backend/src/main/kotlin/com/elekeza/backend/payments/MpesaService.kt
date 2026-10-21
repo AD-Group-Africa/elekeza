@@ -1,11 +1,10 @@
-﻿package com.elekeza.backend.payments
+package com.elekeza.backend.payments
 
-import com.elekeza.backend.finance.MpesaPaymentListener
-import com.fasterxml.jackson.databind.ObjectMapper
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.*
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.client.RestTemplate
 import org.springframework.web.server.ResponseStatusException
 import java.time.Instant
@@ -13,6 +12,25 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Base64
 
+/**
+ * Daraja-backed M-Pesa provider integration.
+ *
+ * TRUST MODEL (2026-10-16 payment-security remediation)
+ * ----------------------------------------------------
+ * The STK callback is UNSIGNED. Safaricom publishes no HMAC or signature header
+ * for it, so the callback body is a *notification*, never proof of payment. The
+ * supported controls are (a) allowlisting the published Daraja callback source
+ * IPs at the network edge — operational, not enforced here — and (b) verifying
+ * the outcome with the STK Push Query API. This service therefore finalises a
+ * payment only when [MpesaStatusVerifier] independently returns
+ * [VerificationOutcome.Confirmed]; an unverifiable success is parked in
+ * AWAITING_VERIFICATION and resolved later by the reconciliation job, never
+ * credited on the callback's word alone.
+ *
+ * In `mock` mode (the default; no provider credentials) the callback IS the
+ * simulated provider signal and confirms directly. That mode moves no real money
+ * and must never be used for a live deployment.
+ */
 @Service
 class MpesaService(
     @Value("\${mpesa.consumer-key:}") private val consumerKey: String,
@@ -23,13 +41,13 @@ class MpesaService(
     @Value("\${mpesa.environment:sandbox}") private val environment: String,
     private val transactionRepo: MpesaTransactionRepository,
     private val restTemplate: RestTemplate,
-    private val objectMapper: ObjectMapper,
-    // Optional: when present, a confirmed callback also creates the school
-    // finance Payment (idempotently) and updates learner fee balances.
-    private val feePaymentListener: MpesaPaymentListener? = null
+    private val statusVerifier: MpesaStatusVerifier,
+    private val finalizer: MpesaPaymentFinalizer,
+    private val auditLogService: com.elekeza.backend.common.AuditLogService,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
-    private val baseUrl = if (environment == "production") "https://api.safaricom.co.ke" else "https://sandbox.safaricom.co.ke"
+    private val baseUrl =
+        if (environment == "production") "https://api.safaricom.co.ke" else "https://sandbox.safaricom.co.ke"
 
     fun stkPush(phoneNumber: String, amount: Double, reference: String, description: String): Map<String, Any> {
         if (consumerKey.isBlank() || consumerSecret.isBlank()) {
@@ -38,6 +56,29 @@ class MpesaService(
                 "M-Pesa payments are not configured for this deployment."
             )
         }
+        if (callbackUrl.isBlank()) {
+            // Sending to Daraja without a callback URL would strand the payment.
+            throw ResponseStatusException(
+                HttpStatus.SERVICE_UNAVAILABLE,
+                "M-Pesa callback URL is not configured for this deployment."
+            )
+        }
+
+        // Durable intent FIRST: if the provider accepts the request but the
+        // process dies before we record its id, the row survives as PENDING and
+        // is surfaced for review by reconciliation instead of vanishing.
+        val intent = transactionRepo.save(
+            MpesaTransaction(
+                merchantRequestId = null,
+                checkoutRequestId = null,
+                phoneNumber = phoneNumber,
+                amount = amount,
+                reference = reference,
+                description = description,
+                status = MpesaStatus.PENDING,
+            )
+        )
+
         val token = getAccessToken()
         val timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"))
         val password = Base64.getEncoder().encodeToString("$shortcode$passkey$timestamp".toByteArray())
@@ -70,44 +111,60 @@ class MpesaService(
         ) as ResponseEntity<Map<String, Any>>
 
         @Suppress("UNCHECKED_CAST") val responseBody: Map<String, Any> = response.body as? Map<String, Any> ?: emptyMap()
+        val checkoutRequestId = responseBody["CheckoutRequestID"] as? String
 
-        transactionRepo.save(MpesaTransaction(
-            merchantRequestId = responseBody["MerchantRequestID"] as? String,
-            checkoutRequestId = responseBody["CheckoutRequestID"] as? String,
-            phoneNumber = phoneNumber,
-            amount = amount,
-            reference = reference,
-            description = description,
-            status = "INITIATED"
-        ))
+        if (checkoutRequestId.isNullOrBlank()) {
+            auditLogService.log(
+                action = "MPESA_STK_REVIEW", category = "PAYMENT",
+                detail = "intentId=${intent.id} outcome=provider-no-checkout-id", success = false,
+            )
+            // Provider answered but gave no id we can correlate. Surface it.
+            transactionRepo.save(
+                intent.copy(
+                    status = MpesaStatus.REQUIRES_REVIEW,
+                    resultDesc = "provider accepted the request without a CheckoutRequestID",
+                    updatedAt = Instant.now(),
+                )
+            )
+        } else {
+            transactionRepo.save(
+                intent.copy(
+                    merchantRequestId = responseBody["MerchantRequestID"] as? String,
+                    checkoutRequestId = checkoutRequestId,
+                    status = MpesaStatus.INITIATED,
+                    updatedAt = Instant.now(),
+                )
+            )
+            auditLogService.log(
+                action = "MPESA_STK_ACCEPTED", category = "PAYMENT",
+                detail = "intentId=${intent.id} checkoutRequestId=$checkoutRequestId",
+            )
+        }
 
         return mapOf(
             "success" to (response.statusCode == HttpStatus.OK),
             "merchantRequestId" to (responseBody["MerchantRequestID"] ?: "") as Any,
-            "checkoutRequestId" to (responseBody["CheckoutRequestID"] ?: "") as Any,
+            "checkoutRequestId" to (checkoutRequestId ?: "") as Any,
             "message" to (responseBody["ResponseDescription"] ?: "") as Any
         )
     }
 
     /**
      * Handles the Safaricom STK callback. The endpoint is intentionally
-     * unauthenticated (the provider cannot hold a session), so this handler
-     * must be defensive on its own:
+     * unauthenticated (the provider cannot hold a session), so this handler is
+     * defensive and treats the payload as untrusted:
      *
-     *  - only transitions a transaction we initiated and that is still
-     *    pending (state machine INITIATED/PENDING → COMPLETED | FAILED);
-     *  - terminal transactions are never re-opened (duplicate callbacks from
-     *    provider retries are ignored, and a FAILED result cannot be flipped
-     *    to COMPLETED by replaying a forged success body);
-     *  - the callback Amount must match the amount we initiated — a mismatch
-     *    means tampering or a provider error, and is rejected without state
-     *    change;
-     *  - unknown checkout ids are rejected and logged.
-     *
-     * Deployments with real Daraja credentials MUST additionally enable
-     * provider signature verification (Safaricom signs callbacks with their
-     * public key) at the edge before this handler runs — see the audit doc.
+     *  - only a transaction we initiated, still non-terminal, is eligible;
+     *  - the callback Amount must match the amount we initiated;
+     *  - a claimed SUCCESS is finalised ONLY after independent verification
+     *    (STK Push Query in live mode) — an unverifiable success is parked as
+     *    AWAITING_VERIFICATION and creates no credit;
+     *  - a verified non-success becomes FAILED;
+     *  - terminal rows are never reopened (duplicate/replayed callbacks are
+     *    acknowledged and ignored);
+     *  - unknown checkout ids are rejected and logged, never recorded.
      */
+    @Transactional
     fun processCallback(body: Map<String, Any>): Map<String, Any> {
         val stkCallback = (body["Body"] as? Map<*, *>)?.get("stkCallback") as? Map<String, Any>
         val checkoutRequestId = stkCallback?.get("CheckoutRequestID") as? String
@@ -118,24 +175,43 @@ class MpesaService(
 
         val transaction = transactionRepo.findByCheckoutRequestId(checkoutRequestId)
         if (transaction == null) {
+            auditLogService.log(
+                action = "MPESA_CALLBACK_UNKNOWN", category = "PAYMENT",
+                detail = "checkoutRequestId=$checkoutRequestId", success = false,
+            )
             log.warn("M-Pesa callback for unknown CheckoutRequestID {}", checkoutRequestId)
             return mapOf("ResultCode" to 1, "ResultDesc" to "Failed")
         }
 
         // Idempotency: terminal transactions are final. This also blocks
         // replaying a forged success body after a FAILED result.
-        if (transaction.status == "COMPLETED" || transaction.status == "FAILED") {
+        if (transaction.status in MpesaStatus.TERMINAL) {
+            auditLogService.log(
+                action = "MPESA_CALLBACK_DUPLICATE", category = "PAYMENT",
+                detail = "checkoutRequestId=$checkoutRequestId status=${transaction.status}",
+            )
             log.info("Ignoring duplicate M-Pesa callback for terminal transaction {} ({})", checkoutRequestId, transaction.status)
             return mapOf("ResultCode" to 0, "ResultDesc" to "Success")
         }
 
-        val resultCode = stkCallback["ResultCode"] as? Int ?: -1
+        val resultCode = (stkCallback["ResultCode"] as? Number)?.toInt() ?: -1
         val resultDesc = stkCallback["ResultDesc"] as? String
         val metadata = (stkCallback["CallbackMetadata"] as? Map<*, *>)?.get("Item") as? List<Map<String, Any>>
         val callbackAmount = (metadata?.find { it["Name"] == "Amount" }?.get("Value") as? Number)?.toDouble()
+        val receipt = metadata?.find { it["Name"] == "MpesaReceiptNumber" }?.get("Value") as? String
 
         // The amount the provider reports must equal what we initiated.
+        auditLogService.log(
+            action = "MPESA_CALLBACK", category = "PAYMENT",
+            detail = "checkoutRequestId=$checkoutRequestId resultCode=$resultCode amountKES=${transaction.amount}",
+            success = true,
+        )
         if (callbackAmount != null && Math.abs(callbackAmount - transaction.amount) > 0.001) {
+            auditLogService.log(
+                action = "MPESA_CALLBACK_MISMATCH", category = "PAYMENT",
+                detail = "checkoutRequestId=$checkoutRequestId actually-initiated-KES=${transaction.amount}",
+                success = false,
+            )
             log.warn(
                 "M-Pesa callback amount mismatch for {}: initiated KES {} but callback reports KES {}",
                 checkoutRequestId, transaction.amount, callbackAmount
@@ -143,74 +219,47 @@ class MpesaService(
             return mapOf("ResultCode" to 1, "ResultDesc" to "Amount mismatch")
         }
 
-        val updated = transaction.copy(
-            status = if (resultCode == 0) "COMPLETED" else "FAILED",
-            resultCode = resultCode,
-            resultDesc = resultDesc,
-            mpesaReceiptNumber = metadata?.find { it["Name"] == "MpesaReceiptNumber" }?.get("Value") as? String,
-            transactionDate = Instant.now(),
-            updatedAt = Instant.now()
-        )
-        transactionRepo.save(updated)
-        log.info("M-Pesa payment {}: {} - KES {}", updated.status, updated.mpesaReceiptNumber ?: checkoutRequestId, updated.amount)
+        // Provider reports failure/cancellation — no verification needed to
+        // refuse a credit, and a definitive failure is safe to record.
+        if (resultCode != 0) {
+            finalizer.markFailed(transaction, resultCode, resultDesc)
+            return mapOf("ResultCode" to 0, "ResultDesc" to "Success")
+        }
 
-        // Map the confirmed provider transaction into the school finance domain:
-        // idempotent (same checkout id ⇒ one Payment), allocated against the
-        // learner's outstanding charges. The reference carries the learner id
-        // ("ELEKEZA-FEES-<learnerId>") for fee-initiated STK pushes.
-        if (updated.status == "COMPLETED") {
-            val learnerId = updated.reference.split("-").lastOrNull()?.toLongOrNull()
-            if (learnerId != null && feePaymentListener != null) {
-                try {
-                    val payment = feePaymentListener.onMpesaSuccess(
-                        checkoutRequestId, learnerId, updated.amount, updated.mpesaReceiptNumber
-                    )
-                    if (payment == null) {
-                        log.info("M-Pesa callback {} already mapped to a finance payment — skipping (idempotent)", checkoutRequestId)
-                    }
-                } catch (e: Exception) {
-                    // Never fail the provider handshake for a downstream issue;
-                    // the transaction state is already terminal and can be
-                    // reconciled from the ledger.
-                    log.error("Failed to map M-Pesa payment {} to finance domain", checkoutRequestId, e)
-                }
+        // Provider CLAIMS success. Do not credit on that claim alone.
+        when (val outcome = statusVerifier.verify(checkoutRequestId)) {
+            is VerificationOutcome.Confirmed -> {
+                log.info("M-Pesa payment {} independently verified — finalising", checkoutRequestId)
+                finalizer.finalizeConfirmed(transaction, receipt, resultDesc)
+            }
+            is VerificationOutcome.NotSuccessful -> {
+                auditLogService.log(
+                    action = "MPESA_REFUSED", category = "PAYMENT",
+                    detail = "checkoutRequestId=$checkoutRequestId outcome=provider-contradiction", success = false,
+                )
+                log.warn(
+                    "M-Pesa callback claimed success for {} but the provider query says otherwise — refusing credit",
+                    checkoutRequestId
+                )
+                finalizer.markFailed(transaction, resultCode, "Provider verification returned not successful")
+            }
+            is VerificationOutcome.Unavailable -> {
+                auditLogService.log(
+                    action = "MPESA_AWAITING", category = "PAYMENT",
+                    detail = "checkoutRequestId=$checkoutRequestId outcome=unverified-parked", success = false,
+                )
+                // Fail closed: acknowledge receipt, create no credit, let the
+                // reconciliation job resolve the true outcome.
+                finalizer.parkAwaitingVerification(transaction, "unverified: ${outcome.reason}")
             }
         }
 
         return mapOf("ResultCode" to 0, "ResultDesc" to "Success")
     }
 
-    fun getTransactionStatus(checkoutRequestId: String): Map<String, Any> {
-        val token = getAccessToken()
-        val timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"))
-        val password = Base64.getEncoder().encodeToString("$shortcode$passkey$timestamp".toByteArray())
-
-        val body = mapOf(
-            "BusinessShortCode" to shortcode,
-            "Password" to password,
-            "Timestamp" to timestamp,
-            "CheckoutRequestID" to checkoutRequestId
-        )
-
-        val headers = HttpHeaders().apply {
-            contentType = MediaType.APPLICATION_JSON
-            setBearerAuth(token)
-        }
-
-        @Suppress("UNCHECKED_CAST")
-        val response = restTemplate.exchange(
-            "$baseUrl/mpesa/stkpushquery/v1/query",
-            HttpMethod.POST,
-            HttpEntity(body, headers),
-            Map::class.java
-        ) as ResponseEntity<Map<String, Any>>
-
-        return response.body ?: mapOf("error" to "Failed to query status")
-    }
-
     fun getRevenue(): Map<String, Any> {
         val transactions = transactionRepo.findAll()
-        val totalRevenue = transactions.filter { it.status == "COMPLETED" }.sumOf { it.amount }
+        val totalRevenue = transactions.filter { it.status == MpesaStatus.COMPLETED }.sumOf { it.amount }
         val thisMonth = transactions.filter {
             it.createdAt.atZone(java.time.ZoneId.systemDefault()).month == Instant.now().atZone(java.time.ZoneId.systemDefault()).month
         }
@@ -218,14 +267,16 @@ class MpesaService(
         return mapOf(
             "totalRevenue" to totalRevenue,
             "transactionCount" to transactions.size,
-            "successfulTransactions" to transactions.count { it.status == "COMPLETED" },
-            "failedTransactions" to transactions.count { it.status == "FAILED" },
-            "revenueThisMonth" to thisMonth.filter { it.status == "COMPLETED" }.sumOf { it.amount },
+            "successfulTransactions" to transactions.count { it.status == MpesaStatus.COMPLETED },
+            "failedTransactions" to transactions.count { it.status == MpesaStatus.FAILED },
+            "awaitingVerification" to transactions.count { it.status == MpesaStatus.AWAITING_VERIFICATION },
+            "requiresReview" to transactions.count { it.status == MpesaStatus.REQUIRES_REVIEW },
+            "revenueThisMonth" to thisMonth.filter { it.status == MpesaStatus.COMPLETED }.sumOf { it.amount },
             "monthlyRevenue" to (0..5).map { monthsAgo ->
                 val targetMonth = LocalDateTime.now().minusMonths(monthsAgo.toLong()).month
                 transactions.filter {
                     it.createdAt.atZone(java.time.ZoneId.systemDefault()).month == targetMonth &&
-                    it.status == "COMPLETED"
+                        it.status == MpesaStatus.COMPLETED
                 }.sumOf { it.amount }
             }
         )
@@ -247,8 +298,3 @@ class MpesaService(
             ?: throw RuntimeException("Failed to get M-Pesa access token")
     }
 }
-
-
-
-
-
