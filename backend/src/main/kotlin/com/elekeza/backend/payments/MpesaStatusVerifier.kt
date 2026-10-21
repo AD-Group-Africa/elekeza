@@ -108,7 +108,7 @@ class LiveMpesaStatusVerifier(
         if (environment == "production") "https://api.safaricom.co.ke" else "https://sandbox.safaricom.co.ke"
 
     val isConfigured: Boolean
-        get() = consumerKey.isNotBlank() && consumerSecret.isNotBlank()
+        get() = consumerKey.isNotBlank() && consumerSecret.isNotBlank() && passkey.isNotBlank()
 
     fun query(checkoutRequestId: String): VerificationOutcome {
         if (!isConfigured) {

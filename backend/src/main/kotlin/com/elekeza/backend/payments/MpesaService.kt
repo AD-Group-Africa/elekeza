@@ -221,8 +221,39 @@ class MpesaService(
 
         // Provider reports failure/cancellation — no verification needed to
         // refuse a credit, and a definitive failure is safe to record.
+        // SPRINT 3 P1 FIX: A non-zero ResultCode from an unauthenticated callback
+        // is NOT proof of failure. Anyone with a known checkout ID could forge
+        // a failure callback and permanently terminate a legitimate in-flight
+        // payment (FAILED is terminal; reconciliation only retries non-terminal).
+        // In live mode, verify with the provider before any terminal transition.
         if (resultCode != 0) {
-            finalizer.markFailed(transaction, resultCode, resultDesc)
+            if (!statusVerifier.isLive) {
+                // Mock mode: the callback IS the provider signal, no real money.
+                finalizer.markFailed(transaction, resultCode, resultDesc)
+                return mapOf("ResultCode" to 0, "ResultDesc" to "Success")
+            }
+            when (val failureOutcome = statusVerifier.verify(checkoutRequestId)) {
+                is VerificationOutcome.Confirmed -> {
+                    auditLogService.log(
+                        action = "MPESA_FAILURE_CALLBACK_CONTRADICTED", category = "PAYMENT",
+                        detail = "checkoutRequestId=$checkoutRequestId outcome=provider-confirms-success",
+                        success = false,
+                    )
+                    log.warn("M-Pesa callback reported failure for {} but provider confirms success - finalising, not failing", checkoutRequestId)
+                    finalizer.finalizeConfirmed(transaction, receipt, "Callback non-zero but provider confirmed success")
+                }
+                is VerificationOutcome.NotSuccessful -> {
+                    finalizer.markFailed(transaction, resultCode, resultDesc)
+                }
+                is VerificationOutcome.Unavailable -> {
+                    auditLogService.log(
+                        action = "MPESA_FAILURE_CALLBACK_UNVERIFIED", category = "PAYMENT",
+                        detail = "checkoutRequestId=$checkoutRequestId outcome=parked-for-reconciliation",
+                        success = false,
+                    )
+                    finalizer.parkAwaitingVerification(transaction, "failure callback unverified: ${failureOutcome.reason}")
+                }
+            }
             return mapOf("ResultCode" to 0, "ResultDesc" to "Success")
         }
 
