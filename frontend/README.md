@@ -4,7 +4,9 @@ Web client for the Elekeza adaptive learning platform: learners, teachers, guard
 administrators. Built with Next.js (App Router), React 19, TypeScript, Tailwind CSS and TanStack Query.
 
 New to the code? Read **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)** — it explains the folder layout
-and how to add a page, a feature or an API call.
+and how to add a page, a feature or an API call. **[docs/FEATURES.md](docs/FEATURES.md)** lists what
+each role can do and where it lives; **[docs/IMPROVEMENTS.md](docs/IMPROVEMENTS.md)** is the backlog
+of known limitations and ideas.
 
 ## Prerequisites
 
@@ -25,8 +27,8 @@ Point it at another backend with `NEXT_PUBLIC_API_URL` (required for production 
 NEXT_PUBLIC_API_URL=http://localhost:8085 npm run dev
 ```
 
-The backend only accepts the origins listed in its CORS settings (dev profile: ports `3000`, `3100`,
-`3005`). If sign-in fails with *Invalid CORS request*, run the frontend on one of those ports
+The backend only accepts the origins listed in its CORS settings (dev profile: ports `3000`, `3001`,
+`3100`, `3005`). If sign-in fails with *Invalid CORS request*, run the frontend on one of those ports
 (`npm run dev -- -p 3005`).
 
 ## Scripts
@@ -64,6 +66,7 @@ src/
 | Learner | `student@elekeza.app` | `student123` |
 | Teacher | `teacher@elekeza.app` | `teacher123` |
 | Guardian | `parent@elekeza.app` | `parent123` |
+| Platform admin (also manages the seeded school) | `admin@elekeza.app` | `admin123` |
 
 ## Troubleshooting
 

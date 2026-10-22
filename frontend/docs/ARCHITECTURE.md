@@ -44,7 +44,7 @@ src/
 │     └─ index.ts                (optional) public API for OTHER features
 ├─ components/
 │  ├─ ui/                        Button, Card, Field/TextInput/Select/Textarea, Alert, Badge,
-│  │                             Switch, PageHeader, LoadingState, EmptyState, Toast, ComingSoon
+│  │                             Switch, Tabs, PageHeader, LoadingState, EmptyState, Toast, ComingSoon
 │  └─ layout/                    AppShell, SidebarNav, MobileBottomNav, ElekezaAssist
 ├─ config/
 │  ├─ navigation.ts              every role's menu (sidebar + mobile bottom bar)
@@ -59,8 +59,12 @@ src/
 ```
 
 Current features: `accessibility`, `account`, `admin`, `assignments` (classwork), `attendance`, `auth`,
-`exams`, `finance`, `guardian`, `learner`, `lessons`, `messaging`, `notifications`, `quiz`, `teacher`,
-`tutor`, `waitlist`.
+`calendar`, `classes`, `curriculum`, `devices`, `exams`, `finance`, `guardian`, `learner`, `learners`
+(school-wide learner records), `lessons`, `messaging`, `notifications`, `quiz`, `teacher`, `tutor`,
+`waitlist`.
+
+What each role can do, page by page: **[FEATURES.md](FEATURES.md)**. Ideas and known limitations:
+**[IMPROVEMENTS.md](IMPROVEMENTS.md)**.
 
 ## 3. Dependency rules
 
@@ -124,7 +128,10 @@ Conventions:
 
 - Build screens from the kit in `components/ui`. Use `PageHeader` for the page's single `<h1>`.
 - Forms: wrap every control in `<Field id label>` (it wires the label, hint and error). Inputs use the
-  kit's `TextInput` / `Select` / `Textarea`.
+  kit's `TextInput` / `Select` / `Textarea`. Passing a width or padding class (`w-48`, `py-1.5`)
+  replaces the default one — `cn` itself does not merge conflicting Tailwind classes.
+- Sections within a page: `<Tabs>` (keyboard arrows, proper tab/tabpanel roles).
+- Side-by-side cards in a grid: add `items-start` so a short card doesn't stretch to its neighbour's height.
 - Status messages: `<Alert tone="success|error|info|warning">` — errors use `role="alert"`,
   the rest `role="status"`. Loading: `<LoadingState>`. Nothing yet: `<EmptyState>`.
 - Colours: prefer the semantic Tailwind names, which follow the active theme —
@@ -200,6 +207,9 @@ Add it to `Role` and the maps in `lib/roles.ts`, then give it a menu in `NAV_BY_
 - **Backend contract gaps found during the review** (frontend works around them):
   - `POST /api/content/upload/file` ignores a lesson title — file lessons are titled with the file
     name.
+  - `GET /api/teacher/students` returns ids as strings; `teacherApi.students` converts them to numbers.
+  - Guardians have no institution, so the calendar only shows them national/regional dates.
   - Public registration has no role field, by design; the sign-up page now says so.
+  - More in [IMPROVEMENTS.md](IMPROVEMENTS.md) §1.
 - **Internationalisation**: copy is English-only and inline. Kiswahili support would start with a
   message catalogue per feature.
