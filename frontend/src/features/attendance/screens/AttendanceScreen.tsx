@@ -8,6 +8,7 @@
  * Keyboard-friendly: status buttons are real radios; save is a single POST.
  */
 
+import Link from 'next/link';
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Alert, Button, Card, Field, LoadingState, PageHeader, Select, TextInput } from '@/components/ui';
@@ -15,6 +16,9 @@ import { getErrorStatus } from '@/lib/api';
 import { learnerCountLabel } from '@/lib/pluralize';
 import { cn } from '@/lib/cn';
 import { attendanceApi, attendanceKeys, useClasses, type LearnerAttendance, type RosterEntry } from '../api';
+import { useAuth } from '@/features/auth';
+import { formatDate } from '@/lib/format';
+import { SchoolAttendanceSummary } from '../components/SchoolAttendanceSummary';
 
 const STATUSES = ['PRESENT', 'ABSENT', 'LATE', 'EXCUSED'] as const;
 
@@ -33,6 +37,8 @@ function todayISO(): string {
 type Message = { tone: 'success' | 'error'; text: string } | null;
 
 export default function AttendanceScreen() {
+  const role = useAuth().user?.role;
+  const isSchoolAdmin = role === 'SCHOOL_ADMIN' || role === 'ADMIN';
   const queryClient = useQueryClient();
   const classesQuery = useClasses();
   const classes = classesQuery.data ?? [];
@@ -132,6 +138,7 @@ export default function AttendanceScreen() {
   return (
     <div className="mx-auto max-w-4xl">
       <PageHeader title="Attendance" description="Mark the daily register for your class." />
+      {isSchoolAdmin && <SchoolAttendanceSummary />}
 
       <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end">
         <Field id="attendance-class" label="Class" className="flex-1">
@@ -175,8 +182,11 @@ export default function AttendanceScreen() {
       ) : roster.length === 0 ? (
         <div className="rounded-xl border border-dashed border-line-strong p-8 text-center text-fg-muted">
           {classes.length === 0
-            ? 'No classes have been created for your school yet. An administrator can create them via the seed or API.'
-            : 'No learners are enrolled in this class yet.'}
+            ? 'No classes have been created for your school yet.'
+            : 'No learners are enrolled in this class yet.'}{' '}
+          <Link href="/classes" className="font-semibold text-accent underline">
+            {classes.length === 0 ? 'Set up classes' : 'Add learners to this class'}
+          </Link>
         </div>
       ) : (
         <>
@@ -288,7 +298,7 @@ function AttendanceHistory({ history, onClose }: { history: LearnerAttendance; o
           <tbody>
             {history.records.slice(0, 20).map((row, i) => (
               <tr key={i} className="border-b border-line last:border-0">
-                <td className="py-1.5 pr-3">{row.date}</td>
+                <td className="py-1.5 pr-3">{formatDate(row.date)}</td>
                 <td className="py-1.5 pr-3">{row.className}</td>
                 <td className="py-1.5">
                   <span

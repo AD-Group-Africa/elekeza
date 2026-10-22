@@ -12,6 +12,7 @@ import { formatDate } from '@/lib/format';
 import { isSchoolAdmin } from '@/lib/roles';
 import { guardianApi, guardianKeys } from '../api';
 import DailyDigest from '../components/DailyDigest';
+import { WardActivity } from '../components/WardActivity';
 
 const CONFIGURED_BY: Record<string, string> = {
   EXPLICIT: 'your child',
@@ -93,6 +94,10 @@ export default function WardDetailScreen() {
           <Stat icon={<Calendar size={20} />} label="Pending" value={w.lessonsPending || 0} />
           <Stat icon={<ClipboardCheck size={20} />} label="Avg Score" value={`${Math.round(w.averageScore || 0)}%`} />
           <Stat icon={<TrendingUp size={20} />} label="Last Active" value={formatDate(w.lastActive) || 'N/A'} />
+        </div>
+
+        <div className="mb-6">
+          <WardActivity wardId={id} />
         </div>
 
         {support.data?.summary && (

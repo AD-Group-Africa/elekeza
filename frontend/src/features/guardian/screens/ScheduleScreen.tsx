@@ -3,6 +3,8 @@
 import { useQuery } from '@tanstack/react-query';
 import { Calendar } from 'lucide-react';
 import { ButtonLink, Card, EmptyState, LoadingState, PageHeader } from '@/components/ui';
+import { upcoming, useDeadlines } from '@/features/calendar/api';
+import { DeadlineList } from '@/features/calendar/components/DeadlineList';
 import { guardianApi, guardianKeys } from '../api';
 
 /** What each child still has to do (pending lessons). */
@@ -12,9 +14,18 @@ export default function ScheduleScreen() {
     queryFn: guardianApi.schedule,
   });
 
+  const deadlines = useDeadlines();
+  const dates = upcoming(deadlines.data ?? []);
+
   return (
     <div className="space-y-6">
-      <PageHeader title="Schedule" description="Lessons your children still have to finish." />
+      <PageHeader title="Schedule" description="School dates and the lessons your children still have to finish." />
+      {dates.length > 0 && (
+        <Card title="School dates">
+          <DeadlineList deadlines={dates} />
+        </Card>
+      )}
+      <h2 className="text-lg font-semibold text-purple-200">Lessons to finish</h2>
       {isLoading ? (
         <LoadingState />
       ) : schedule.length === 0 ? (

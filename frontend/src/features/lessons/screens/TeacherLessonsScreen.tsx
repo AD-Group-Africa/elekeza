@@ -7,7 +7,9 @@ import { BookOpen, Eye, Upload } from 'lucide-react';
 import { Alert, Button, ButtonLink, Card, EmptyState, LoadingState, PageHeader } from '@/components/ui';
 import { ROUTES } from '@/config/routes';
 import { getErrorMessage } from '@/lib/api';
+import { flattenObjectives, useCurriculumTree } from '@/features/curriculum/api';
 import { lessonKeys, lessonsApi, useLessonList } from '../api';
+import { LessonObjectiveSelect } from '../components/LessonObjectiveSelect';
 
 const STATUS_LABEL: Record<string, string> = {
   READY: 'Ready',
@@ -34,6 +36,8 @@ export default function TeacherLessonsScreen() {
   });
 
   const list = lessons.data ?? [];
+  const tree = useCurriculumTree();
+  const objectives = flattenObjectives(tree.data ?? []);
 
   return (
     <div className="space-y-6">
@@ -81,10 +85,21 @@ export default function TeacherLessonsScreen() {
         <Card>
           <ul className="space-y-3">
             {list.map((lesson) => (
-              <li key={lesson.id} className="flex items-center justify-between gap-3 rounded-lg bg-white/5 p-4">
-                <div>
+              <li
+                key={lesson.id}
+                className="flex flex-wrap items-center justify-between gap-3 rounded-lg bg-white/5 p-4"
+              >
+                <div className="space-y-2">
                   <h2 className="font-semibold text-purple-200">{lesson.title}</h2>
                   <p className="text-sm text-purple-300">{STATUS_LABEL[lesson.status] ?? lesson.status}</p>
+                  {objectives.length > 0 && (
+                    <LessonObjectiveSelect
+                      lessonId={lesson.id}
+                      lessonTitle={lesson.title}
+                      objectiveId={lesson.objectiveId || null}
+                      objectives={objectives}
+                    />
+                  )}
                 </div>
                 <Link
                   href={ROUTES.lesson(lesson.id)}

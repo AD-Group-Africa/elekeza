@@ -8,6 +8,8 @@
 
 import Link from 'next/link';
 import { ROUTES } from '@/config/routes';
+import { upcoming, useDeadlines } from '@/features/calendar/api';
+import { DeadlineList } from '@/features/calendar/components/DeadlineList';
 import { useGamification, useProgressDashboard } from '../api';
 import LearningCompanion, { type CompanionState } from '../components/LearningCompanion';
 import { LevelProgress } from '../components/LevelProgress';
@@ -20,6 +22,8 @@ function timeGreeting(): string {
 export default function LearnerHomeScreen() {
   const progress = useProgressDashboard();
   const game = useGamification();
+  const deadlines = useDeadlines();
+  const comingUp = upcoming(deadlines.data ?? []).slice(0, 3);
 
   const loading = progress.isLoading;
   const name = progress.data?.name || 'Learner';
@@ -45,6 +49,15 @@ export default function LearnerHomeScreen() {
       {game.data && (
         <section className="mx-auto mt-6 max-w-2xl" aria-label="Your level">
           <LevelProgress game={game.data} />
+        </section>
+      )}
+
+      {comingUp.length > 0 && (
+        <section className="mx-auto mt-6 max-w-2xl rounded-2xl bg-white/10 p-4" aria-labelledby="coming-up">
+          <h2 id="coming-up" className="mb-2 font-semibold text-purple-100">
+            Coming up
+          </h2>
+          <DeadlineList deadlines={comingUp} />
         </section>
       )}
 

@@ -5,6 +5,7 @@ import { Bar, BarChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recha
 import { User } from 'lucide-react';
 import { Alert, Card, EmptyState, LoadingState, PageHeader } from '@/components/ui';
 import { teacherApi, teacherKeys } from '../api';
+import { ClassCompetencySummary } from '../components/ClassCompetencySummary';
 
 /** Per-learner completed lessons and average score. */
 export default function ClassProgressScreen() {
@@ -20,6 +21,8 @@ export default function ClassProgressScreen() {
     <div className="space-y-6">
       <PageHeader title="Progress Tracking" />
       {isError && <Alert tone="error">Could not load learner progress. Please refresh to try again.</Alert>}
+
+      <ClassCompetencySummary />
 
       {students.length === 0 ? (
         <EmptyState icon={<User size={48} />} title="No learner data yet." />

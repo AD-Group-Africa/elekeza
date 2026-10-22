@@ -19,7 +19,9 @@ import { useAuth } from '@/features/auth';
 import { LearningCompanion } from '@/features/learner';
 import { useLearnerPreferences } from '@/features/learner/api';
 import { useLessonQuiz } from '@/features/quiz/api';
-import { LESSON_STATUS_LABEL, useLesson } from '../api';
+import { ADAPTATIONS, LESSON_STATUS_LABEL, useLesson, type AdaptationCode } from '../api';
+import { AdaptedLessonView } from '../components/AdaptedLessonView';
+import { cn } from '@/lib/cn';
 import { LessonSection, ReadingProgress } from '../components/LessonSection';
 
 function CenteredMessage({
@@ -54,6 +56,8 @@ export default function LessonScreen() {
 
   const [currentSection, setCurrentSection] = useState(0);
   const [readingMode, setReadingMode] = useState(false);
+  // null = the lesson as written; otherwise an adapted version.
+  const [version, setVersion] = useState<AdaptationCode | null>(null);
 
   if (lessonQuery.isLoading) return <CenteredMessage state="thinking" message="Getting your lesson ready…" />;
   if (lessonQuery.isError || !lessonQuery.data) {
@@ -138,20 +142,50 @@ export default function LessonScreen() {
 
       <ReadingProgress current={currentSection} total={total} completed={atEnd && !quiz} />
 
-      <div className="space-y-4">
-        {visible.map((idx) => (
-          <LessonSection
-            key={idx}
-            section={sections[idx]}
-            index={idx}
-            total={total}
-            showPosition={readingMode}
-            serverTts={serverTts}
-          />
-        ))}
-      </div>
+      {isStudent && (
+        <div role="radiogroup" aria-label="Show this lesson as" className="flex flex-wrap items-center gap-2">
+          <span className="text-sm text-purple-300">Show this lesson as:</span>
+          {[{ code: null, label: 'As written', hint: 'The lesson as your teacher shared it' }, ...ADAPTATIONS].map(
+            (v) => (
+              <button
+                key={v.label}
+                type="button"
+                role="radio"
+                aria-checked={version === v.code}
+                title={v.hint}
+                onClick={() => setVersion(v.code as AdaptationCode | null)}
+                className={cn(
+                  'rounded-full border px-3 py-1 text-sm transition',
+                  version === v.code
+                    ? 'border-purple-400 bg-purple-600/50 text-white'
+                    : 'border-purple-300/20 text-purple-200 hover:bg-white/10',
+                )}
+              >
+                {v.label}
+              </button>
+            ),
+          )}
+        </div>
+      )}
 
-      {!atEnd && (
+      {version ? (
+        <AdaptedLessonView key={version} lessonId={id} code={version} />
+      ) : (
+        <div className="space-y-4">
+          {visible.map((idx) => (
+            <LessonSection
+              key={idx}
+              section={sections[idx]}
+              index={idx}
+              total={total}
+              showPosition={readingMode}
+              serverTts={serverTts}
+            />
+          ))}
+        </div>
+      )}
+
+      {!atEnd && !version && (
         <div className="flex items-center justify-between gap-3">
           <button
             type="button"
@@ -172,7 +206,7 @@ export default function LessonScreen() {
       )}
 
       {/* Practice — learners only, once they reach the end, and only if it exists. */}
-      {isStudent && atEnd && (
+      {isStudent && (atEnd || version !== null) && (
         <section className="space-y-4 rounded-2xl bg-white/10 p-5" aria-labelledby="practice-heading">
           <h2 id="practice-heading" className="text-lg font-semibold text-purple-100">
             Practice what you learned

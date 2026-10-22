@@ -43,6 +43,22 @@ export interface LearnerAttendance {
   records: Array<{ date: string; status: string; note: string | null; className: string }>;
 }
 
+/** Learner history with the most recent school day first. */
+export const newestFirst = (h: LearnerAttendance): LearnerAttendance => ({
+  ...h,
+  records: [...(h.records ?? [])].sort((a, b) => b.date.localeCompare(a.date)),
+});
+
+/** GET /api/attendance/summary — whole school, school admins only. */
+export interface AttendanceSummary {
+  from: string;
+  to: string;
+  sessions: number;
+  records: number;
+  counts: Record<'PRESENT' | 'ABSENT' | 'LATE' | 'EXCUSED', number>;
+  attendanceRate: number;
+}
+
 export const attendanceApi = {
   /** Classes the signed-in staff member can see (also used by timetable and classwork). */
   classes: () => apiClient.get<ClassInfo[]>('/attendance/classes').then((r) => r.data),
@@ -52,13 +68,15 @@ export const attendanceApi = {
     apiClient
       .post<AttendanceSessionInfo>(`/attendance/classes/${classId}/sessions`, { records }, { params: { date } })
       .then((r) => r.data),
+  summary: () => apiClient.get<AttendanceSummary>('/attendance/summary').then((r) => r.data),
   learnerHistory: (learnerId: number) =>
-    apiClient.get<LearnerAttendance>(`/attendance/learners/${learnerId}`).then((r) => r.data),
+    apiClient.get<LearnerAttendance>(`/attendance/learners/${learnerId}`).then((r) => newestFirst(r.data)),
 };
 
 export const attendanceKeys = {
   classes: ['attendance', 'classes'] as const,
   roster: (classId: number, date: string) => ['attendance', 'roster', classId, date] as const,
+  summary: ['attendance', 'summary'] as const,
 };
 
 /** The staff member's classes — shared by attendance, timetable and classwork. */

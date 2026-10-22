@@ -18,6 +18,7 @@ import {
 import { getErrorMessage } from '@/lib/api';
 import { teacherApi, teacherKeys, useStudents, type NewStudent } from '../api';
 import { StudentSupportPanel } from '../components/StudentSupportPanel';
+import { LearnerRecord } from '@/features/learners/components/LearnerRecord';
 
 const SNE_LABEL: Record<string, string> = {
   NONE: 'None',
@@ -194,7 +195,15 @@ export default function StudentsScreen() {
                       {isOpen && (
                         <tr className="border-t border-purple-300/10">
                           <td colSpan={4} className="py-3 pl-4">
-                            <StudentSupportPanel studentId={s.id} />
+                            <div className="space-y-6">
+                              <StudentSupportPanel studentId={s.id} />
+                              <div className="border-t border-purple-300/10 pt-4">
+                                <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-purple-300">
+                                  School record
+                                </h3>
+                                <LearnerRecord learnerId={s.id} />
+                              </div>
+                            </div>
                           </td>
                         </tr>
                       )}

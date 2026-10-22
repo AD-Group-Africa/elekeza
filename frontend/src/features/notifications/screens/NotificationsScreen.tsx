@@ -1,10 +1,11 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Button, EmptyState, LoadingState, PageHeader } from '@/components/ui';
 import { formatDateTime } from '@/lib/format';
 import { cn } from '@/lib/cn';
-import { notificationKeys, notificationsApi, type Notification } from '../api';
+import { notificationKeys, notificationsApi, safeLink, type Notification } from '../api';
 
 const TYPE_ICON: Record<string, string> = {
   QUIZ_COMPLETED: '🏆',
@@ -14,6 +15,7 @@ const TYPE_ICON: Record<string, string> = {
 
 export default function NotificationsScreen() {
   const queryClient = useQueryClient();
+  const router = useRouter();
   const { data: notifications = [], isLoading } = useQuery({
     queryKey: notificationKeys.list,
     queryFn: notificationsApi.list,
@@ -61,7 +63,7 @@ export default function NotificationsScreen() {
         <EmptyState
           icon={<span className="text-5xl">📭</span>}
           title="No notifications yet"
-          description="You'll see quiz results and lesson updates here"
+          description="Quiz results, lesson updates and messages from your school will appear here."
         />
       ) : (
         <ul className="space-y-3">
@@ -69,8 +71,12 @@ export default function NotificationsScreen() {
             <li key={n.id}>
               <button
                 type="button"
-                onClick={() => !n.read && markRead.mutate(n.id)}
-                aria-label={n.read ? `Notification: ${n.title}` : `Mark as read: ${n.title}`}
+                onClick={() => {
+                  if (!n.read) markRead.mutate(n.id);
+                  const href = safeLink(n.link);
+                  if (href) router.push(href);
+                }}
+                aria-label={`${n.read ? 'Notification' : 'Mark as read'}: ${n.title}${safeLink(n.link) ? ' (opens page)' : ''}`}
                 className={cn(
                   'glass-card flex w-full items-start gap-4 p-4 text-left transition',
                   !n.read ? 'border-l-4 border-purple-500' : 'opacity-75',
@@ -82,6 +88,7 @@ export default function NotificationsScreen() {
                 <span className="min-w-0 flex-1">
                   <span className="block font-semibold text-purple-100">{n.title}</span>
                   <span className="mt-0.5 block text-sm text-purple-300">{n.body}</span>
+                  {n.senderName && <span className="mt-1 block text-xs text-purple-400">From {n.senderName}</span>}
                   {n.createdAt && (
                     <span className="mt-1 block text-xs text-purple-400">{formatDateTime(n.createdAt)}</span>
                   )}

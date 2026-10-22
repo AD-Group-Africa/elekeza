@@ -5,6 +5,8 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { AlertTriangle, Check, Plus, X } from 'lucide-react';
 import { Alert, Button, Card, Field, LoadingState, PageHeader, Select, TextInput } from '@/components/ui';
 import { teacherApi, teacherKeys, type NewIntervention } from '../api';
+import { InterventionCard } from '../components/InterventionCard';
+import { SupportQueue } from '../components/SupportQueue';
 
 const today = () => new Date().toISOString().slice(0, 10);
 const INTERVENTION_TYPES = [
@@ -204,25 +206,15 @@ export default function SupportSignalsScreen() {
         </ul>
       )}
 
+      <SupportQueue />
+
       {interventionList.length > 0 && (
         <section aria-labelledby="interventions-heading" className="space-y-3">
           <h2 id="interventions-heading" className="pt-2 text-lg font-semibold text-purple-200">
             Interventions
           </h2>
           {interventionList.map((iv) => (
-            <Card key={iv.id}>
-              <div className="flex items-center justify-between">
-                <p className="font-semibold text-purple-100">
-                  {humanize(iv.type)} · {learnerName(iv.learnerId)}
-                </p>
-                <span className="text-xs text-purple-300">{humanize(iv.status)}</span>
-              </div>
-              <p className="mt-1 text-sm text-purple-300">{iv.target}</p>
-              <p className="mt-1 text-xs text-purple-400">
-                Start {iv.startDate}
-                {iv.reviewDate ? ` · Review ${iv.reviewDate}` : ''}
-              </p>
-            </Card>
+            <InterventionCard key={iv.id} intervention={iv} learnerName={learnerName(iv.learnerId)} />
           ))}
         </section>
       )}

@@ -2,16 +2,18 @@
 
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Bell } from 'lucide-react';
 import { formatDateTime } from '@/lib/format';
-import { notificationKeys, notificationsApi } from '../api';
+import { notificationKeys, notificationsApi, safeLink } from '../api';
 
 const POLL_MS = 30_000;
 
 /** Unread-notification bell with a dropdown; polls every 30s while visible. */
 export default function NotificationBell() {
   const queryClient = useQueryClient();
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const { data: items = [] } = useQuery({
@@ -84,8 +86,15 @@ export default function NotificationBell() {
                 <li key={n.id}>
                   <button
                     type="button"
-                    onClick={() => markRead.mutate(n.id)}
-                    title="Mark as read"
+                    onClick={() => {
+                      markRead.mutate(n.id);
+                      const href = safeLink(n.link);
+                      if (href) {
+                        setOpen(false);
+                        router.push(href);
+                      }
+                    }}
+                    title={safeLink(n.link) ? 'Open' : 'Mark as read'}
                     className="block w-full rounded-lg p-2 text-left transition hover:bg-white/10"
                   >
                     <span className="block text-sm font-medium text-purple-100">{n.title}</span>

@@ -82,6 +82,16 @@ export interface Intervention {
   reviewDate: string | null;
 }
 
+export interface SupportQueueRow {
+  learnerId: number;
+  learnerName: string;
+  lessonsAssessed: number;
+  needsSupportCount: number;
+  masteredCount: number;
+  needsSupport: Array<{ contentId: number; title: string; reason: string }>;
+  supportReason: string;
+}
+
 export interface NewIntervention {
   learnerId: number;
   type: string;
@@ -97,8 +107,26 @@ export interface TimetableSlot {
 }
 
 export const teacherApi = {
-  students: () => apiClient.get<Student[]>('/teacher/students').then((r) => r.data),
+  // The backend sends ids as strings here; normalise so comparisons with numeric ids work.
+  students: () =>
+    apiClient.get<Student[]>('/teacher/students').then((r) =>
+      (r.data ?? []).map((s) => ({
+        ...s,
+        id: Number(s.id),
+        guardianUserId: s.guardianUserId == null ? s.guardianUserId : Number(s.guardianUserId),
+      })),
+    ),
   createStudent: (student: NewStudent) => apiClient.post('/teacher/student', student),
+  /** Headline numbers for one learner (staff of the same school). */
+  studentProgress: (studentId: number) =>
+    apiClient
+      .get<{ studentName: string; completedLessons: number; averageScore: number }>(
+        `/teacher/student/${studentId}/progress`,
+      )
+      .then((r) => r.data),
+  /** Links an existing guardian account (by email) to a learner. */
+  linkGuardian: (studentId: number, guardianEmail: string, relationship: string) =>
+    apiClient.post('/teacher/guardian-link', { studentId, guardianEmail, relationship }),
   learningSupport: (studentId: number) =>
     apiClient.get<LearningSupport>(`/teacher/student/${studentId}/learning-support`).then((r) => r.data),
   applyGuidance: (studentId: number, key: string, value: string) =>
@@ -115,6 +143,10 @@ export const teacherApi = {
     apiClient.post(`/teacher/support-signals/${id}/${action}`),
   interventions: () => apiClient.get<Intervention[]>('/teacher/interventions').then((r) => r.data ?? []),
   createIntervention: (payload: NewIntervention) => apiClient.post('/teacher/interventions', payload),
+  closeIntervention: (id: number, status: 'COMPLETED' | 'CANCELLED', outcome?: string) =>
+    apiClient.post(`/teacher/interventions/${id}/outcome`, { status, outcome }),
+  /** Learners ranked by how many lessons currently need support (mastery engine). */
+  supportQueue: () => apiClient.get<SupportQueueRow[]>('/mastery/teacher/support').then((r) => r.data ?? []),
   timetable: (classId: number) => apiClient.get<TimetableSlot[]>(`/timetable/${classId}`).then((r) => r.data),
   saveSlot: (classId: number, day: string, period: number, subject: string) =>
     apiClient.post('/timetable/slot', { classId, day, period, subject }),
@@ -126,11 +158,13 @@ export const teacherKeys = {
   students: ['teacher', 'students'] as const,
   support: (studentId: number) => ['teacher', 'learning-support', studentId] as const,
   mastery: (studentId: number) => ['teacher', 'mastery', studentId] as const,
+  progress: (studentId: number) => ['teacher', 'progress', studentId] as const,
   dashboard: ['teacher', 'dashboard'] as const,
   classProgress: ['teacher', 'class-progress'] as const,
   quizResults: ['teacher', 'quiz-results'] as const,
   signals: ['teacher', 'support-signals'] as const,
   interventions: ['teacher', 'interventions'] as const,
+  supportQueue: ['teacher', 'support-queue'] as const,
   timetable: (classId: number) => ['teacher', 'timetable', classId] as const,
 };
 

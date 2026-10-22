@@ -1,5 +1,8 @@
 import { useQuery } from '@tanstack/react-query';
 import { apiClient } from '@/lib/api';
+import type { SubmissionInfo } from '@/features/assignments/api';
+import type { AttemptResult } from '@/features/exams/api';
+import { newestFirst, type LearnerAttendance } from '@/features/attendance/api';
 
 /** GET /api/guardian/wards — a learner linked to the guardian. */
 export interface Ward {
@@ -69,6 +72,12 @@ export const guardianApi = {
     apiClient.get<WardLearningSupport>(`/guardian/wards/${id}/learning-support`).then((r) => r.data),
   digest: (id: number | string) => apiClient.get<WardDigest>(`/guardian/wards/${id}/digest`).then((r) => r.data),
   reports: () => apiClient.get<WardReport[]>('/guardian/reports').then((r) => r.data ?? []),
+  examResults: (id: number | string) =>
+    apiClient.get<AttemptResult[]>(`/exams/guardian/${id}/results`).then((r) => r.data ?? []),
+  submissions: (id: number | string) =>
+    apiClient.get<SubmissionInfo[]>(`/assignments/guardian/wards/${id}/submissions`).then((r) => r.data ?? []),
+  attendance: (id: number | string) =>
+    apiClient.get<LearnerAttendance>(`/attendance/learners/${id}`).then((r) => newestFirst(r.data)),
   schedule: () => apiClient.get<ScheduleItem[]>('/guardian/schedule').then((r) => r.data ?? []),
 };
 
@@ -78,6 +87,9 @@ export const guardianKeys = {
   support: (id: number | string) => ['guardian', 'support', String(id)] as const,
   digest: (id: number | string) => ['guardian', 'digest', String(id)] as const,
   reports: ['guardian', 'reports'] as const,
+  exams: (id: number | string) => ['guardian', 'exams', String(id)] as const,
+  submissions: (id: number | string) => ['guardian', 'submissions', String(id)] as const,
+  attendance: (id: number | string) => ['guardian', 'attendance', String(id)] as const,
   schedule: ['guardian', 'schedule'] as const,
 };
 

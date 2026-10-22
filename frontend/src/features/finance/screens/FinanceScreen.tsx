@@ -17,6 +17,8 @@ import { cn } from '@/lib/cn';
 import { financeApi, financeKeys, type PaymentInfo, type ReceiptInfo } from '../api';
 import { ChargeStatusBadge } from '../components/ChargeStatusBadge';
 import { ReceiptDialog } from '../components/ReceiptDialog';
+import { NewChargeForm, NewFeeItemForm, NewPeriodForm, NewStructureForm } from '../components/FeeSetupForms';
+import { useStudents } from '@/features/teacher/api';
 
 type Tab = 'overview' | 'setup' | 'charges' | 'payments';
 type Notice = { tone: 'success' | 'error'; text: string } | null;
@@ -53,12 +55,15 @@ export default function FinanceScreen() {
   const [payMethod, setPayMethod] = useState<'CASH' | 'BANK'>('CASH');
   const [payNote, setPayNote] = useState('');
 
-  // Learners who can be paid for: everyone with an invoice.
+  // Every learner in the school (plus anyone with an invoice, in case of transfers).
+  const students = useStudents();
   const learners = useMemo(() => {
     const seen = new Map<number, string>();
+    students.data?.forEach((s) => seen.set(s.id, s.name));
     data?.charges.forEach((c) => seen.set(c.learnerId, c.learnerName));
-    return [...seen.entries()].map(([id, name]) => ({ id, name }));
-  }, [data?.charges]);
+    return [...seen.entries()].map(([id, name]) => ({ id, name })).sort((a, b) => a.name.localeCompare(b.name));
+  }, [data?.charges, students.data]);
+  const notify = (tone: 'success' | 'error', text: string) => setNotice({ tone, text });
 
   const refresh = () => queryClient.invalidateQueries({ queryKey: financeKeys.all });
 
@@ -186,6 +191,15 @@ export default function FinanceScreen() {
 
             {tab === 'setup' && (
               <section aria-label="Fee setup" className="space-y-6">
+                <p className="text-sm text-purple-300">
+                  Set up fees in order: a term, the fee items, then a fee structure for each item. “Bill learners”
+                  creates the invoices for everyone in the school (or class) it applies to.
+                </p>
+                <div className="grid items-start gap-6 lg:grid-cols-3">
+                  <NewPeriodForm notify={notify} />
+                  <NewFeeItemForm notify={notify} />
+                  <NewStructureForm periods={data.periods} items={data.items} notify={notify} />
+                </div>
                 <Card title="Academic periods">
                   {data.periods.length === 0 ? (
                     <p className="text-sm text-fg-subtle">No periods yet.</p>
@@ -251,7 +265,8 @@ export default function FinanceScreen() {
             )}
 
             {tab === 'charges' && (
-              <section aria-label="Invoices">
+              <section aria-label="Invoices" className="space-y-6">
+                <NewChargeForm periods={data.periods} items={data.items} learners={learners} notify={notify} />
                 {data.charges.length === 0 ? (
                   <div className="rounded-xl border border-dashed border-line-strong p-8 text-center text-fg-muted">
                     No invoices yet — create a fee structure, then press “Bill learners”.

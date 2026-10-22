@@ -9,3 +9,4 @@ export {
   type Theme,
 } from './AccessibilitySettingsProvider';
 export { useTextToSpeech } from './useTextToSpeech';
+export { ReadingGuide } from './ReadingGuide';

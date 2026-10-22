@@ -12,6 +12,10 @@ import { useQuery } from '@tanstack/react-query';
 import { Award, BookOpen, Download, Star, TrendingUp } from 'lucide-react';
 import { Button, ButtonLink, Card, EmptyState, LoadingState, PageHeader } from '@/components/ui';
 import { downloadTextFile } from '@/lib/download';
+import { useAuth } from '@/features/auth';
+import { attendanceApi } from '@/features/attendance/api';
+import { curriculumApi, curriculumKeys } from '@/features/curriculum/api';
+import { CompetencyList } from '@/features/curriculum/components/CompetencyList';
 import {
   learnerApi,
   learnerKeys,
@@ -22,6 +26,7 @@ import {
 } from '../api';
 import { LevelProgress } from '../components/LevelProgress';
 import { MASTERY_ICON, MASTERY_LABEL, MASTERY_TONE_CLASS, masteryStateOf } from '../masteryDisplay';
+import { formatDate } from '@/lib/format';
 
 function StatCard({ icon, label, value }: { icon: React.ReactNode; label: string; value: string | number }) {
   return (
@@ -53,6 +58,17 @@ export default function ProgressScreen() {
   const game = useGamification();
   const analytics = useQuery({ queryKey: learnerKeys.analytics, queryFn: learnerApi.analytics });
   const mastery = useQuery({ queryKey: learnerKeys.mastery, queryFn: learnerApi.mastery });
+  const me = useAuth().user?.learnerId;
+  const competencies = useQuery({
+    queryKey: curriculumKeys.learner(me ?? 0),
+    queryFn: () => curriculumApi.learnerProgress(me!),
+    enabled: me != null,
+  });
+  const attendance = useQuery({
+    queryKey: ['attendance', 'learner', me ?? 0],
+    queryFn: () => attendanceApi.learnerHistory(me!),
+    enabled: me != null,
+  });
 
   if (progress.isLoading || game.isLoading) {
     return <LoadingState label="Loading your progress…" />;
@@ -180,7 +196,9 @@ export default function ProgressScreen() {
               >
                 <div>
                   <p className="font-medium text-purple-200">{lesson.title}</p>
-                  <p className="text-xs text-purple-400">{lesson.completedAt ?? 'Completed'}</p>
+                  <p className="text-xs text-purple-400">
+                    {lesson.completedAt ? `Completed ${formatDate(lesson.completedAt)}` : 'Completed'}
+                  </p>
                 </div>
                 <span className="font-semibold text-purple-200">{Math.round(lesson.quizScore ?? 0)}%</span>
               </li>
@@ -194,6 +212,29 @@ export default function ProgressScreen() {
           description="Open a lesson from your home to start earning progress."
         />
       )}
+
+      <div className="grid gap-4 lg:grid-cols-2">
+        <Card title="My skills (curriculum)">
+          <CompetencyList
+            rows={competencies.data?.competencies ?? []}
+            unit="lessons"
+            empty="Your skills appear here once your teacher links lessons to the curriculum."
+          />
+        </Card>
+        <Card title="My attendance">
+          {!attendance.data || attendance.data.sessionsMarked === 0 ? (
+            <p className="text-sm text-purple-300">No attendance recorded yet.</p>
+          ) : (
+            <>
+              <p className="text-3xl font-bold text-purple-100">{attendance.data.attendanceRate}%</p>
+              <p className="text-sm text-purple-300">
+                of {attendance.data.sessionsMarked} school days marked
+                {attendance.data.className ? ` in ${attendance.data.className}` : ''}
+              </p>
+            </>
+          )}
+        </Card>
+      </div>
 
       {weekly.length > 0 && (
         <Card

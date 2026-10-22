@@ -84,6 +84,40 @@ export interface SchoolLearner {
   grade?: string;
 }
 
+export interface AuditEntry {
+  id: number;
+  userId: number | null;
+  action: string;
+  category: string;
+  detail: string | null;
+  ipAddress: string | null;
+  success: boolean;
+  createdAt: string;
+}
+
+export interface FeatureFlag {
+  enabled: boolean;
+  runtimeOverride: boolean | null;
+  config?: { enabled?: boolean; description?: string } | null;
+}
+
+export interface SystemHealth {
+  status: 'HEALTHY' | 'WARNING' | 'DEGRADED' | string;
+  timestamp: string;
+  database: { healthy: boolean };
+  circuits: Record<string, { state: string; failures: number; lastFailureAt: string | null }>;
+  openCircuits: string[];
+}
+
+export interface WaitlistEntry {
+  id: number;
+  name: string;
+  email: string;
+  role: string;
+  school: string | null;
+  createdAt: string;
+}
+
 const staffBase = (institutionId: number) => `/institutions/${institutionId}/staff`;
 const linksBase = (institutionId: number, learnerId: number | string) =>
   `/institutions/${institutionId}/learners/${learnerId}/guardian-links`;
@@ -122,6 +156,18 @@ export const adminApi = {
   // platform
   platformOverview: () => apiClient.get<PlatformOverview>('/analytics/admin/overview').then((r) => r.data),
   institutions: () => apiClient.get<Institution[]>('/institutions').then((r) => r.data ?? []),
+  audit: (category?: string) =>
+    apiClient
+      .get<AuditEntry[]>('/admin/audit', { params: { category: category || undefined, size: 100 } })
+      .then((r) => r.data ?? []),
+  flags: () => apiClient.get<Record<string, FeatureFlag>>('/admin/flags').then((r) => r.data ?? {}),
+  setFlag: (name: string, enabled: boolean) => apiClient.put(`/admin/flags/${name}/override`, { enabled }),
+  clearFlag: (name: string) => apiClient.put(`/admin/flags/${name}/clear`),
+  health: () => apiClient.get<SystemHealth>('/system/health').then((r) => r.data),
+  waitlist: () =>
+    apiClient
+      .get<{ data: WaitlistEntry[]; total: number }>('/waitlist/admin', { params: { size: 100 } })
+      .then((r) => r.data),
   /** Public: creates an institution and its first SCHOOL_ADMIN. */
   registerSchool: (payload: SchoolRegistration) => apiClient.post('/institutions/register', payload),
 };
@@ -135,4 +181,8 @@ export const adminKeys = {
     ['admin', 'guardian-links', institutionId, String(learnerId)] as const,
   platformOverview: ['admin', 'platform-overview'] as const,
   institutions: ['admin', 'institutions'] as const,
+  audit: (category: string) => ['admin', 'audit', category] as const,
+  flags: ['admin', 'flags'] as const,
+  health: ['admin', 'health'] as const,
+  waitlist: ['admin', 'waitlist'] as const,
 };

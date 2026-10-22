@@ -7,7 +7,14 @@ export interface Notification {
   body: string;
   read?: boolean;
   createdAt?: string;
+  /** In-app path to open, e.g. /lesson/12. */
+  link?: string | null;
+  senderName?: string | null;
 }
+
+/** Only follow in-app paths; anything else is ignored. */
+export const safeLink = (link?: string | null) =>
+  link && link.startsWith('/') && !link.startsWith('//') ? link : null;
 
 export const notificationsApi = {
   list: () => apiClient.get<Notification[]>('/notifications').then((r) => (Array.isArray(r.data) ? r.data : [])),

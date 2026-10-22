@@ -9,6 +9,7 @@
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Alert, Badge, Button, Card, LoadingState, PageHeader } from '@/components/ui';
+import { useAuth } from '@/features/auth';
 import { getErrorStatus } from '@/lib/api';
 import { formatKes } from '@/lib/format';
 import { financeApi, financeKeys, type ChargeInfo, type PaymentInfo, type ReceiptInfo } from '../api';
@@ -26,6 +27,7 @@ export default function GuardianFeesScreen() {
   const queryClient = useQueryClient();
   const { data, isLoading, error } = useQuery({ queryKey: financeKeys.guardian, queryFn: loadFees });
   const [notice, setNotice] = useState<Notice>(null);
+  const isLearner = useAuth().user?.role === 'STUDENT';
   const [receipt, setReceipt] = useState<ReceiptInfo | null>(null);
 
   const payWithMpesa = useMutation({
@@ -70,7 +72,7 @@ export default function GuardianFeesScreen() {
     <div className="mx-auto max-w-4xl">
       <PageHeader
         title="Fees"
-        description={`School fees for your children${totalDue > 0 ? ` — total balance ${formatKes(totalDue)}` : ''}.`}
+        description={`${isLearner ? 'Your school fees' : 'School fees for your children'}${totalDue > 0 ? ` — total balance ${formatKes(totalDue)}` : ''}.`}
       />
 
       {error && (

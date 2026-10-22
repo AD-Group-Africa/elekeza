@@ -22,6 +22,8 @@ export interface LessonListItem {
   id: number;
   title: string;
   status: 'READY' | 'PROCESSING' | 'UPLOADING' | 'FAILED' | string;
+  /** Linked curriculum objective; 0 or missing = not linked. */
+  objectiveId?: number;
 }
 
 export interface UploadResult {
@@ -42,9 +44,34 @@ export interface LessonAssignment {
   score: number | null;
 }
 
+/** GET /api/content/lessons/{id}/adapted — the lesson rewritten for the learner. */
+export interface AdaptedLesson {
+  contentId: number;
+  lessonTitle: string;
+  code: AdaptationCode;
+  label: string;
+  text: string;
+  source: string;
+  cached: boolean;
+  originalAvailable: boolean;
+}
+
+export type AdaptationCode = 'original' | 'clearer' | 'step_by_step' | 'spaced' | 'detailed';
+
+export const ADAPTATIONS: Array<{ code: AdaptationCode; label: string; hint: string }> = [
+  { code: 'clearer', label: 'Clearer', hint: 'Short chunks, key words highlighted' },
+  { code: 'step_by_step', label: 'Step by step', hint: 'One idea at a time, numbered' },
+  { code: 'spaced', label: 'Spaced out', hint: 'One concept per section' },
+  { code: 'detailed', label: 'More detail', hint: 'The full lesson, well organised' },
+];
+
 export const lessonsApi = {
   get: (id: string | number) => apiClient.get<Lesson>(`/content/lessons/${id}`).then((r) => r.data),
   list: () => apiClient.get<LessonListItem[]>('/content/list').then((r) => r.data),
+  adapted: (id: string | number, code: AdaptationCode) =>
+    apiClient.get<AdaptedLesson>(`/content/lessons/${id}/adapted`, { params: { code } }).then((r) => r.data),
+  feedback: (id: string | number, helpful: boolean, code: AdaptationCode) =>
+    apiClient.post(`/content/lessons/${id}/feedback`, { helpful, code }),
   /** File lessons are titled with the file name by the backend. */
   uploadFile: (file: File) => {
     const form = new FormData();
@@ -61,6 +88,7 @@ export const lessonsApi = {
 export const lessonKeys = {
   detail: (id: string | number) => ['lessons', 'detail', String(id)] as const,
   list: ['lessons', 'list'] as const,
+  adapted: (id: string | number, code: string) => ['lessons', 'adapted', String(id), code] as const,
   assignments: ['lessons', 'assignments'] as const,
 };
 
