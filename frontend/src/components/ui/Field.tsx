@@ -12,6 +12,29 @@ export const inputClass =
   'w-full rounded-lg border border-line-strong bg-surface px-3 py-2.5 text-fg placeholder:text-fg-subtle ' +
   'focus:outline-none focus:ring-2 focus:ring-focus disabled:opacity-60';
 
+/**
+ * Base input classes plus overrides. `cn` does not resolve conflicts, so a
+ * width or padding passed by the caller (e.g. `w-auto py-1.5`) removes the
+ * matching default instead of fighting it in CSS order.
+ */
+export function controlClass(className?: string) {
+  if (!className) return inputClass;
+  const overrides = className.split(/\s+/);
+  const has = (prefix: string) => overrides.some((c) => c.startsWith(prefix));
+  const base = inputClass
+    .split(' ')
+    .filter(
+      (c) =>
+        !(
+          (c.startsWith('w-') && has('w-')) ||
+          (c.startsWith('px-') && has('px-')) ||
+          (c.startsWith('py-') && has('py-'))
+        ),
+    )
+    .join(' ');
+  return cn(base, className);
+}
+
 /** Label + control + optional hint/error, wired up for screen readers. */
 export function Field({
   id,
@@ -54,7 +77,7 @@ export const TextInput = forwardRef<HTMLInputElement, InputHTMLAttributes<HTMLIn
   { className, ...rest },
   ref,
 ) {
-  return <input ref={ref} className={cn(inputClass, className)} {...rest} />;
+  return <input ref={ref} className={controlClass(className)} {...rest} />;
 });
 
 export const Select = forwardRef<HTMLSelectElement, SelectHTMLAttributes<HTMLSelectElement>>(function Select(
@@ -62,7 +85,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectHTMLAttributes<HTMLSel
   ref,
 ) {
   return (
-    <select ref={ref} className={cn(inputClass, className)} {...rest}>
+    <select ref={ref} className={controlClass(className)} {...rest}>
       {children}
     </select>
   );
@@ -72,5 +95,5 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaHTMLAttributes<H
   { className, ...rest },
   ref,
 ) {
-  return <textarea ref={ref} className={cn(inputClass, className)} {...rest} />;
+  return <textarea ref={ref} className={controlClass(className)} {...rest} />;
 });

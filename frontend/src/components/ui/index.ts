@@ -8,4 +8,5 @@ export { Field, TextInput, Select, Textarea, inputClass } from './Field';
 export { PageHeader } from './PageHeader';
 export { EmptyState, LoadingState } from './States';
 export { Switch } from './Switch';
+export { Tabs } from './Tabs';
 export { Toast } from './Toast';
