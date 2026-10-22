@@ -74,7 +74,9 @@ class GuardianDigestController(
         val records = recordRepo.findBySessionIdIn(sessions.map { it.id })
             .filter { it.learnerId == learner.id }
         val presentish = records.count { it.status == AttendanceStatus.PRESENT || it.status == AttendanceStatus.LATE }
-        val attendanceRate = if (records.isNotEmpty()) Math.round(presentish * 100.0 / records.size) else null
+        // Same rule as the attendance module: EXCUSED days don't count against the learner.
+        val assessed = records.count { it.status != AttendanceStatus.EXCUSED }
+        val attendanceRate = if (assessed > 0) Math.round(presentish * 100.0 / assessed) else null
         val todaySessionIds = sessions.filter { it.sessionDate == today }.map { it.id }.toSet()
         val todayStatus = records.firstOrNull { it.sessionId in todaySessionIds }?.status?.name
 
