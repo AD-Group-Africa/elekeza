@@ -94,7 +94,7 @@
  * orange. Professional, information-rich, easy to scan. Matches the pupil
  * code style: --ek-blue-* = #1D4ED8, --ek-teal-* = #0F766E.
  */
-[data-theme="blue"] {
+[data-theme='blue'] {
   --ek-blue-950: #0a1f3d;
   --ek-blue-900: #11305c;
   --ek-blue-800: #16457a;
@@ -119,7 +119,7 @@
   --bg-primary: var(--ek-blue-950);
   --bg-secondary: var(--ek-blue-900);
   --bg-card: rgba(255, 255, 255, 0.05);
-  --bg-card-hover: rgba(255, 255, 255, 0.10);
+  --bg-card-hover: rgba(255, 255, 255, 0.1);
   --border-color: rgba(158, 195, 242, 0.18);
   --border-strong: rgba(158, 195, 242, 0.42);
 
@@ -145,14 +145,14 @@
 }
 
 /* ================= LIGHT — paper (blue) ================= */
-[data-theme="light"] {
+[data-theme='light'] {
   --bg-gradient: linear-gradient(160deg, var(--ek-blue-050) 0%, #ffffff 60%, var(--ek-blue-100) 100%);
   --bg-primary: #ffffff;
   --bg-secondary: var(--ek-blue-050);
   --bg-card: rgba(255, 255, 255, 0.92);
   --bg-card-hover: #ffffff;
   --border-color: rgba(29, 78, 216, 0.14);
-  --border-strong: rgba(29, 78, 216, 0.30);
+  --border-strong: rgba(29, 78, 216, 0.3);
 
   --text-primary: #17325b;
   --text-secondary: #3c5a8a;
@@ -175,7 +175,7 @@
 }
 
 /* ================= CALM — low stimulation (blue) ================= */
-[data-theme="calm"] {
+[data-theme='calm'] {
   --bg-gradient: linear-gradient(180deg, #e4edfa 0%, #dde9f5 100%);
   --bg-primary: #e4edfa;
   --bg-secondary: #d6e2f3;
@@ -190,7 +190,7 @@
 
   --accent: #2b6cb0;
   --accent-strong: #2c5f8a;
-  --accent-soft: rgba(43, 108, 176, 0.10);
+  --accent-soft: rgba(43, 108, 176, 0.1);
   --accent-contrast: #ffffff;
 
   --warm-accent: #b06a3e;
@@ -214,8 +214,8 @@
 /* Scope the purple-default tokens to the two dark/variations that use them.
  * (:root here would re-assert dark tokens AFTER [data-theme="light"] in source
  * order and defeat light mode at equal specificity — the 2026-10-12 cascade fix.) */
-[data-theme="dark"],
-[data-theme="purple"] {
+[data-theme='dark'],
+[data-theme='purple'] {
   --ek-purple-950: #1e1536;
   --ek-purple-900: #2a1950;
   --ek-purple-800: #3d216b;
@@ -238,7 +238,7 @@
   --bg-primary: var(--ek-purple-950);
   --bg-secondary: var(--ek-purple-900);
   --bg-card: rgba(255, 255, 255, 0.05);
-  --bg-card-hover: rgba(255, 255, 255, 0.10);
+  --bg-card-hover: rgba(255, 255, 255, 0.1);
   --border-color: rgba(217, 176, 245, 0.18);
   --border-strong: rgba(217, 176, 245, 0.42);
 
@@ -267,7 +267,7 @@
  * Restrained sweet-orange accents (#e8935a) for emphasis only. Calm,
  * trustworthy, practical. Guardian journeys, fees, receipts, school admin.
  */
-[data-theme="green"] {
+[data-theme='green'] {
   --ek-green-950: #12241a;
   --ek-green-900: #1a3326;
   --ek-green-800: #245039;
@@ -296,7 +296,7 @@
   --bg-primary: var(--ek-green-950);
   --bg-secondary: var(--ek-green-900);
   --bg-card: rgba(244, 240, 230, 0.055);
-  --bg-card-hover: rgba(244, 240, 230, 0.10);
+  --bg-card-hover: rgba(244, 240, 230, 0.1);
   --border-color: rgba(206, 187, 170, 0.18);
   --border-strong: rgba(206, 187, 170, 0.42);
 
@@ -321,14 +321,14 @@
 }
 
 /* ================= PURPLE LIGHT ================= */
-[data-theme="purple"][data-theme="light"] {
+[data-theme='purple'][data-theme='light'] {
   --bg-gradient: linear-gradient(160deg, var(--ek-purple-050) 0%, #ffffff 60%, var(--ek-purple-100) 100%);
   --bg-primary: #ffffff;
   --bg-secondary: var(--ek-purple-050);
   --bg-card: rgba(255, 255, 255, 0.92);
   --bg-card-hover: #ffffff;
   --border-color: rgba(124, 58, 237, 0.16);
-  --border-strong: rgba(124, 58, 237, 0.30);
+  --border-strong: rgba(124, 58, 237, 0.3);
 
   --text-primary: #241845;
   --text-secondary: #4a3d78;
@@ -351,7 +351,7 @@
 }
 
 /* ================= PURPLE CALM ================= */
-[data-theme="purple"][data-theme="calm"] {
+[data-theme='purple'][data-theme='calm'] {
   --bg-gradient: linear-gradient(180deg, #ede6f8 0%, #e3dcfc 100%);
   --bg-primary: #ede6f8;
   --bg-secondary: #ddd0f0;
@@ -366,7 +366,7 @@
 
   --accent: #6d28d9;
   --accent-strong: #522ba0;
-  --accent-soft: rgba(124, 58, 237, 0.10);
+  --accent-soft: rgba(124, 58, 237, 0.1);
   --accent-contrast: #ffffff;
 
   --warm-accent: #b06a3e;
@@ -383,14 +383,14 @@
 }
 
 /* ================= GREEN LIGHT ================= */
-[data-theme="green"][data-theme="light"] {
+[data-theme='green'][data-theme='light'] {
   --bg-gradient: linear-gradient(160deg, var(--ek-cream-050) 0%, #ffffff 60%, var(--ek-green-100) 100%);
   --bg-primary: #ffffff;
   --bg-secondary: var(--ek-cream-050);
   --bg-card: rgba(255, 255, 255, 0.92);
   --bg-card-hover: #ffffff;
   --border-color: rgba(31, 81, 50, 0.15);
-  --border-strong: rgba(31, 81, 50, 0.30);
+  --border-strong: rgba(31, 81, 50, 0.3);
 
   --text-primary: #242017;
   --text-secondary: #4a4132;
@@ -413,7 +413,7 @@
 }
 
 /* ================= GREEN CALM ================= */
-[data-theme="green"][data-theme="calm"] {
+[data-theme='green'][data-theme='calm'] {
   --bg-gradient: linear-gradient(180deg, #ece4d4 0%, #e3daca 100%);
   --bg-primary: #ece4d4;
   --bg-secondary: #dccfb8;
@@ -428,7 +428,7 @@
 
   --accent: #2d5c3e;
   --accent-strong: #244b32;
-  --accent-soft: rgba(45, 92, 62, 0.10);
+  --accent-soft: rgba(45, 92, 62, 0.1);
   --accent-contrast: #ffffff;
 
   --warm-accent: #b06a3e;

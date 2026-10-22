@@ -72,20 +72,24 @@ Live negative probes (2026-10-05): `GET /api/auth/me` with no credentials → **
 
 ## 5. Frontend structure
 
-- Role-scoped routes: `student-*`, `learner/*`, `teacher/*`, `guardian/*`, `school/*`, `admin`,
-  `super-admin`; shared shells: `SidebarLayout` (skip link, `aria-current`, logout
-  `[aria-label="Logout"]`), `DashboardLayout`, `RoleLayout`, `Navbar`, `Sidebar`.
-- Learner primitives: `LearningCompanion`, `Celebration`, `ReadingToolbar`, `AccessibilityToolbar`,
-  `LanguageToggle`, `Toast`, `GamificationWidget`, `useOfflineSync`, `useAccessibilitySettings`,
-  `useCognitiveProfile`.
-- Elekeza Assist ([ElekezaAssist.tsx](../frontend/src/components/assist/ElekezaAssist.tsx)) is
+Full guide: [frontend/docs/ARCHITECTURE.md](../frontend/docs/ARCHITECTURE.md).
+
+- Feature-based: `src/app/` holds routing only (thin pages in the `(public)` and `(app)` route
+  groups); each domain lives in `src/features/<domain>/` with its `api.ts`, `screens/` and
+  `components/`. Shared UI kit in `src/components/ui/`; one HTTP client in `src/lib/api/`;
+  data loading via TanStack Query.
+- One app shell for every signed-in page: `AppShell` (session guard, skip link, `aria-current`,
+  logout `[aria-label="Logout"]`), menus defined in `src/config/navigation.ts`.
+- Learner primitives: `LearningCompanion`, `Celebration`, `LevelProgress` (`features/learner`),
+  `useOfflineSync` (`features/quiz`), `useAccessibilitySettings` (`features/accessibility`).
+- Elekeza Assist ([ElekezaAssist.tsx](../frontend/src/components/layout/ElekezaAssist.tsx)) is
   sidebar-width aware (`collapsed` prop; `left-4` + `md:left-20/md:left-60`) so it never intercepts
   the sidebar Logout button; opaque token surface, Esc/focus-return, `elekeza:assist-open` event.
 - PWA: workbox service worker — app-shell precache; NetworkFirst for `/api/content/*`,
   quiz starts, progress, notifications, `/api/learner/preferences` (7-day, 100-entry caches).
 - Two a11y preference surfaces (documented, deliberate): local `elekeza-settings` (instant, all
-  roles) and server `/learner/preferences` + `/dashboard/settings` mirror → `accessibility_profiles`
-  (per-user persistence). See [ACCESSIBILITY.md](ACCESSIBILITY.md).
+  roles; one provider owns it and the theme) and server `/learner/preferences` + `/dashboard/settings`
+  mirror → `accessibility_profiles` (per-user persistence). See [ACCESSIBILITY.md](ACCESSIBILITY.md).
 
 ## 6. The learning loop (single source of truth)
 

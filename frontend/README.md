@@ -1,90 +1,75 @@
-# ELEKEZA Frontend
+# Elekeza Frontend
 
-Frontend for the ELEKEZA adaptive literacy platform, built with Next.js (App Router), React, TypeScript, and Tailwind CSS.
+Web client for the Elekeza adaptive learning platform: learners, teachers, guardians and school
+administrators. Built with Next.js (App Router), React 19, TypeScript, Tailwind CSS and TanStack Query.
 
-## What this app does
-
-- User authentication (register/login)
-- Onboarding flow
-- Content upload
-- Lesson and quiz pages
-- Dashboard, history, settings
-- Accessibility preferences persisted across pages
+New to the code? Read **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)** — it explains the folder layout
+and how to add a page, a feature or an API call.
 
 ## Prerequisites
 
-- Node.js `20.19+` or `22.12+` (recommended: latest LTS)
-- npm `10+`
-- Backend running on `http://localhost:8080`
+- Node.js `20.19+` or `22.12+`, npm `10+`
+- The backend running (default `http://localhost:8085`)
 
-## Quick Start
-
-1. Open terminal in `frontend/`
-2. Install dependencies:
+## Quick start
 
 ```bash
 npm install
+npm run dev            # http://localhost:3000
 ```
 
-3. Start development server:
+The browser only ever calls same-origin `/api/...`; `next.config.ts` proxies it to the backend.
+Point it at another backend with `NEXT_PUBLIC_API_URL` (required for production builds):
 
 ```bash
-npm run dev
+NEXT_PUBLIC_API_URL=http://localhost:8085 npm run dev
 ```
 
-4. Open:
-
-`http://localhost:3000`
-
-## API Proxy (Important)
-
-Frontend requests use same-origin `/api/...` and are proxied by Next.js to backend:
-
-- Source: `/api/:path*`
-- Destination: `http://localhost:8080/api/:path*`
-
-Config location:
-
-- `frontend/next.config.ts`
-
-If backend URL changes, update that file and restart `npm run dev`.
+The backend only accepts the origins listed in its CORS settings (dev profile: ports `3000`, `3100`,
+`3005`). If sign-in fails with *Invalid CORS request*, run the frontend on one of those ports
+(`npm run dev -- -p 3005`).
 
 ## Scripts
 
-```bash
-npm run dev    # start local dev server
-npm run build  # production build
-npm run start  # run production server
-npm run lint   # lint project
+| Command | What it does |
+| --- | --- |
+| `npm run dev` | Development server |
+| `npm run build` / `npm start` | Production build / serve it |
+| `npm run lint` | ESLint (must pass with no errors) |
+| `npm run type-check` | TypeScript, no emit |
+| `npm run format` / `format:check` | Prettier write / check (`src/`) |
+| `npm test` | Unit tests (Vitest) |
+| `npm run test:e2e` | End-to-end tests (Playwright; builds and boots its own backend) |
+
+Before opening a pull request: `npm run lint && npm run type-check && npm test && npm run format:check`.
+
+## Project layout (short version)
+
+```
+src/
+  app/            Routing only. (public)/ = no session needed, (app)/ = signed-in shell.
+  features/       One folder per domain: api.ts, screens/, components/.
+  components/     Shared, domain-free UI: ui/ (kit) and layout/ (app shell).
+  config/         Navigation menus and route constants.
+  lib/            HTTP client, roles, formatting and other helpers.
+  hooks/          Generic React hooks.
+  providers/      App-wide providers (query client, auth, accessibility).
+  styles/         Design tokens and theme remaps.
 ```
 
-## Project Docs
+## Seed accounts (dev profile)
 
-- User-accessible pages: `frontend/USER_ACCESSIBLE_PAGES.md`
-- Pages + API reference: `frontend/APP_PAGES_AND_API.md`
+| Role | Email | Password |
+| --- | --- | --- |
+| Learner | `student@elekeza.app` | `student123` |
+| Teacher | `teacher@elekeza.app` | `teacher123` |
+| Guardian | `parent@elekeza.app` | `parent123` |
 
-## Common Issues
+## Troubleshooting
 
-### 1. Login/Register not working
-
-- Ensure backend is running on `http://localhost:8080`
-- Restart frontend after changes to `next.config.ts`
-
-### 2. CORS-like errors in browser
-
-- This frontend uses rewrite proxy, so calls should go to `/api/...`
-- Confirm `src/lib/api.ts` uses `baseURL: '/'`
-
-### 3. Styles/settings not updating
-
-- Hard refresh browser
-- Check console for errors
-- Confirm localStorage key `elekeza-settings` exists
-
-## Team Workflow Notes
-
-- Keep frontend-only changes inside `frontend/`
-- If API contract changes, update:
-  - `frontend/src/lib/api.ts`
-  - relevant page hooks/components
-  - docs in `APP_PAGES_AND_API.md`
+- **Sign-in fails / 403 on every write** — check the backend is up and the frontend port is in its CORS
+  list (see above). Calls must go through `/api` (never an absolute backend URL in the browser), or the
+  CSRF cookie will not reach the API.
+- **Type-check fails on `.next/dev/types`** after pulling structural changes — delete `.next/` (it is a
+  local build cache) and run `npm run dev` once.
+- **Theme or settings look stale** — they live in the browser's `localStorage` key `elekeza-settings`.

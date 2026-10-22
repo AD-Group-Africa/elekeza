@@ -23,10 +23,9 @@ async function openSeededQuiz(page: import('@playwright/test').Page) {
     await next.click()
     await page.waitForTimeout(150)
   }
-  const startPractice = page.getByRole('button', { name: 'Start practice' })
-  await expect(startPractice).toBeVisible({ timeout: 15_000 })
-  await startPractice.click()
-  await page.getByRole('link', { name: /Open practice quiz/i }).click()
+  const practice = page.getByRole('link', { name: /Finish lesson and earn XP/i })
+  await expect(practice).toBeVisible({ timeout: 15_000 })
+  await practice.click()
   await expect(page).toHaveURL(/\/quiz\//)
   // The quiz must be fully interactive BEFORE we cut connectivity — a fetch
   // that fails offline leaves "Quiz not found", which is correct behavior

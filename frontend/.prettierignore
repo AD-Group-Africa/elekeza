@@ -1,0 +1,10 @@
+node_modules
+.next
+.next-*
+.netlify
+out
+build
+android
+public
+coverage
+package-lock.json

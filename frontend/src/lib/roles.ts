@@ -31,7 +31,7 @@ export function roleHome(role: string | null | undefined): string {
 
 /** Human-readable role name for display. */
 export function roleLabel(role: string | null | undefined): string {
-  return isRole(role) ? ROLE_LABEL[role] : role ?? '';
+  return isRole(role) ? ROLE_LABEL[role] : (role ?? '');
 }
 
 export function isStaff(role: string | null | undefined): boolean {

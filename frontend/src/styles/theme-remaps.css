@@ -21,91 +21,256 @@
   --p600: var(--ek-moss-600);
   --p700: var(--ek-moss-700);
   --p900: var(--ek-moss-900);
-  --p50:  var(--ek-moss-050);
+  --p50: var(--ek-moss-050);
   --a300: var(--ek-ember-300);
   --a400: var(--ek-ember-400);
   --a500: var(--ek-ember-500);
   --a600: var(--ek-ember-600);
 }
 
-html .bg-amber-100 { background-color: var(--accent-soft); }
-html .bg-amber-400\/20 { background-color: color-mix(in srgb, var(--accent-soft) 20%, transparent); }
-html .bg-amber-50 { background-color: var(--p50); }
-html .bg-amber-500\/20 { background-color: color-mix(in srgb, var(--p600) 20%, transparent); }
-html .bg-fuchsia-500\/20 { background-color: color-mix(in srgb, var(--p600) 20%, transparent); }
-html .bg-indigo-950\/80 { background-color: color-mix(in srgb, var(--bg-secondary) 80%, transparent); }
-html .bg-purple-100 { background-color: var(--accent-soft); }
-html .bg-purple-300\/30 { background-color: color-mix(in srgb, var(--accent-soft) 30%, transparent); }
-html .bg-purple-50 { background-color: var(--p50); }
-html .bg-purple-500 { background-color: var(--p600); }
-html .bg-purple-600 { background-color: var(--p600); }
-html .bg-purple-600\/10 { background-color: color-mix(in srgb, var(--p600) 10%, transparent); }
-html .bg-purple-600\/20 { background-color: color-mix(in srgb, var(--p600) 20%, transparent); }
-html .bg-purple-600\/30 { background-color: color-mix(in srgb, var(--p600) 30%, transparent); }
-html .bg-purple-600\/40 { background-color: color-mix(in srgb, var(--p600) 40%, transparent); }
-html .bg-purple-600\/60 { background-color: color-mix(in srgb, var(--p600) 60%, transparent); }
-html .bg-purple-700 { background-color: var(--p700); }
-html .bg-purple-900\/40 { background-color: color-mix(in srgb, var(--bg-secondary) 40%, transparent); }
-html .bg-rose-100 { background-color: var(--accent-soft); }
-html .bg-rose-50 { background-color: var(--p50); }
-html .bg-violet-100 { background-color: var(--accent-soft); }
-html .border-amber-300 { border-color: var(--border-color); }
-html .border-amber-400 { border-color: var(--border-color); }
-html .border-amber-400\/40 { border-color: color-mix(in srgb, var(--border-color) 40%, transparent); }
-html .border-purple-200 { border-color: var(--border-color); }
-html .border-purple-300 { border-color: var(--border-color); }
-html .border-purple-300\/10 { border-color: color-mix(in srgb, var(--border-color) 10%, transparent); }
-html .border-purple-300\/20 { border-color: color-mix(in srgb, var(--border-color) 20%, transparent); }
-html .border-purple-300\/30 { border-color: color-mix(in srgb, var(--border-color) 30%, transparent); }
-html .border-purple-300\/5 { border-color: color-mix(in srgb, var(--border-color) 5%, transparent); }
-html .border-purple-400 { border-color: var(--border-color); }
-html .border-purple-500 { border-color: var(--border-strong); }
-html .border-purple-500\/10 { border-color: color-mix(in srgb, var(--border-strong) 10%, transparent); }
-html .border-purple-500\/20 { border-color: color-mix(in srgb, var(--border-strong) 20%, transparent); }
-html .border-purple-500\/30 { border-color: color-mix(in srgb, var(--border-strong) 30%, transparent); }
-html .border-rose-300 { border-color: var(--border-color); }
-html .border-violet-200 { border-color: var(--border-color); }
-html .from-fuchsia-400 { --tw-gradient-from: var(--p400) var(--tw-gradient-from-position); --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to); }
-html .from-fuchsia-500 { --tw-gradient-from: var(--p600) var(--tw-gradient-from-position); --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to); }
-html .from-fuchsia-600 { --tw-gradient-from: var(--p600) var(--tw-gradient-from-position); --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to); }
-html .from-indigo-900 { --tw-gradient-from: var(--bg-secondary) var(--tw-gradient-from-position); --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to); }
-html .from-indigo-950 { --tw-gradient-from: var(--bg-secondary) var(--tw-gradient-from-position); --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to); }
-html .from-purple-500 { --tw-gradient-from: var(--p600) var(--tw-gradient-from-position); --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to); }
-html .from-purple-600 { --tw-gradient-from: var(--p600) var(--tw-gradient-from-position); --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to); }
-html .from-purple-600\/20 { --tw-gradient-from: color-mix(in srgb, var(--p600) 20%, transparent) var(--tw-gradient-from-position); --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to); }
-html .from-violet-900 { --tw-gradient-from: var(--bg-secondary) var(--tw-gradient-from-position); --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to); }
-html .hover\:bg-purple-500:hover { background-color: var(--p600); }
-html .hover\:text-purple-200:hover { color: var(--p300); }
-html .placeholder-purple-200\/50 { color: color-mix(in srgb, var(--text-muted) 50%, transparent); }
-html .placeholder-purple-400\/60 { color: color-mix(in srgb, var(--text-muted) 60%, transparent); }
-html .ring-fuchsia-300 { --tw-ring-color: var(--border-color); }
-html .ring-purple-500 { --tw-ring-color: var(--border-strong); }
-html .text-amber-200 { color: var(--p300); }
-html .text-amber-300 { color: var(--p300); }
-html .text-amber-500 { color: var(--text-secondary); }
-html .text-amber-800 { color: var(--text-primary); }
-html .text-amber-900 { color: var(--text-primary); }
-html .text-fuchsia-100 { color: var(--p300); }
-html .text-fuchsia-200 { color: var(--p300); }
-html .text-orange-400 { color: var(--p300); }
-html .text-purple-100 { color: var(--p300); }
-html .text-purple-200 { color: var(--p300); }
-html .text-purple-200\/50 { color: color-mix(in srgb, var(--p300) 50%, transparent); }
-html .text-purple-200\/70 { color: color-mix(in srgb, var(--p300) 70%, transparent); }
-html .text-purple-200\/80 { color: color-mix(in srgb, var(--p300) 80%, transparent); }
-html .text-purple-300 { color: var(--p300); }
-html .text-purple-300\/60 { color: color-mix(in srgb, var(--p300) 60%, transparent); }
-html .text-purple-300\/70 { color: color-mix(in srgb, var(--p300) 70%, transparent); }
-html .text-purple-300\/80 { color: color-mix(in srgb, var(--p300) 80%, transparent); }
-html .text-purple-400 { color: var(--p300); }
-html .text-purple-50 { color: var(--p50); }
-html .text-purple-500 { color: var(--text-secondary); }
-html .text-purple-600 { color: var(--text-secondary); }
-html .text-purple-700 { color: var(--text-secondary); }
-html .text-purple-800 { color: var(--text-primary); }
-html .text-purple-900 { color: var(--text-primary); }
-html .text-rose-800 { color: var(--text-primary); }
-html .text-violet-800 { color: var(--text-primary); }
+html .bg-amber-100 {
+  background-color: var(--accent-soft);
+}
+html .bg-amber-400\/20 {
+  background-color: color-mix(in srgb, var(--accent-soft) 20%, transparent);
+}
+html .bg-amber-50 {
+  background-color: var(--p50);
+}
+html .bg-amber-500\/20 {
+  background-color: color-mix(in srgb, var(--p600) 20%, transparent);
+}
+html .bg-fuchsia-500\/20 {
+  background-color: color-mix(in srgb, var(--p600) 20%, transparent);
+}
+html .bg-indigo-950\/80 {
+  background-color: color-mix(in srgb, var(--bg-secondary) 80%, transparent);
+}
+html .bg-purple-100 {
+  background-color: var(--accent-soft);
+}
+html .bg-purple-300\/30 {
+  background-color: color-mix(in srgb, var(--accent-soft) 30%, transparent);
+}
+html .bg-purple-50 {
+  background-color: var(--p50);
+}
+html .bg-purple-500 {
+  background-color: var(--p600);
+}
+html .bg-purple-600 {
+  background-color: var(--p600);
+}
+html .bg-purple-600\/10 {
+  background-color: color-mix(in srgb, var(--p600) 10%, transparent);
+}
+html .bg-purple-600\/20 {
+  background-color: color-mix(in srgb, var(--p600) 20%, transparent);
+}
+html .bg-purple-600\/30 {
+  background-color: color-mix(in srgb, var(--p600) 30%, transparent);
+}
+html .bg-purple-600\/40 {
+  background-color: color-mix(in srgb, var(--p600) 40%, transparent);
+}
+html .bg-purple-600\/60 {
+  background-color: color-mix(in srgb, var(--p600) 60%, transparent);
+}
+html .bg-purple-700 {
+  background-color: var(--p700);
+}
+html .bg-purple-900\/40 {
+  background-color: color-mix(in srgb, var(--bg-secondary) 40%, transparent);
+}
+html .bg-rose-100 {
+  background-color: var(--accent-soft);
+}
+html .bg-rose-50 {
+  background-color: var(--p50);
+}
+html .bg-violet-100 {
+  background-color: var(--accent-soft);
+}
+html .border-amber-300 {
+  border-color: var(--border-color);
+}
+html .border-amber-400 {
+  border-color: var(--border-color);
+}
+html .border-amber-400\/40 {
+  border-color: color-mix(in srgb, var(--border-color) 40%, transparent);
+}
+html .border-purple-200 {
+  border-color: var(--border-color);
+}
+html .border-purple-300 {
+  border-color: var(--border-color);
+}
+html .border-purple-300\/10 {
+  border-color: color-mix(in srgb, var(--border-color) 10%, transparent);
+}
+html .border-purple-300\/20 {
+  border-color: color-mix(in srgb, var(--border-color) 20%, transparent);
+}
+html .border-purple-300\/30 {
+  border-color: color-mix(in srgb, var(--border-color) 30%, transparent);
+}
+html .border-purple-300\/5 {
+  border-color: color-mix(in srgb, var(--border-color) 5%, transparent);
+}
+html .border-purple-400 {
+  border-color: var(--border-color);
+}
+html .border-purple-500 {
+  border-color: var(--border-strong);
+}
+html .border-purple-500\/10 {
+  border-color: color-mix(in srgb, var(--border-strong) 10%, transparent);
+}
+html .border-purple-500\/20 {
+  border-color: color-mix(in srgb, var(--border-strong) 20%, transparent);
+}
+html .border-purple-500\/30 {
+  border-color: color-mix(in srgb, var(--border-strong) 30%, transparent);
+}
+html .border-rose-300 {
+  border-color: var(--border-color);
+}
+html .border-violet-200 {
+  border-color: var(--border-color);
+}
+html .from-fuchsia-400 {
+  --tw-gradient-from: var(--p400) var(--tw-gradient-from-position);
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
+}
+html .from-fuchsia-500 {
+  --tw-gradient-from: var(--p600) var(--tw-gradient-from-position);
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
+}
+html .from-fuchsia-600 {
+  --tw-gradient-from: var(--p600) var(--tw-gradient-from-position);
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
+}
+html .from-indigo-900 {
+  --tw-gradient-from: var(--bg-secondary) var(--tw-gradient-from-position);
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
+}
+html .from-indigo-950 {
+  --tw-gradient-from: var(--bg-secondary) var(--tw-gradient-from-position);
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
+}
+html .from-purple-500 {
+  --tw-gradient-from: var(--p600) var(--tw-gradient-from-position);
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
+}
+html .from-purple-600 {
+  --tw-gradient-from: var(--p600) var(--tw-gradient-from-position);
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
+}
+html .from-purple-600\/20 {
+  --tw-gradient-from: color-mix(in srgb, var(--p600) 20%, transparent) var(--tw-gradient-from-position);
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
+}
+html .from-violet-900 {
+  --tw-gradient-from: var(--bg-secondary) var(--tw-gradient-from-position);
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
+}
+html .hover\:bg-purple-500:hover {
+  background-color: var(--p600);
+}
+html .hover\:text-purple-200:hover {
+  color: var(--p300);
+}
+html .placeholder-purple-200\/50 {
+  color: color-mix(in srgb, var(--text-muted) 50%, transparent);
+}
+html .placeholder-purple-400\/60 {
+  color: color-mix(in srgb, var(--text-muted) 60%, transparent);
+}
+html .ring-fuchsia-300 {
+  --tw-ring-color: var(--border-color);
+}
+html .ring-purple-500 {
+  --tw-ring-color: var(--border-strong);
+}
+html .text-amber-200 {
+  color: var(--p300);
+}
+html .text-amber-300 {
+  color: var(--p300);
+}
+html .text-amber-500 {
+  color: var(--text-secondary);
+}
+html .text-amber-800 {
+  color: var(--text-primary);
+}
+html .text-amber-900 {
+  color: var(--text-primary);
+}
+html .text-fuchsia-100 {
+  color: var(--p300);
+}
+html .text-fuchsia-200 {
+  color: var(--p300);
+}
+html .text-orange-400 {
+  color: var(--p300);
+}
+html .text-purple-100 {
+  color: var(--p300);
+}
+html .text-purple-200 {
+  color: var(--p300);
+}
+html .text-purple-200\/50 {
+  color: color-mix(in srgb, var(--p300) 50%, transparent);
+}
+html .text-purple-200\/70 {
+  color: color-mix(in srgb, var(--p300) 70%, transparent);
+}
+html .text-purple-200\/80 {
+  color: color-mix(in srgb, var(--p300) 80%, transparent);
+}
+html .text-purple-300 {
+  color: var(--p300);
+}
+html .text-purple-300\/60 {
+  color: color-mix(in srgb, var(--p300) 60%, transparent);
+}
+html .text-purple-300\/70 {
+  color: color-mix(in srgb, var(--p300) 70%, transparent);
+}
+html .text-purple-300\/80 {
+  color: color-mix(in srgb, var(--p300) 80%, transparent);
+}
+html .text-purple-400 {
+  color: var(--p300);
+}
+html .text-purple-50 {
+  color: var(--p50);
+}
+html .text-purple-500 {
+  color: var(--text-secondary);
+}
+html .text-purple-600 {
+  color: var(--text-secondary);
+}
+html .text-purple-700 {
+  color: var(--text-secondary);
+}
+html .text-purple-800 {
+  color: var(--text-primary);
+}
+html .text-purple-900 {
+  color: var(--text-primary);
+}
+html .text-rose-800 {
+  color: var(--text-primary);
+}
+html .text-violet-800 {
+  color: var(--text-primary);
+}
 
 /* ================= BLUE/SKY/CYAN remaps (teacher analytics) =================
  * Blue + deep teal primary, white/neutral surfaces, restrained orange
@@ -113,21 +278,55 @@ html .text-violet-800 { color: var(--text-primary); }
  * Deep navy base for the default dark theme; paper for light; low-
  * stimulation variants for calm.
  */
-html .from-blue-600 { --tw-gradient-from: var(--ek-blue-600) var(--tw-gradient-from-position); --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to); }
-html .from-blue-900 { --tw-gradient-from: var(--ek-blue-900) var(--tw-gradient-from-position); --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to); }
-html .to-blue-600 { --tw-gradient-to: var(--ek-blue-600) var(--tw-gradient-to-position); }
-html .text-blue-400 { color: var(--ek-blue-400); }
-html .text-blue-200 { color: var(--ek-blue-200); }
-html .text-blue-900 { color: var(--text-primary); }
-html .text-sky-800 { color: var(--text-secondary); }
-html .from-teal-600 { --tw-gradient-from: var(--ek-teal-600) var(--tw-gradient-from-position); --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to); }
-html .from-teal-700 { --tw-gradient-from: var(--ek-teal-700) var(--tw-gradient-from-position); --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to); }
-html .to-teal-600 { --tw-gradient-to: var(--ek-teal-600) var(--tw-gradient-to-position); }
-html .to-teal-50 { --tw-gradient-to: var(--ek-teal-100) var(--tw-gradient-to-position); }
-html .text-teal-600 { color: var(--ek-teal-600); }
-html .bg-blue-50 { background-color: var(--ek-blue-050); }
-html .bg-sky-100 { background-color: var(--accent-soft); }
-html .border-sky-300 { border-color: var(--border-color); }
+html .from-blue-600 {
+  --tw-gradient-from: var(--ek-blue-600) var(--tw-gradient-from-position);
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
+}
+html .from-blue-900 {
+  --tw-gradient-from: var(--ek-blue-900) var(--tw-gradient-from-position);
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
+}
+html .to-blue-600 {
+  --tw-gradient-to: var(--ek-blue-600) var(--tw-gradient-to-position);
+}
+html .text-blue-400 {
+  color: var(--ek-blue-400);
+}
+html .text-blue-200 {
+  color: var(--ek-blue-200);
+}
+html .text-blue-900 {
+  color: var(--text-primary);
+}
+html .text-sky-800 {
+  color: var(--text-secondary);
+}
+html .from-teal-600 {
+  --tw-gradient-from: var(--ek-teal-600) var(--tw-gradient-from-position);
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
+}
+html .from-teal-700 {
+  --tw-gradient-from: var(--ek-teal-700) var(--tw-gradient-from-position);
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
+}
+html .to-teal-600 {
+  --tw-gradient-to: var(--ek-teal-600) var(--tw-gradient-to-position);
+}
+html .to-teal-50 {
+  --tw-gradient-to: var(--ek-teal-100) var(--tw-gradient-to-position);
+}
+html .text-teal-600 {
+  color: var(--ek-teal-600);
+}
+html .bg-blue-50 {
+  background-color: var(--ek-blue-050);
+}
+html .bg-sky-100 {
+  background-color: var(--accent-soft);
+}
+html .border-sky-300 {
+  border-color: var(--border-color);
+}
 
 /* ================= GREEN (guardian) remaps =================
  * Forest green primary, warm cream surfaces, restrained sweet-orange
@@ -135,34 +334,88 @@ html .border-sky-300 { border-color: var(--border-color); }
  * administration. Cream = grounded, warm, paper-like; orange used only
  * for emphasis (never as a status colour on its own).
  */
-html .from-green-600 { --tw-gradient-from: var(--ek-green-600) var(--tw-gradient-from-position); --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to); }
-html .from-green-700 { --tw-gradient-from: var(--ek-green-700) var(--tw-gradient-from-position); --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to); }
-html .to-green-600 { --tw-gradient-to: var(--ek-green-600) var(--tw-gradient-to-position); }
-html .to-green-100 { --tw-gradient-to: var(--ek-green-100) var(--tw-gradient-to-position); }
-html .text-green-400 { color: var(--ek-green-400); }
-html .text-green-600 { color: var(--ek-green-600); }
-html .bg-green-50 { background-color: var(--ek-green-050); }
-html .bg-cream-100 { background-color: var(--ek-cream-100); }
-html .bg-cream-50 { background-color: var(--ek-cream-050); }
-html .border-green-300 { border-color: var(--border-color); }
-html .border-green-400 { border-color: var(--border-color); }
+html .from-green-600 {
+  --tw-gradient-from: var(--ek-green-600) var(--tw-gradient-from-position);
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
+}
+html .from-green-700 {
+  --tw-gradient-from: var(--ek-green-700) var(--tw-gradient-from-position);
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
+}
+html .to-green-600 {
+  --tw-gradient-to: var(--ek-green-600) var(--tw-gradient-to-position);
+}
+html .to-green-100 {
+  --tw-gradient-to: var(--ek-green-100) var(--tw-gradient-to-position);
+}
+html .text-green-400 {
+  color: var(--ek-green-400);
+}
+html .text-green-600 {
+  color: var(--ek-green-600);
+}
+html .bg-green-50 {
+  background-color: var(--ek-green-050);
+}
+html .bg-cream-100 {
+  background-color: var(--ek-cream-100);
+}
+html .bg-cream-50 {
+  background-color: var(--ek-cream-050);
+}
+html .border-green-300 {
+  border-color: var(--border-color);
+}
+html .border-green-400 {
+  border-color: var(--border-color);
+}
 
 /* ================= PURPLE (learner) remaps =================
  * Lavender/lilac supporting surfaces, white content. Expressive,
  * friendly, age-appropriate. Learner journeys, activities, progress,
  * gamification and encouragement.
  */
-html .from-purple-500 { --tw-gradient-from: var(--ek-purple-600) var(--tw-gradient-from-position); --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to); }
-html .from-purple-700 { --tw-gradient-from: var(--ek-purple-700) var(--tw-gradient-from-position); --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to); }
-html .to-purple-500 { --tw-gradient-to: var(--ek-purple-500) var(--tw-gradient-to-position); }
-html .to-purple-050 { --tw-gradient-to: var(--ek-purple-050) var(--tw-gradient-to-position); }
-html .text-purple-400 { color: var(--ek-purple-400); }
-html .text-purple-500 { color: var(--ek-purple-500); }
-html .text-lavender-300 { color: var(--ek-lavender-300); }
-html .text-lavender-200 { color: var(--ek-lavender-200); }
-html .text-lilac-100 { color: var(--ek-lilac-100); }
-html .bg-purple-500 { background-color: var(--ek-purple-500); }
-html .bg-purple-100 { background-color: var(--ek-purple-100); }
-html .bg-lavender-300 { background-color: var(--ek-lavender-300); }
-html .bg-lavender-200 { background-color: var(--ek-lavender-200); }
-html .border-purple-400 { border-color: var(--border-color); }
+html .from-purple-500 {
+  --tw-gradient-from: var(--ek-purple-600) var(--tw-gradient-from-position);
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
+}
+html .from-purple-700 {
+  --tw-gradient-from: var(--ek-purple-700) var(--tw-gradient-from-position);
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
+}
+html .to-purple-500 {
+  --tw-gradient-to: var(--ek-purple-500) var(--tw-gradient-to-position);
+}
+html .to-purple-050 {
+  --tw-gradient-to: var(--ek-purple-050) var(--tw-gradient-to-position);
+}
+html .text-purple-400 {
+  color: var(--ek-purple-400);
+}
+html .text-purple-500 {
+  color: var(--ek-purple-500);
+}
+html .text-lavender-300 {
+  color: var(--ek-lavender-300);
+}
+html .text-lavender-200 {
+  color: var(--ek-lavender-200);
+}
+html .text-lilac-100 {
+  color: var(--ek-lilac-100);
+}
+html .bg-purple-500 {
+  background-color: var(--ek-purple-500);
+}
+html .bg-purple-100 {
+  background-color: var(--ek-purple-100);
+}
+html .bg-lavender-300 {
+  background-color: var(--ek-lavender-300);
+}
+html .bg-lavender-200 {
+  background-color: var(--ek-lavender-200);
+}
+html .border-purple-400 {
+  border-color: var(--border-color);
+}
