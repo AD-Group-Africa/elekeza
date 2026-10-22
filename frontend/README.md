@@ -6,7 +6,8 @@ administrators. Built with Next.js (App Router), React 19, TypeScript, Tailwind 
 New to the code? Read **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)** — it explains the folder layout
 and how to add a page, a feature or an API call. **[docs/FEATURES.md](docs/FEATURES.md)** lists what
 each role can do and where it lives; **[docs/IMPROVEMENTS.md](docs/IMPROVEMENTS.md)** is the backlog
-of known limitations and ideas.
+of known limitations and ideas; **[docs/BACKEND_REQUESTS.md](docs/BACKEND_REQUESTS.md)** lists what the
+backend needs to change or add.
 
 ## Prerequisites
 
