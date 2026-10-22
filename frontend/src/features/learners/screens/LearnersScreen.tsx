@@ -80,7 +80,9 @@ export default function LearnersScreen() {
                     )}
                   >
                     <span className="block font-medium">{s.name}</span>
-                    <span className="block text-xs opacity-75">{[s.grade, s.email].filter(Boolean).join(' · ')}</span>
+                    <span className="block text-xs text-fg-muted">
+                      {[s.grade, s.email].filter(Boolean).join(' · ')}
+                    </span>
                   </button>
                 </li>
               ))}

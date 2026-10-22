@@ -87,14 +87,10 @@
   --ek-shadow-2: 0 4px 24px rgba(6, 16, 11, 0.35);
   --ek-shadow-3: 0 12px 40px rgba(6, 16, 11, 0.4);
   --ek-speed: 160ms;
-}
 
-/* ================= BLUE (default / teacher analytics) =================
- * Primary: blue + deep teal. Surfaces: white + neutral. Accent: restrained
- * orange. Professional, information-rich, easy to scan. Matches the pupil
- * code style: --ek-blue-* = #1D4ED8, --ek-teal-* = #0F766E.
- */
-[data-theme='blue'] {
+  /* ---- Palette primitives (same in every theme; themes pick from them) ----
+   * Defined here, not inside a theme block, so tokens such as --accent in
+   * light mode (var(--ek-blue-700)) always resolve. */
   --ek-blue-950: #0a1f3d;
   --ek-blue-900: #11305c;
   --ek-blue-800: #16457a;
@@ -106,7 +102,6 @@
   --ek-blue-200: #cfe0f5;
   --ek-blue-100: #e4f0fb;
   --ek-blue-050: #f6fbff;
-
   --ek-teal-700: #0d6b6b;
   --ek-teal-600: #0f766e;
   --ek-teal-500: #118a8a;
@@ -114,7 +109,52 @@
   --ek-teal-300: #4fb3b3;
   --ek-teal-200: #a9d6d6;
   --ek-teal-100: #d7ebe8;
+  --ek-purple-950: #1e1536;
+  --ek-purple-900: #2a1950;
+  --ek-purple-800: #3d216b;
+  --ek-purple-700: #522ba0;
+  --ek-purple-600: #6d28d9;
+  --ek-purple-500: #7c3aed;
+  --ek-purple-400: #9361e0;
+  --ek-purple-300: #b68af0;
+  --ek-purple-200: #d9b0f5;
+  --ek-purple-100: #e7c6fb;
+  --ek-purple-050: #f7f0ff;
+  --ek-lavender-300: #e0d8f5;
+  --ek-lavender-200: #ddd0f0;
+  --ek-lavender-100: #ece3f9;
+  --ek-lilac-200: #dad2ec;
+  --ek-lilac-100: #ece6f5;
+  --ek-green-950: #12241a;
+  --ek-green-900: #1a3326;
+  --ek-green-800: #245039;
+  --ek-green-700: #2f6b4a;
+  --ek-green-600: #3d8a5f;
+  --ek-green-500: #4d9f72;
+  --ek-green-400: #6fb386;
+  --ek-green-300: #93c7a0;
+  --ek-green-200: #bde2cb;
+  --ek-green-100: #dcf3e0;
+  --ek-green-050: #f2f9f5;
+  --ek-cream-950: #241d14;
+  --ek-cream-900: #332a1e;
+  --ek-cream-800: #4a3c2a;
+  --ek-cream-700: #6b583e;
+  --ek-cream-600: #8b7652;
+  --ek-cream-500: #aa916d;
+  --ek-cream-400: #c9a984;
+  --ek-cream-300: #e2bcb2;
+  --ek-cream-200: #ece0c9;
+  --ek-cream-100: #f5efe4;
+  --ek-cream-050: #faf6ee;
+}
 
+/* ================= BLUE (default / teacher analytics) =================
+ * Primary: blue + deep teal. Surfaces: white + neutral. Accent: restrained
+ * orange. Professional, information-rich, easy to scan. Matches the pupil
+ * code style: --ek-blue-* = #1D4ED8, --ek-teal-* = #0F766E.
+ */
+[data-theme='blue'] {
   --bg-gradient: linear-gradient(160deg, var(--ek-blue-950) 0%, var(--ek-blue-900) 55%, #0f2c52 100%);
   --bg-primary: var(--ek-blue-950);
   --bg-secondary: var(--ek-blue-900);
@@ -156,7 +196,7 @@
 
   --text-primary: #17325b;
   --text-secondary: #3c5a8a;
-  --text-muted: #647fb0;
+  --text-muted: #4f6a99;
 
   --accent: var(--ek-blue-700);
   --accent-strong: var(--ek-blue-800);
@@ -168,8 +208,8 @@
 
   --focus-ring: var(--ek-blue-600);
 
-  --ek-ok: #2e7d4f;
-  --ek-warn: #9a6b13;
+  --ek-ok: #22663f;
+  --ek-warn: #7f5608;
   --ek-danger: #b0432f;
   --ek-info: #2f6699;
 }
@@ -186,7 +226,7 @@
 
   --text-primary: #1d3557;
   --text-secondary: #3f5f85;
-  --text-muted: #6583a3;
+  --text-muted: #4d6788;
 
   --accent: #2b6cb0;
   --accent-strong: #2c5f8a;
@@ -198,8 +238,8 @@
 
   --focus-ring: #2c5f8a;
 
-  --ek-ok: #2e6b47;
-  --ek-warn: #8a6410;
+  --ek-ok: #245a3a;
+  --ek-warn: #6f4f0a;
   --ek-danger: #a03d2c;
   --ek-info: #33608c;
 
@@ -216,24 +256,6 @@
  * order and defeat light mode at equal specificity — the 2026-10-12 cascade fix.) */
 [data-theme='dark'],
 [data-theme='purple'] {
-  --ek-purple-950: #1e1536;
-  --ek-purple-900: #2a1950;
-  --ek-purple-800: #3d216b;
-  --ek-purple-700: #522ba0;
-  --ek-purple-600: #6d28d9;
-  --ek-purple-500: #7c3aed;
-  --ek-purple-400: #9361e0;
-  --ek-purple-300: #b68af0;
-  --ek-purple-200: #d9b0f5;
-  --ek-purple-100: #e7c6fb;
-  --ek-purple-050: #f7f0ff;
-
-  --ek-lavender-300: #e0d8f5;
-  --ek-lavender-200: #ddd0f0;
-  --ek-lavender-100: #ece3f9;
-  --ek-lilac-200: #dad2ec;
-  --ek-lilac-100: #ece6f5;
-
   --bg-gradient: linear-gradient(160deg, var(--ek-purple-950) 0%, var(--ek-purple-900) 55%, #3a1f5a 100%);
   --bg-primary: var(--ek-purple-950);
   --bg-secondary: var(--ek-purple-900);
@@ -244,7 +266,7 @@
 
   --text-primary: #f2edff;
   --text-secondary: #c3b7e8;
-  --text-muted: #9279c7;
+  --text-muted: #a18cd6;
 
   --accent: var(--ek-purple-600);
   --accent-strong: var(--ek-purple-400);
@@ -268,30 +290,6 @@
  * trustworthy, practical. Guardian journeys, fees, receipts, school admin.
  */
 [data-theme='green'] {
-  --ek-green-950: #12241a;
-  --ek-green-900: #1a3326;
-  --ek-green-800: #245039;
-  --ek-green-700: #2f6b4a;
-  --ek-green-600: #3d8a5f;
-  --ek-green-500: #4d9f72;
-  --ek-green-400: #6fb386;
-  --ek-green-300: #93c7a0;
-  --ek-green-200: #bde2cb;
-  --ek-green-100: #dcf3e0;
-  --ek-green-050: #f2f9f5;
-
-  --ek-cream-950: #241d14;
-  --ek-cream-900: #332a1e;
-  --ek-cream-800: #4a3c2a;
-  --ek-cream-700: #6b583e;
-  --ek-cream-600: #8b7652;
-  --ek-cream-500: #aa916d;
-  --ek-cream-400: #c9a984;
-  --ek-cream-300: #e2bcb2;
-  --ek-cream-200: #ece0c9;
-  --ek-cream-100: #f5efe4;
-  --ek-cream-050: #faf6ee;
-
   --bg-gradient: linear-gradient(160deg, var(--ek-green-950) 0%, var(--ek-green-900) 55%, #1f4a2a 100%);
   --bg-primary: var(--ek-green-950);
   --bg-secondary: var(--ek-green-900);
@@ -344,8 +342,8 @@
 
   --focus-ring: #6d28d9;
 
-  --ek-ok: #2e7d4f;
-  --ek-warn: #9a6b13;
+  --ek-ok: #22663f;
+  --ek-warn: #7f5608;
   --ek-danger: #b0432f;
   --ek-info: #2f6699;
 }
@@ -374,8 +372,8 @@
 
   --focus-ring: #522ba0;
 
-  --ek-ok: #2e6b47;
-  --ek-warn: #8a6410;
+  --ek-ok: #245a3a;
+  --ek-warn: #6f4f0a;
   --ek-danger: #a03d2c;
   --ek-info: #33608c;
 
@@ -406,8 +404,8 @@
 
   --focus-ring: var(--ek-green-700);
 
-  --ek-ok: #2e7d4f;
-  --ek-warn: #9a6b13;
+  --ek-ok: #22663f;
+  --ek-warn: #7f5608;
   --ek-danger: #b0432f;
   --ek-info: #2f6699;
 }
@@ -436,8 +434,8 @@
 
   --focus-ring: #244b32;
 
-  --ek-ok: #2e6b47;
-  --ek-warn: #8a6410;
+  --ek-ok: #245a3a;
+  --ek-warn: #6f4f0a;
   --ek-danger: #a03d2c;
   --ek-info: #33608c;
 

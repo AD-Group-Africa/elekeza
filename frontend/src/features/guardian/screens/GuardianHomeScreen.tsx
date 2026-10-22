@@ -22,7 +22,7 @@ function Stat({ icon, label, value }: { icon: React.ReactNode; label: string; va
       <span className="mx-auto mb-1 block w-fit opacity-80" aria-hidden="true">
         {icon}
       </span>
-      <p className="text-xs opacity-75">{label}</p>
+      <p className="text-xs text-fg-muted">{label}</p>
       <p className="text-lg font-bold">{value}</p>
     </div>
   );
@@ -48,11 +48,11 @@ export default function GuardianHomeScreen() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold">{greeting()}, here is your child&apos;s day</h1>
-        <p className="mt-1 text-sm opacity-75">
+        <p className="mt-1 text-sm text-fg-muted">
           Today at a glance — what they&apos;re learning, what they&apos;ve completed, and anything that needs your
           attention.
         </p>
-        <p className="mt-1 text-xs opacity-50">
+        <p className="mt-1 text-xs text-fg-muted">
           A guardian can be a parent, caregiver, older sibling, legal guardian, or another authorized adult.
         </p>
       </div>
@@ -66,7 +66,7 @@ export default function GuardianHomeScreen() {
           >
             {child.name}
             {child.relationship && child.relationship !== 'PARENT' && (
-              <span className="ml-2 text-xs opacity-60">{relationshipLabel(child.relationship)}</span>
+              <span className="ml-2 text-xs text-fg-muted">{relationshipLabel(child.relationship)}</span>
             )}
           </Link>
         ))}
@@ -85,7 +85,7 @@ export default function GuardianHomeScreen() {
               <h2 id={`ward-${child.id}`} className="text-xl font-semibold">
                 {child.name}
               </h2>
-              <p className="text-sm opacity-75">
+              <p className="text-sm text-fg-muted">
                 {relationshipLabel(child.relationship)}
                 {child.sneType && child.sneType !== 'NONE' ? ` · ${child.sneType}` : ''}
               </p>

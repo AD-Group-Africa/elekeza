@@ -31,7 +31,7 @@ export default function WardsScreen() {
               <User size={24} className="text-blue-400" aria-hidden="true" />
               <div>
                 <h2 className="text-lg font-semibold opacity-90">{child.name}</h2>
-                <p className="text-sm opacity-75">
+                <p className="text-sm text-fg-muted">
                   {child.lessonsCompleted ?? 0} lessons completed · average score {Math.round(child.averageScore ?? 0)}%
                 </p>
               </div>

@@ -54,10 +54,10 @@ export function SidebarNav({
         {!collapsed && (
           <Link href={roleHome(role)} onClick={onNavigate} aria-label="Elekeza home">
             <Image
-              src="/Elekeza Logo.png"
+              src="/elekeza-logo-wide.png"
               alt="Elekeza"
-              width={220}
-              height={220}
+              width={600}
+              height={209}
               className="h-auto max-h-9 w-auto max-w-[150px] object-contain"
               priority
             />

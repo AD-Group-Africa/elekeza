@@ -33,7 +33,7 @@ function Stat({ icon, label, value }: { icon: React.ReactNode; label: string; va
       <span className="mx-auto mb-2 block w-fit opacity-80" aria-hidden="true">
         {icon}
       </span>
-      <p className="text-xs opacity-75">{label}</p>
+      <p className="text-xs text-fg-muted">{label}</p>
       <p className="text-xl font-bold">{value}</p>
     </div>
   );
@@ -78,9 +78,9 @@ export default function WardDetailScreen() {
           </div>
           <div>
             <h1 className="text-2xl font-bold">{w.name}</h1>
-            <p className="opacity-75">{RELATIONSHIP_LINE[w.relationship ?? ''] ?? 'Your learner'}</p>
+            <p className="text-fg-muted">{RELATIONSHIP_LINE[w.relationship ?? ''] ?? 'Your learner'}</p>
             {w.sneType && w.sneType !== 'NONE' && (
-              <p className="mt-0.5 text-xs opacity-75">Learning profile: {w.sneType}</p>
+              <p className="mt-0.5 text-xs text-fg-muted">Learning profile: {w.sneType}</p>
             )}
           </div>
         </div>
@@ -107,7 +107,7 @@ export default function WardDetailScreen() {
               <h2 className="font-semibold">How {w.name} is learning right now</h2>
             </div>
             <p className="text-sm leading-relaxed">{support.data.summary}</p>
-            {configuredBy && <p className="mt-2 text-xs opacity-60">Learning preferences set by: {configuredBy}</p>}
+            {configuredBy && <p className="mt-2 text-xs text-fg-muted">Learning preferences set by: {configuredBy}</p>}
           </div>
         )}
 

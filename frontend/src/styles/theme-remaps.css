@@ -419,3 +419,193 @@ html .bg-lavender-200 {
 html .border-purple-400 {
   border-color: var(--border-color);
 }
+
+/* ================= LIGHT SURFACES (light + calm themes) =================
+ * Most screens were written for the dark theme: pale text classes
+ * (text-purple-100..400, text-white), white glass panels (bg-white/5) and
+ * pale status colours (text-emerald-200). On white paper those are close to
+ * invisible, so on the light and calm themes they map to the readable
+ * semantic tokens instead. New code should use the semantic classes
+ * (text-fg, text-fg-muted, bg-surface, border-line) and needs none of this.
+ */
+html:is([data-theme='light'], [data-theme='calm']) {
+  --p50: var(--bg-secondary);
+  --p600: var(--accent);
+  --p700: var(--accent-strong);
+}
+
+/* Text: pale tints -> theme text colours */
+html:is([data-theme='light'], [data-theme='calm'])
+  :is(.text-white, .text-purple-50, .text-purple-100, .text-purple-200, .text-fuchsia-100, .text-fuchsia-200) {
+  color: var(--text-primary);
+}
+html:is([data-theme='light'], [data-theme='calm'])
+  :is(
+    .text-purple-300,
+    .text-purple-400,
+    .text-white\/70,
+    .text-purple-200\/50,
+    .text-purple-200\/70,
+    .text-purple-200\/80,
+    .text-purple-300\/60,
+    .text-purple-300\/70,
+    .text-purple-300\/80
+  ) {
+  color: var(--text-secondary);
+}
+html:is([data-theme='light'], [data-theme='calm']) .text-white\/40 {
+  color: var(--text-muted);
+}
+html:is([data-theme='light'], [data-theme='calm'])
+  :is(.hover\:text-white:hover, .hover\:text-purple-200:hover, .group:hover .group-hover\:text-white) {
+  color: var(--accent-strong);
+}
+
+/* Status text: pale (made for dark) -> the theme's readable status colours */
+html:is([data-theme='light'], [data-theme='calm'])
+  :is(
+    .text-emerald-100,
+    .text-emerald-200,
+    .text-emerald-300,
+    .text-green-200,
+    .text-green-300,
+    .text-green-400,
+    .text-green-500,
+    .text-green-600
+  ) {
+  color: var(--ek-ok);
+}
+html:is([data-theme='light'], [data-theme='calm'])
+  :is(.text-red-100, .text-red-200, .text-red-300, .text-red-400, .text-rose-200) {
+  color: var(--ek-danger);
+}
+html:is([data-theme='light'], [data-theme='calm'])
+  :is(.text-amber-100, .text-amber-200, .text-amber-300, .text-amber-500, .text-yellow-400, .text-orange-400) {
+  color: var(--ek-warn);
+}
+html:is([data-theme='light'], [data-theme='calm'])
+  :is(.text-sky-100, .text-sky-200, .text-blue-200, .text-blue-300, .text-blue-400, .text-teal-600) {
+  color: var(--ek-info);
+}
+
+/* White glass panels and borders -> faint accent tint and theme borders */
+html:is([data-theme='light'], [data-theme='calm']) :is(.bg-white\/5, .hover\:bg-white\/5:hover) {
+  background-color: color-mix(in srgb, var(--accent) 5%, transparent);
+}
+html:is([data-theme='light'], [data-theme='calm']) :is(.bg-white\/10, .hover\:bg-white\/10:hover) {
+  background-color: color-mix(in srgb, var(--accent) 8%, transparent);
+}
+html:is([data-theme='light'], [data-theme='calm']) :is(.bg-white\/15, .hover\:bg-white\/15:hover) {
+  background-color: color-mix(in srgb, var(--accent) 11%, transparent);
+}
+html:is([data-theme='light'], [data-theme='calm']) :is(.bg-white\/20, .hover\:bg-white\/20:hover) {
+  background-color: color-mix(in srgb, var(--accent) 14%, transparent);
+}
+html:is([data-theme='light'], [data-theme='calm']) :is(.border-white\/5, .border-white\/10, .border-white\/20) {
+  border-color: var(--border-color);
+}
+html:is([data-theme='light'], [data-theme='calm']) .divide-white\/10 > :not([hidden]) ~ :not([hidden]) {
+  border-color: var(--border-color);
+}
+html:is([data-theme='light'], [data-theme='calm']) .bg-emerald-900\/30 {
+  background-color: color-mix(in srgb, var(--ek-ok) 10%, transparent);
+}
+html:is([data-theme='light'], [data-theme='calm']) .bg-rose-900\/30 {
+  background-color: color-mix(in srgb, var(--ek-danger) 10%, transparent);
+}
+html:is([data-theme='light'], [data-theme='calm']) .bg-amber-900\/30 {
+  background-color: color-mix(in srgb, var(--ek-warn) 10%, transparent);
+}
+
+/* Dark page/hero gradients -> paper */
+html:is([data-theme='light'], [data-theme='calm'])
+  :is(.from-indigo-950, .from-indigo-900, .from-violet-900, .from-blue-900) {
+  --tw-gradient-from: var(--bg-secondary) var(--tw-gradient-from-position);
+  --tw-gradient-to: transparent var(--tw-gradient-to-position);
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
+}
+html:is([data-theme='light'], [data-theme='calm']) :is(.via-purple-900, .via-purple-950) {
+  --tw-gradient-to: transparent var(--tw-gradient-to-position);
+  --tw-gradient-stops:
+    var(--tw-gradient-from), var(--bg-primary) var(--tw-gradient-via-position), var(--tw-gradient-to);
+}
+html:is([data-theme='light'], [data-theme='calm']) :is(.to-indigo-950, .to-indigo-900, .to-gray-900) {
+  --tw-gradient-to: var(--bg-secondary) var(--tw-gradient-to-position);
+}
+
+/* Keep white text on solid, colourful fills (buttons, avatars, banners), on
+ * the element itself or inside it, in every theme. Listed by exact class so translucent tints
+ * such as bg-purple-600/40 are not included: those sit on paper and use dark
+ * text. */
+html
+  :is(
+    [class~='bg-purple-500'],
+    [class~='bg-purple-600'],
+    [class~='bg-purple-700'],
+    [class~='bg-red-500'],
+    [class~='bg-red-600/80'],
+    [class~='bg-red-700'],
+    [class~='bg-emerald-500'],
+    [class~='bg-emerald-600'],
+    [class~='bg-emerald-700'],
+    [class~='bg-green-500'],
+    [class~='bg-green-600'],
+    [class~='bg-accent'],
+    [class*='bg-[var(--ek-moss-6'],
+    [class*='from-fuchsia-'],
+    [class*='from-purple-5'],
+    [class*='from-purple-6'],
+    [class*='from-blue-5'],
+    [class*='from-blue-6'],
+    [class*='from-teal-'],
+    [class*='from-green-6'],
+    [class*='from-green-7']
+  ):is(.text-white, .text-white\/70, .text-purple-100, .text-purple-200, .text-fuchsia-100, .text-fuchsia-200),
+html
+  :is(
+    [class~='bg-purple-500'],
+    [class~='bg-purple-600'],
+    [class~='bg-purple-700'],
+    [class~='bg-red-500'],
+    [class~='bg-red-600/80'],
+    [class~='bg-red-700'],
+    [class~='bg-emerald-500'],
+    [class~='bg-emerald-600'],
+    [class~='bg-emerald-700'],
+    [class~='bg-green-500'],
+    [class~='bg-green-600'],
+    [class~='bg-accent'],
+    [class*='bg-[var(--ek-moss-6'],
+    [class*='from-fuchsia-'],
+    [class*='from-purple-5'],
+    [class*='from-purple-6'],
+    [class*='from-blue-5'],
+    [class*='from-blue-6'],
+    [class*='from-teal-'],
+    [class*='from-green-6'],
+    [class*='from-green-7']
+  )
+  :is(.text-white, .text-white\/70, .text-purple-100, .text-purple-200, .text-fuchsia-100, .text-fuchsia-200) {
+  color: #ffffff;
+}
+
+/* Selected / tinted states: softer accent tint on paper so text stays readable */
+html:is([data-theme='light'], [data-theme='calm']) .bg-purple-600\/30 {
+  background-color: color-mix(in srgb, var(--accent) 12%, transparent);
+}
+html:is([data-theme='light'], [data-theme='calm']) .bg-purple-600\/40 {
+  background-color: color-mix(in srgb, var(--accent) 16%, transparent);
+}
+html:is([data-theme='light'], [data-theme='calm']) :is(.bg-purple-600\/50, .bg-purple-600\/60) {
+  background-color: color-mix(in srgb, var(--accent) 20%, transparent);
+}
+
+/* Dark theme: a few small-text tints sit below a 4.5:1 contrast on the dark
+ * purple background; lift them to the theme's secondary text colour. */
+html[data-theme='dark']
+  :is(.text-purple-400, .text-purple-500, .text-purple-200\/50, .text-purple-300\/60, .text-purple-300\/70) {
+  color: var(--text-secondary);
+}
+html[data-theme='dark'] .text-accent-strong {
+  color: var(--ek-purple-300);
+}

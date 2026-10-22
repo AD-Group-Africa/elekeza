@@ -124,7 +124,7 @@ function Tutor() {
       <div className="flex flex-wrap items-center gap-3">
         <BookOpen size={26} aria-hidden="true" />
         <h1 className="text-2xl font-bold">AI Tutor</h1>
-        <span className="rounded-full border border-line px-2 py-1 text-xs opacity-80">
+        <span className="rounded-full border border-line px-2 py-1 text-xs text-fg-muted">
           Learning helper — built into your lesson
         </span>
       </div>
@@ -134,7 +134,7 @@ function Tutor() {
       ) : lessons.isError ? (
         <Alert tone="error">Could not load your lessons. Please refresh and try again.</Alert>
       ) : lessonList.length === 0 ? (
-        <p className="text-sm opacity-80">
+        <p className="text-sm text-fg-muted">
           You have no lessons yet. Open{' '}
           <Link href="/student-lessons" className="font-semibold underline">
             My Lessons
@@ -167,7 +167,7 @@ function Tutor() {
       <div ref={resultRef} tabIndex={-1} aria-live="polite" className="outline-none">
         {busy && (
           <div className="rounded-xl border border-line bg-surface p-5" role="status">
-            <p className="text-sm opacity-80">Thinking about your lesson…</p>
+            <p className="text-sm text-fg-muted">Thinking about your lesson…</p>
           </div>
         )}
         {!busy && result && (
@@ -206,7 +206,7 @@ function Tutor() {
                   <Icon size={20} aria-hidden="true" className="mt-0.5 shrink-0" />
                   <span>
                     <span className="block font-medium">{isRead && speaking ? 'Stop reading' : label}</span>
-                    <span className="mt-0.5 block text-xs opacity-70">
+                    <span className="mt-0.5 block text-xs text-fg-muted">
                       {unavailable ? 'Not available on this device' : hint}
                     </span>
                   </span>
@@ -217,7 +217,7 @@ function Tutor() {
         </div>
       )}
 
-      <p className="text-xs opacity-60">
+      <p className="text-xs text-fg-muted">
         The tutor helps you understand your lessons. It never replaces your teacher and never shares your information.
       </p>
     </div>

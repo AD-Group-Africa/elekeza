@@ -66,7 +66,7 @@ export default function LearnerHomeScreen() {
         {currentLesson?.id != null && (
           <Link
             href={ROUTES.lesson(currentLesson.id)}
-            className="group flex min-h-[92px] items-center gap-4 rounded-3xl bg-gradient-to-r from-fuchsia-600 to-violet-600 p-5 shadow-xl shadow-purple-950/40 outline-none transition hover:from-fuchsia-500 hover:to-violet-500 focus-visible:ring-4 focus-visible:ring-fuchsia-300 active:scale-[0.99]"
+            className="group flex min-h-[92px] items-center gap-4 rounded-3xl text-white bg-gradient-to-r from-fuchsia-600 to-violet-600 p-5 shadow-xl shadow-purple-950/40 outline-none transition hover:from-fuchsia-500 hover:to-violet-500 focus-visible:ring-4 focus-visible:ring-fuchsia-300 active:scale-[0.99]"
           >
             <span
               className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-white/20 text-3xl"

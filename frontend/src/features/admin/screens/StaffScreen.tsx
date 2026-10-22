@@ -174,7 +174,7 @@ export default function StaffScreen() {
                     <td className="break-all p-2">{row.email}</td>
                     <td className="p-2">{ROLE_LABELS[row.role] ?? row.role}</td>
                     <td className="p-2">
-                      <span className={row.active ? 'text-purple-200' : 'opacity-60'}>
+                      <span className={row.active ? 'text-purple-200' : 'text-fg-subtle'}>
                         {row.active ? 'Active' : 'Deactivated'}
                       </span>
                     </td>

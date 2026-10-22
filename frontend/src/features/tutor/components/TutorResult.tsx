@@ -75,12 +75,12 @@ export function TutorResult({
 
       {result.action === 'TRANSLATE' && (
         <div className="space-y-3">
-          <p className="text-xs uppercase tracking-wide opacity-70">Kiswahili ({result.translatedBy})</p>
+          <p className="text-xs uppercase tracking-wide text-fg-muted">Kiswahili ({result.translatedBy})</p>
           <p className="whitespace-pre-line">{result.content}</p>
           {result.originalText && (
             <details className="text-sm">
               <summary className="cursor-pointer font-medium">Show original English</summary>
-              <p className="mt-2 opacity-80">{result.originalText}</p>
+              <p className="mt-2 text-fg-muted">{result.originalText}</p>
             </details>
           )}
         </div>
@@ -102,7 +102,7 @@ export function TutorResult({
               </li>
             ))}
           </ol>
-          <p className="text-sm opacity-75">{result.diagram.altText}</p>
+          <p className="text-sm text-fg-muted">{result.diagram.altText}</p>
         </div>
       )}
 

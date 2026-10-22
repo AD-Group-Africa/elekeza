@@ -20,7 +20,7 @@ export function WardActivity({ wardId }: { wardId: string | number }) {
         {exams.isLoading ? (
           <LoadingState />
         ) : (exams.data ?? []).length === 0 ? (
-          <p className="text-sm opacity-75">No exams taken yet.</p>
+          <p className="text-sm text-fg-muted">No exams taken yet.</p>
         ) : (
           <ul className="space-y-2 text-sm">
             {exams.data!.map((r) => (
@@ -43,7 +43,7 @@ export function WardActivity({ wardId }: { wardId: string | number }) {
         {work.isLoading ? (
           <LoadingState />
         ) : (work.data ?? []).length === 0 ? (
-          <p className="text-sm opacity-75">No classwork submitted yet.</p>
+          <p className="text-sm text-fg-muted">No classwork submitted yet.</p>
         ) : (
           <ul className="space-y-3 text-sm">
             {work.data!.slice(0, 8).map((s) => (
@@ -56,7 +56,7 @@ export function WardActivity({ wardId }: { wardId: string | number }) {
                     <Badge tone="info">Waiting for marking</Badge>
                   )}
                 </div>
-                {s.feedback && <p className="mt-1 opacity-80">Teacher: {s.feedback}</p>}
+                {s.feedback && <p className="mt-1 text-fg-muted">Teacher: {s.feedback}</p>}
               </li>
             ))}
           </ul>
@@ -67,11 +67,11 @@ export function WardActivity({ wardId }: { wardId: string | number }) {
         {attendance.isLoading ? (
           <LoadingState />
         ) : !attendance.data || attendance.data.sessionsMarked === 0 ? (
-          <p className="text-sm opacity-75">No attendance recorded yet.</p>
+          <p className="text-sm text-fg-muted">No attendance recorded yet.</p>
         ) : (
           <>
             <p className="text-2xl font-bold">{attendance.data.attendanceRate}%</p>
-            <p className="mb-2 text-xs opacity-75">over {attendance.data.sessionsMarked} school days</p>
+            <p className="mb-2 text-xs text-fg-muted">over {attendance.data.sessionsMarked} school days</p>
             <ul className="space-y-1 text-sm">
               {attendance.data.records.slice(0, 6).map((r, i) => (
                 <li key={i} className="flex justify-between">

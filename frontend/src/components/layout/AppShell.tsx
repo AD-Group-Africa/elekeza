@@ -86,9 +86,9 @@ export default function AppShell({ children }: { children: ReactNode }) {
         <Menu size={24} />
       </button>
 
-      {/* Extra bottom padding on mobile so the bottom nav and Elekeza Assist
-          never cover page content or forms. */}
-      <main id="main-content" className="flex-1 overflow-auto p-4 pb-28 md:p-6 md:pb-6">
+      {/* Extra bottom padding so the mobile bottom nav and Elekeza Assist never
+          cover the end of the page: content can always scroll clear of them. */}
+      <main id="main-content" className="flex-1 overflow-auto p-4 pb-28 md:p-6 md:pb-24">
         <div className="mb-2 flex justify-end">
           <NotificationBell />
         </div>

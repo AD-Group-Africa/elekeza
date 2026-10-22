@@ -166,9 +166,9 @@ export default function ClassesScreen() {
                     >
                       <span>
                         <span className="block font-medium">{c.name}</span>
-                        {c.gradeLevel && <span className="block text-xs opacity-75">{c.gradeLevel}</span>}
+                        {c.gradeLevel && <span className="block text-xs text-fg-muted">{c.gradeLevel}</span>}
                       </span>
-                      <span className="text-xs opacity-75">{learnerCountLabel(c.learnerCount)}</span>
+                      <span className="text-xs text-fg-muted">{learnerCountLabel(c.learnerCount)}</span>
                     </button>
                   </li>
                 ))}

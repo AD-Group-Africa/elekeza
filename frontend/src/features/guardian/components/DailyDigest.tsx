@@ -21,14 +21,14 @@ export default function DailyDigest({ wardId }: { wardId: string | number }) {
   if (isError) {
     return (
       <section aria-label="Daily summary" className="glass-card p-5">
-        <p className="text-sm opacity-70">Could not load today&rsquo;s summary. Please refresh to try again.</p>
+        <p className="text-sm text-fg-muted">Could not load today&rsquo;s summary. Please refresh to try again.</p>
       </section>
     );
   }
   if (!digest) {
     return (
       <section aria-label="Daily summary" className="glass-card p-5">
-        <p className="text-sm opacity-70 animate-pulse" role="status">
+        <p className="text-sm text-fg-muted animate-pulse" role="status">
           Loading today&rsquo;s summary…
         </p>
       </section>
@@ -56,41 +56,41 @@ export default function DailyDigest({ wardId }: { wardId: string | number }) {
         <h2 className="text-lg font-semibold flex items-center gap-2">
           <Info size={18} /> Today at a glance
         </h2>
-        <p className="text-sm opacity-70">A calm daily summary for {digest.learnerName ?? 'your learner'}.</p>
+        <p className="text-sm text-fg-muted">A calm daily summary for {digest.learnerName ?? 'your learner'}.</p>
       </header>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <div className="rounded-lg bg-white/5 p-3">
-          <p className="flex items-center gap-1.5 text-xs opacity-75">
+          <p className="flex items-center gap-1.5 text-xs text-fg-muted">
             <BookOpen size={14} /> Lessons done
           </p>
           <p className="text-xl font-bold">{learning.lessonsCompleted ?? 0}</p>
-          <p className="text-xs opacity-60">{learning.lessonsPending ?? 0} still to go</p>
+          <p className="text-xs text-fg-muted">{learning.lessonsPending ?? 0} still to go</p>
         </div>
         <div className="rounded-lg bg-white/5 p-3">
-          <p className="flex items-center gap-1.5 text-xs opacity-75">
+          <p className="flex items-center gap-1.5 text-xs text-fg-muted">
             <CalendarCheck size={14} /> Attendance
           </p>
           <p className="text-xl font-bold">{attendance.rate != null ? `${attendance.rate}%` : '—'}</p>
-          <p className="text-xs opacity-60">
+          <p className="text-xs text-fg-muted">
             {attendance.today
               ? (todayLabel[attendance.today] ?? attendance.today)
               : `${attendance.sessionsMarked ?? 0} days recorded`}
           </p>
         </div>
         <div className="rounded-lg bg-white/5 p-3">
-          <p className="flex items-center gap-1.5 text-xs opacity-75">
+          <p className="flex items-center gap-1.5 text-xs text-fg-muted">
             <NotebookPen size={14} /> Classwork
           </p>
           <p className="text-xl font-bold">{dueSoon.filter((d) => !d.submitted).length + missing.length}</p>
-          <p className="text-xs opacity-60">to attend to</p>
+          <p className="text-xs text-fg-muted">to attend to</p>
         </div>
         <div className="rounded-lg bg-white/5 p-3">
-          <p className="flex items-center gap-1.5 text-xs opacity-75">
+          <p className="flex items-center gap-1.5 text-xs text-fg-muted">
             <Wallet size={14} /> Fees balance
           </p>
           <p className="text-xl font-bold">{money(outstanding)}</p>
-          <p className="text-xs opacity-60">{outstanding > 0 ? 'outstanding' : 'all clear'}</p>
+          <p className="text-xs text-fg-muted">{outstanding > 0 ? 'outstanding' : 'all clear'}</p>
         </div>
       </div>
 
@@ -103,7 +103,7 @@ export default function DailyDigest({ wardId }: { wardId: string | number }) {
                 <span className="rounded-full border border-rose-300 bg-rose-50 text-rose-800 dark:bg-rose-900/30 dark:border-rose-700 px-2 py-0.5 text-xs font-medium mr-2">
                   Past due
                 </span>
-                {m.title} <span className="opacity-60">(was due {m.dueDate})</span>
+                {m.title} <span className="text-fg-muted">(was due {m.dueDate})</span>
               </li>
             ))}
             {dueSoon
@@ -119,7 +119,7 @@ export default function DailyDigest({ wardId }: { wardId: string | number }) {
             {dueSoon
               .filter((d) => d.submitted)
               .map((d) => (
-                <li key={`s-${d.id}`} className="opacity-70">
+                <li key={`s-${d.id}`} className="text-fg-muted">
                   <span className="rounded-full border border-emerald-300 bg-emerald-50 text-emerald-800 dark:bg-emerald-900/30 dark:border-emerald-700 px-2 py-0.5 text-xs font-medium mr-2">
                     Done ✓
                   </span>
