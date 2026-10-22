@@ -1,15 +1,24 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { ChevronDown, ChevronUp } from 'lucide-react';
 import SidebarLayout from '@/components/layout/SidebarLayout';
 import api from '@/lib/axios';
 import { useAuth } from '@/hooks/useAuth';
-import { ChevronDown, ChevronUp } from 'lucide-react';
+import {
+  type AccessibilityBooleanKey,
+  type AccessibilitySettings,
+  resolveTheme,
+  useAccessibilitySettings,
+} from '@/hooks/useAccessibilitySettings';
+
+/** A toggle is either a plain boolean setting or the dyslexia-friendly font. */
+type SettingKey = AccessibilityBooleanKey | 'dyslexiaFont';
 
 type SettingCategory = {
   title: string;
   icon: string;
-  settings: { key: string; label: string; description: string }[];
+  settings: { key: SettingKey; label: string; description: string }[];
 };
 
 const categories: SettingCategory[] = [
@@ -17,7 +26,7 @@ const categories: SettingCategory[] = [
     title: 'Visual & Reading',
     icon: '👁️',
     settings: [
-      { key: 'dyslexiaFont', label: 'Dyslexia Font', description: 'OpenDyslexic font for easier reading' },
+      { key: 'dyslexiaFont', label: 'Dyslexia Font', description: 'A dyslexia-friendly typeface for easier reading' },
       { key: 'highContrast', label: 'High Contrast', description: 'Increase contrast for better visibility' },
       { key: 'largeText', label: 'Large Text', description: 'Increase font size throughout the app' },
       { key: 'readingGuide', label: 'Reading Guide', description: 'Show a line guide to follow text' },
@@ -64,7 +73,7 @@ const categories: SettingCategory[] = [
     title: 'Audio & Language',
     icon: '🔊',
     settings: [
-      { key: 'readAloud', label: 'Read Aloud', description: 'Reads text out loud' },
+      { key: 'readTextAloud', label: 'Read Aloud', description: 'Show a Listen button that reads lessons out loud' },
       { key: 'textToSpeech', label: 'Text to Speech', description: 'Convert text to spoken words' },
       { key: 'voiceCommands', label: 'Voice Commands', description: 'Control with your voice' },
       { key: 'soundCues', label: 'Sound Cues', description: 'Audio signals for actions' },
@@ -99,129 +108,113 @@ const categories: SettingCategory[] = [
   },
 ];
 
-const defaultSettings: Record<string, boolean> = {};
-categories.forEach(cat => cat.settings.forEach(s => defaultSettings[s.key] = false));
+/** The subset of settings the server-side accessibility profile understands. */
+function toServerProfile(s: AccessibilitySettings): Record<string, unknown> {
+  return {
+    theme: resolveTheme(s),
+    reducedMotion: s.reduceVisualClutter || s.reducedMotion,
+    highContrastFocus: s.highContrast,
+    ttsEnabled: s.readTextAloud || s.textToSpeech,
+    plainLanguage: s.simplifiedLanguage,
+  };
+}
 
 /**
- * Accessibility settings — persisted per learner.
- *
- * Local application is instant (localStorage, as before). The same settings
- * are mirrored to the learner's server-side accessibility profile
- * (PUT /api/accessibility-profiles/{userId}), so the learner's choices follow
- * them to any device and can be reviewed by their school. Theme and
- * reduced-motion keys map onto the server profile contract; the many
- * presentation toggles below are saved locally and recorded as one
- * A11Y_SETTING_CHANGED engagement event per session.
+ * Accessibility settings. Applied instantly on this device (via the shared
+ * AccessibilitySettingsProvider) and mirrored to the learner's server-side
+ * accessibility profile when the user changes something, so choices follow
+ * them to other devices.
  */
 export default function SettingsPage() {
-  const [settings, setSettings] = useState(defaultSettings);
+  const { settings, setSetting, toggleSetting } = useAccessibilitySettings();
+  const { user } = useAuth();
   const [mounted, setMounted] = useState(false);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
-  const { user } = useAuth();
+  const changedByUser = useRef(false);
 
+  // Settings come from localStorage, which the server cannot see: render the
+  // toggles only after mount so they never flash the wrong state.
   useEffect(() => {
-    // Load saved settings after mount (localStorage is client-only). Deferred
-    // with queueMicrotask so setState does not fire synchronously inside the
-    // effect pass (react-compiler cascading-render rule).
-    queueMicrotask(() => {
-      const saved = localStorage.getItem('elekeza-settings');
-      if (saved) {
-        try {
-          setSettings({ ...defaultSettings, ...JSON.parse(saved) });
-        } catch {}
-      }
-      setMounted(true);
-    });
+    queueMicrotask(() => setMounted(true));
   }, []);
 
+  // Debounced server mirror — only after a real change on this page.
   useEffect(() => {
-    if (!mounted) return;
-    localStorage.setItem('elekeza-settings', JSON.stringify(settings));
-    // Apply toggles to body classes
-    Object.entries(settings).forEach(([key, value]) => {
-      document.body.classList.toggle('setting-' + key, value);
-    });
-    // Theme precedence: Calm > Light > Dark. Calm is the accessibility /
-    // low-stimulation palette; it also sets body.calm-mode (fewer animations,
-    // flatter surfaces). Light is the clean paper palette. Dark (default) is
-    // deep moss.
-    if (settings.calmMode) {
-      document.documentElement.setAttribute('data-theme', 'calm');
-      document.body.classList.add('calm-mode');
-    } else {
-      document.body.classList.remove('calm-mode');
-      document.documentElement.setAttribute('data-theme', settings.lightTheme ? 'light' : 'dark');
-    }
-  }, [settings, mounted]);
+    if (!changedByUser.current || !user) return;
+    const timer = setTimeout(() => {
+      api.put(`/accessibility-profiles/${user.learnerId}`, { settings: toServerProfile(settings) })
+        .then(() => api.post('/engagement/events', { eventType: 'A11Y_SETTING_CHANGED', refType: 'A11Y' }))
+        .catch(() => undefined);
+    }, 800);
+    return () => clearTimeout(timer);
+  }, [settings, user]);
 
-  // Mirror the settings contract the server profile supports onto the
-  // learner's accessibility profile (fire-and-forget; local state stays
-  // authoritative for instant application).
-  useEffect(() => {
-    if (!mounted || !user) return;
-    const profileSettings: Record<string, unknown> = {
-      theme: settings.calmMode ? 'calm' : settings.lightTheme ? 'light' : 'dark',
-      reducedMotion: Boolean(settings.reduceVisualClutter),
-      highContrastFocus: Boolean(settings.highContrast),
-      ttsEnabled: Boolean(settings.readAloud || settings.textToSpeech),
-      plainLanguage: Boolean(settings.simplifiedLanguage),
-    };
-    api.put(`/accessibility-profiles/${user.learnerId}`, { settings: profileSettings })
-      .then(() => api.post('/engagement/events', { eventType: 'A11Y_SETTING_CHANGED', refType: 'A11Y' }))
-      .catch(() => undefined);
-  }, [mounted, user, settings]);
+  const isOn = (key: SettingKey) =>
+    key === 'dyslexiaFont' ? settings.fontFamily === 'dyslexiaFriendly' : settings[key];
+
+  const toggle = (key: SettingKey) => {
+    changedByUser.current = true;
+    if (key === 'dyslexiaFont') {
+      setSetting('fontFamily', settings.fontFamily === 'dyslexiaFriendly' ? 'default' : 'dyslexiaFriendly');
+    } else {
+      toggleSetting(key);
+    }
+  };
 
   const toggleSection = (title: string) => {
     setExpanded(prev => ({ ...prev, [title]: !prev[title] }));
   };
 
-  if (!mounted) {
-    // SSR/hydration shell: render the layout with a loading state instead of
-    // null, so the page never ships a blank body (routes-crawl gate + no
-    // blank flash for real users on slow connections).
-    return (
-      <SidebarLayout>
-        <div className="max-w-3xl mx-auto space-y-4" aria-busy="true" aria-live="polite">
-          <h2 className="text-2xl font-bold text-purple-200 mb-6">Accessibility Settings</h2>
-          <p className="text-purple-300">Loading your settings…</p>
-        </div>
-      </SidebarLayout>
-    );
-  }
-
   return (
     <SidebarLayout>
-      <div className="max-w-3xl mx-auto space-y-4">
-        <h2 className="text-2xl font-bold text-purple-200 mb-6">Accessibility Settings</h2>
-        {categories.map(cat => (
-          <div key={cat.title} className="glass-card p-4">
-            <button
-              onClick={() => toggleSection(cat.title)}
-              className="w-full flex items-center justify-between text-left"
-            >
-              <h3 className="text-lg font-semibold text-purple-200">{cat.icon} {cat.title}</h3>
-              {expanded[cat.title] ? <ChevronUp size={20} className="text-purple-300" /> : <ChevronDown size={20} className="text-purple-300" />}
-            </button>
-            {expanded[cat.title] && (
-              <div className="mt-3 space-y-3">
-                {cat.settings.map(s => (
-                  <div key={s.key} className="flex items-center justify-between py-2 border-b border-purple-300/10">
-                    <div className="flex-1">
-                      <p className="text-purple-200 font-medium">{s.label}</p>
-                      <p className="text-purple-400 text-xs">{s.description}</p>
-                    </div>
-                    <button
-                      onClick={() => setSettings(prev => ({ ...prev, [s.key]: !prev[s.key] }))}
-                      className={'relative inline-flex h-6 w-11 items-center rounded-full transition ' + (settings[s.key] ? 'bg-purple-600' : 'bg-gray-300')}
-                    >
-                      <span className={'inline-block h-4 w-4 transform rounded-full bg-white transition ' + (settings[s.key] ? 'translate-x-6' : 'translate-x-1')} />
-                    </button>
+      <div className="max-w-3xl mx-auto space-y-4" aria-busy={!mounted}>
+        <h1 className="text-2xl font-bold text-purple-200 mb-6">Accessibility Settings</h1>
+        {!mounted ? (
+          <p className="text-purple-300" aria-live="polite">Loading your settings…</p>
+        ) : (
+          categories.map(cat => {
+            const open = Boolean(expanded[cat.title]);
+            const panelId = `settings-${cat.title.replace(/\W+/g, '-').toLowerCase()}`;
+            return (
+              <div key={cat.title} className="glass-card p-4">
+                <button
+                  onClick={() => toggleSection(cat.title)}
+                  aria-expanded={open}
+                  aria-controls={panelId}
+                  className="w-full flex items-center justify-between text-left"
+                >
+                  <h2 className="text-lg font-semibold text-purple-200">{cat.icon} {cat.title}</h2>
+                  {open ? <ChevronUp size={20} className="text-purple-300" /> : <ChevronDown size={20} className="text-purple-300" />}
+                </button>
+                {open && (
+                  <div id={panelId} className="mt-3 space-y-3">
+                    {cat.settings.map(s => {
+                      const on = isOn(s.key);
+                      return (
+                        <div key={s.key} className="flex items-center justify-between py-2 border-b border-purple-300/10">
+                          <div className="flex-1">
+                            <p className="text-purple-200 font-medium">{s.label}</p>
+                            <p className="text-purple-400 text-xs">{s.description}</p>
+                          </div>
+                          <button
+                            type="button"
+                            role="switch"
+                            aria-checked={on}
+                            aria-label={s.label}
+                            onClick={() => toggle(s.key)}
+                            className={'relative inline-flex h-6 w-11 items-center rounded-full transition ' + (on ? 'bg-purple-600' : 'bg-gray-300')}
+                          >
+                            <span className={'inline-block h-4 w-4 transform rounded-full bg-white transition ' + (on ? 'translate-x-6' : 'translate-x-1')} />
+                          </button>
+                        </div>
+                      );
+                    })}
                   </div>
-                ))}
+                )}
               </div>
-            )}
-          </div>
-        ))}
+            );
+          })
+        )}
       </div>
     </SidebarLayout>
   );

@@ -60,6 +60,9 @@ api.interceptors.response.use(
         }
       }
       if (!onAuthPage && !isAuthCheck) {
+        // A full reload (not router.push) is intentional: it clears all
+        // in-memory state of the expired session. No router exists here.
+        // eslint-disable-next-line @next/next/no-location-assign-relative-destination
         window.location.href = '/login';
       }
     }

@@ -102,7 +102,7 @@ export default function TimetablePage() {
           <select
             id="timetable-class"
             value={classId ?? ''}
-            onChange={(e) => setClassId(Number(e.target.value))}
+            onChange={(e) => { setGrid({}); setClassId(Number(e.target.value)); }}
             className="px-3 py-2 bg-white/10 border border-purple-300/30 rounded-lg text-purple-200 focus:outline-none focus:ring-2 focus:ring-purple-500"
           >
             {classes.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
@@ -135,6 +135,9 @@ export default function TimetablePage() {
                     return (
                       <td key={day} className="p-1">
                         <input
+                          // Uncontrolled cell: re-mount whenever the class or
+                          // the saved value changes, so it never shows stale text.
+                          key={`${classId}-${key}-${grid[day]?.[i + 1] ?? ''}`}
                           type="text"
                           defaultValue={grid[day]?.[i + 1] ?? ''}
                           onBlur={(e) => {

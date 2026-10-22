@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import api from '@/lib/axios';
 import { MessageSquare, Send } from 'lucide-react';
 import Toast from '@/components/Toast';
+import { formatDateTime } from '@/lib/format';
 
 interface TeacherOption {
   id: number;
@@ -54,8 +55,8 @@ export default function GuardianCommunication() {
     try {
       const res = await api.get('/guardian/messages');
       setMessages(toMessageRows(res.data));
-    } catch (err) {
-      console.error(err);
+    } catch {
+      /* the thread stays as it was; the next refresh retries */
     }
   };
 
@@ -68,7 +69,7 @@ export default function GuardianCommunication() {
       }),
       fetchMessages(),
     ])
-      .catch(console.error)
+      .catch(() => undefined)
       .finally(() => setLoading(false));
   }, []);
 
@@ -80,7 +81,7 @@ export default function GuardianCommunication() {
       setNewMsg('');
       setToast('Message sent!');
       fetchMessages();
-    } catch (err) {
+    } catch {
       setToast('Failed to send message.');
     } finally {
       setSending(false);
@@ -104,7 +105,7 @@ export default function GuardianCommunication() {
             <div key={m.id ?? i} className="p-3 rounded-lg bg-white/10">
               <p className="text-purple-300 text-xs font-semibold">{m.senderName || 'School'}</p>
               <p className="text-purple-200 text-sm">{m.message}</p>
-              <p className="text-purple-400 text-xs mt-1">{m.timestamp}</p>
+              <p className="text-purple-400 text-xs mt-1">{formatDateTime(m.timestamp)}</p>
             </div>
           ))
         )}
@@ -132,9 +133,12 @@ export default function GuardianCommunication() {
         </label>
 
         <div className="flex gap-2">
+          <label htmlFor="guardian-message" className="sr-only">Message</label>
           <input
+            id="guardian-message"
             type="text"
             value={newMsg}
+            onKeyDown={(e) => { if (e.key === 'Enter') void handleSend(); }}
             onChange={(e) => setNewMsg(e.target.value)}
             placeholder="Type a message to the teacher…"
             className="flex-1 px-4 py-3 bg-white/10 border border-purple-300/30 rounded-lg text-white placeholder-purple-200/50 focus:outline-none focus:ring-2 focus:ring-purple-500"
@@ -142,9 +146,10 @@ export default function GuardianCommunication() {
           <button
             onClick={handleSend}
             disabled={sending || !newMsg.trim() || !selectedTeacher}
+            aria-label="Send message"
             className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-2 rounded-lg disabled:opacity-50"
           >
-            {sending ? 'Sending…' : <Send size={18} />}
+            {sending ? 'Sending…' : <Send size={18} aria-hidden="true" />}
           </button>
         </div>
       </div>

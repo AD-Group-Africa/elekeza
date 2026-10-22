@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import api from '@/lib/axios';
 import SidebarLayout from '@/components/layout/SidebarLayout';
-import { Building2, Users, GraduationCap, Search, Bell } from 'lucide-react';
+import { Building2, Users, GraduationCap, Bell } from 'lucide-react';
 
 interface AdminOverview {
   institutions?: number;
@@ -19,12 +19,10 @@ interface SchoolRow {
 export default function SuperAdminDashboard() {
   const [stats, setStats] = useState<AdminOverview | null>(null);
   const [schools, setSchools] = useState<SchoolRow[]>([]);
-  const [selectedSchool, setSelectedSchool] = useState('all');
   const [notifications, setNotifications] = useState<Array<{ id: number; title?: string; message?: string; createdAt?: string }>>([]);
 
   useEffect(() => {
     api.get('/analytics/admin/overview').then(res => setStats(res.data)).catch(() => {});
-    // Fetch schools list (assuming endpoint exists; otherwise use mock)
     api.get('/institutions').then(res => setSchools(res.data || [])).catch(() => {});
     api.get('/notifications').then(res => setNotifications(res.data || [])).catch(() => {});
   }, []);
@@ -52,21 +50,17 @@ export default function SuperAdminDashboard() {
             <p className="text-purple-300 text-sm">Enrolled Learners</p>
             <p className="text-2xl font-bold text-purple-100">{stats?.students || 0}</p>
           </div>
-          <div className="glass-card p-4 flex flex-col items-center">
-            <Search size={24} className="text-yellow-400 mb-2" />
-            <p className="text-purple-300 text-sm">Pending Approvals</p>
-            <p className="text-2xl font-bold text-purple-100">0</p>
-          </div>
         </div>
 
         <div className="glass-card p-4">
-          <h2 className="text-lg font-semibold text-purple-200 mb-3">Select School</h2>
-          <select aria-label="Select school" className="w-full px-4 py-3 bg-white/10 border border-purple-300/30 rounded-lg text-white" value={selectedSchool} onChange={e => setSelectedSchool(e.target.value)}>
-            <option value="all" className="bg-gray-800">All Schools</option>
-            {schools.map((s: SchoolRow) => (
-              <option key={s.id} value={s.id} className="bg-gray-800">{s.name}</option>
-            ))}
-          </select>
+          <h2 className="text-lg font-semibold text-purple-200 mb-3">Schools</h2>
+          {schools.length === 0 ? (
+            <p className="text-purple-300">No schools registered yet.</p>
+          ) : (
+            <ul className="space-y-1 text-purple-200">
+              {schools.map(s => <li key={s.id}>{s.name}</li>)}
+            </ul>
+          )}
         </div>
 
         <div className="glass-card p-4">

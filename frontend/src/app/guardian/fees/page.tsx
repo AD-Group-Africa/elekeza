@@ -7,7 +7,7 @@
  */
 
 import { useCallback, useEffect, useState } from 'react';
-import { financeAPI, type ChargeInfo, type PaymentInfo, type PeriodInfo, type ReceiptInfo } from '@/lib/api';
+import { financeAPI, type ChargeInfo, type PaymentInfo, type ReceiptInfo } from '@/lib/api';
 
 const STATUS_TONE: Record<string, string> = {
   PAID: 'bg-emerald-100 text-emerald-800 border-emerald-300',
@@ -80,7 +80,7 @@ export default function GuardianFeesPage() {
   }, {});
 
   return (
-    <main className="mx-auto max-w-4xl px-4 py-8">
+    <div className="mx-auto max-w-4xl">
       <h1 className="text-2xl font-bold mb-1">Fees</h1>
       <p className="mb-6 text-gray-600">
         School fees for your children{totalDue > 0 ? ` — total balance ${fmt(totalDue)}` : ''}.
@@ -184,6 +184,6 @@ export default function GuardianFeesPage() {
           </div>
         </div>
       )}
-    </main>
+    </div>
   );
 }

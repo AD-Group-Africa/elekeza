@@ -23,7 +23,7 @@ export default function StudentLessons() {
     // Learner-scoped endpoint: lessons the student has been assigned (LessonProgress rows)
     api.get('/progress/lessons')
       .then(res => setLessons(res.data))
-      .catch(console.error)
+      .catch(() => setLessons([]))
       .finally(() => setLoading(false));
   }, []);
 
@@ -57,7 +57,8 @@ export default function StudentLessons() {
         <div className="flex flex-wrap gap-3 items-center">
           <div className="relative flex-1 max-w-md">
             <input
-              type="text"
+              type="search"
+              aria-label="Search lessons"
               placeholder="Search lessons..."
               value={search}
               onChange={e => setSearch(e.target.value)}
@@ -103,14 +104,11 @@ export default function StudentLessons() {
                     <h3 className="text-lg font-semibold text-purple-200 group-hover:text-white transition">{lesson.title}</h3>
                     <p className="text-purple-400 text-sm">{
                       lesson.completed
-                        ? 'Completed · Score ' + Math.round(lesson.score) + '%'
-                        : 'In progress — assigned by your teacher'
+                        ? 'Completed · Score ' + Math.round(lesson.score ?? 0) + '%'
+                        : 'Assigned by your teacher'
                     }</p>
-                    <div className="mt-3 w-full bg-white/10 rounded-full h-1.5">
-                      <div className="bg-purple-600 h-1.5 rounded-full" style={{ width: lesson.completed ? '100%' : '25%' }} />
-                    </div>
-                    <div className="flex items-center justify-between mt-2">
-                      <span className="text-purple-500 text-xs">{lesson.completed ? 'Completed' : 'Not started'}</span>
+                    <div className="flex items-center justify-between mt-3">
+                      <span className="text-purple-500 text-xs">{lesson.completed ? 'Completed' : 'To do'}</span>
                       {offline ? <WifiOff size={14} className="text-orange-400" /> : <Wifi size={14} className="text-green-400" />}
                     </div>
                   </div>

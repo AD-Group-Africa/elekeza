@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 
 export default function Toast({ message, onClose }: { message: string; onClose: () => void }) {
   useEffect(() => {

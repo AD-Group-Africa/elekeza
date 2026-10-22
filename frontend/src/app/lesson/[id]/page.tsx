@@ -16,6 +16,7 @@
  */
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import api from '@/lib/axios';
 import SidebarLayout from '@/components/layout/SidebarLayout';
@@ -40,6 +41,13 @@ interface LessonData {
   sections?: LessonSection[];
   keyTerms?: Record<string, string>;
 }
+
+const LESSON_STATUS_LABEL: Record<string, string> = {
+  READY: 'Ready',
+  PROCESSING: 'Being prepared',
+  UPLOADING: 'Being prepared',
+  FAILED: 'Not available yet',
+};
 
 // ---------------------------------------------------------------------------
 // Rendering helpers — plain language, readable, accessible.
@@ -173,7 +181,7 @@ export default function LessonPage() {
 
   // Practice quiz states — only shown if real quiz API is available
   const [quiz, setQuiz] = useState<{ quizId: number; questions: unknown[] } | null>(null);
-  const [quizLoading, setQuizLoading] = useState(false);
+  const [quizLoading, setQuizLoading] = useState(true);
   const [quizError, setQuizError] = useState('');
   const [openedQuiz, setOpenedQuiz] = useState(false);
 
@@ -205,19 +213,17 @@ export default function LessonPage() {
     if (!isStudent) return;
     api
       .get('/learner/preferences')
-      .then((res) => setPrefs(res.data?.effective ?? {}))
-      .catch(() => setPrefs({}))
-      .finally(() => {
+      .then((res) => res.data?.effective ?? {})
+      .catch(() => ({}))
+      .then((effective: Record<string, { value: string; source: string }>) => {
+        setPrefs(effective);
         // Companion greeting adapts to learner state only; it does not replace content.
         setCompanionState('greeting');
-        const dial = prefs?.dial?.value;
-        if (dial === 'calm') {
-          setCompanionLine('Let’s learn something useful today.');
-        } else if (dial === 'encouraging') {
-          setCompanionLine('You’re doing well — let’s keep going.');
-        } else {
-          setCompanionLine('Let’s learn something useful today.');
-        }
+        setCompanionLine(
+          effective.dial?.value === 'encouraging'
+            ? 'You’re doing well — let’s keep going.'
+            : 'Let’s learn something useful today.'
+        );
       });
   }, [isStudent]);
 
@@ -228,8 +234,10 @@ export default function LessonPage() {
   // Fetch immediately so the learner sees whether practice is available without
   // waiting for a user action. State updates happen inside the then/catch/finally
   // chain, not synchronously in the effect body.
+  // Learners only: starting a quiz opens an attempt, so staff previewing a
+  // lesson must never trigger it.
   useEffect(() => {
-    if (!id || openedQuiz) return;
+    if (!id || openedQuiz || !isStudent) return;
     let mounted = true;
     api
       .get('/quiz/' + id + '/start')
@@ -247,7 +255,7 @@ export default function LessonPage() {
         if (mounted) setQuizLoading(false);
       });
     return () => { mounted = false; };
-  }, [id, openedQuiz]);
+  }, [id, openedQuiz, isStudent]);
 
   // ---------------------------------------------------------------------------
   // Section navigation
@@ -291,12 +299,12 @@ export default function LessonPage() {
         <div className="flex flex-col items-center gap-4 py-16 text-center">
           <LearningCompanion state="concerned" size={96} />
           <p className="text-purple-200 text-base">{error}</p>
-          <a
+          <Link
             href="/student-home"
             className="rounded-lg bg-purple-600 px-5 py-2.5 text-sm text-white"
           >
             Back to your home
-          </a>
+          </Link>
         </div>
       </SidebarLayout>
     );
@@ -311,12 +319,12 @@ export default function LessonPage() {
         <div className="flex flex-col items-center gap-4 py-16 text-center">
           <LearningCompanion state="concerned" size={96} />
           <p className="text-purple-200 text-base">This lesson does not have content yet.</p>
-          <a
+          <Link
             href="/student-lessons"
             className="rounded-lg bg-purple-600 px-5 py-2.5 text-sm text-white"
           >
             Back to My Lessons
-          </a>
+          </Link>
         </div>
       </SidebarLayout>
     );
@@ -325,14 +333,13 @@ export default function LessonPage() {
   // ---------------------------------------------------------------------------
   // Render
   // ---------------------------------------------------------------------------
-  const currentSectionData = sections[currentSection];
-  const status = lesson?.status ?? '';
+  const statusLabel = lesson?.status ? (LESSON_STATUS_LABEL[lesson.status] ?? lesson.status) : '';
 
   return (
     <SidebarLayout>
-      <main className="mx-auto max-w-2xl space-y-6 pb-20">
+      <div className="mx-auto max-w-2xl space-y-6 pb-20">
         {/* Back */}
-        <a
+        <Link
           href="/student-home"
           className="flex items-center gap-1.5 text-sm text-purple-300 hover:text-white transition"
         >
@@ -341,15 +348,15 @@ export default function LessonPage() {
             <path d="M12 19l-7-7 7-7" />
           </svg>
           Back to home
-        </a>
+        </Link>
 
         {/* Title + meta */}
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <h1 className="text-2xl font-bold text-purple-100">{lesson?.title ?? 'Lesson'}</h1>
-            {status && (
+            {statusLabel && (
               <span className="mt-1 inline-block rounded-full bg-green-600/30 px-3 py-0.5 text-xs font-medium text-green-200">
-                {status}
+                {statusLabel}
               </span>
             )}
           </div>
@@ -384,13 +391,13 @@ export default function LessonPage() {
 
         {/* Content */}
         <div className="space-y-4">
-          {sections.map((section, idx) => (
+          {(reduced ? [currentSection] : sections.map((_, idx) => idx)).map((idx) => (
             <SectionPanel
               key={idx}
-              section={section}
+              section={sections[idx]}
               index={idx}
               total={totalSections}
-              reduced={reduced || idx !== currentSection}
+              reduced={reduced}
               serverTts={serverTtsOn}
             />
           ))}
@@ -441,12 +448,12 @@ export default function LessonPage() {
 
             {openedQuiz && quiz && (
               <div className="mt-2">
-                <a
+                <Link
                   href={`/quiz/${lesson?.id}`}
                   className="block rounded-xl bg-white/10 px-5 py-3 text-sm font-semibold text-purple-100 transition hover:bg-white/15"
                 >
                   Open practice quiz →
-                </a>
+                </Link>
                 <p className="mt-1 text-xs text-purple-300">
                   Your answers are marked by the server. You cannot change your score here.
                 </p>
@@ -481,15 +488,15 @@ export default function LessonPage() {
         {/* Continue / next step */}
         {allRead && quiz?.quizId && (
           <div className="flex flex-wrap gap-3 justify-end">
-            <a
+            <Link
               href={`/quiz/${lesson?.id}`}
               className="rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:from-purple-500 hover:to-indigo-500"
             >
               Finish lesson and earn XP →
-            </a>
+            </Link>
           </div>
         )}
-      </main>
+      </div>
     </SidebarLayout>
   );
 }

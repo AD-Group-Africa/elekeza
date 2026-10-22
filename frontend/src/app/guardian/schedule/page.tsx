@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import api from '@/lib/axios';
+import Link from 'next/link';
 import { Calendar } from 'lucide-react';
 
 interface ScheduleItem {
@@ -18,7 +19,7 @@ export default function GuardianSchedule() {
   useEffect(() => {
     api.get('/guardian/schedule')
       .then(res => setSchedule(res.data))
-      .catch(console.error)
+      .catch(() => setSchedule([]))
       .finally(() => setLoading(false));
   }, []);
 
@@ -31,7 +32,7 @@ export default function GuardianSchedule() {
         <div className="glass-card p-6 text-center">
           <Calendar size={48} className="text-purple-400 mx-auto mb-4" />
           <p className="text-purple-200">No upcoming activities.</p>
-          <a href="/guardian/wards" className="mt-3 inline-block bg-purple-600 text-white px-4 py-2 rounded-lg">View your wards' classes</a>
+          <Link href="/guardian/wards" className="mt-3 inline-block bg-purple-600 text-white px-4 py-2 rounded-lg">View your children</Link>
         </div>
       ) : (
         <div className="space-y-3">
@@ -39,7 +40,7 @@ export default function GuardianSchedule() {
             <div key={i} className="glass-card p-4 flex justify-between items-center">
               <div>
                 <h3 className="text-purple-200 font-semibold">{item.title}</h3>
-                <p className="text-purple-300 text-sm">{item.date} • {item.time}</p>
+                <p className="text-purple-300 text-sm">{[item.date, item.time].filter(Boolean).join(' • ')}</p>
               </div>
               <span className="text-purple-400 text-xs">{item.type}</span>
             </div>

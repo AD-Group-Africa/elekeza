@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import api from '@/lib/axios';
 
@@ -48,7 +49,7 @@ export default function ForgotPasswordPage() {
             <p className="mb-2">Check your email for a password reset link.</p>
             <p className="text-sm text-purple-300/70 mb-4">
               Did not receive it? Check your spam folder, or{' '}
-              <a href="/login" className="text-purple-300 underline">sign in</a> and ask your school
+              <Link href="/login" className="text-purple-300 underline">sign in</Link> and ask your school
               administrator to help.
             </p>
             <button
@@ -63,7 +64,7 @@ export default function ForgotPasswordPage() {
           <form onSubmit={submit} className="space-y-4">
             <div>
               <label
-                id="forgot-email-label"
+                htmlFor="forgot-email"
                 className="block text-sm font-medium text-purple-200 mb-1"
               >
                 Email address
@@ -103,7 +104,7 @@ export default function ForgotPasswordPage() {
 
         <p className="mt-6 text-center text-sm text-purple-300">
           Remember your password?{' '}
-          <a href="/login" className="text-purple-300 underline">Sign in</a>
+          <Link href="/login" className="text-purple-300 underline">Sign in</Link>
         </p>
       </div>
       <p className="mt-8 text-purple-200/50 text-xs text-center">© {new Date().getFullYear()} Elekeza. All rights reserved.</p>

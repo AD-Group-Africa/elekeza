@@ -5,13 +5,23 @@ import api from '@/lib/axios';
 import { ClipboardCheck, Plus } from 'lucide-react';
 import Toast from '@/components/Toast';
 
+/** Row from GET /api/teacher/assignments — one lesson assigned to one learner. */
 interface Assignment {
   id: number;
-  title: string;
-  dueDate: string;
-  assignedCount: number;
-  submittedCount: number;
+  contentId: number;
+  lessonTitle: string;
+  studentId: number;
+  studentName: string;
+  assignedAt: string;
+  status: 'ASSIGNED' | 'IN_PROGRESS' | 'COMPLETED' | string;
+  score: number | null;
 }
+
+const STATUS_LABEL: Record<string, string> = {
+  ASSIGNED: 'Not started',
+  IN_PROGRESS: 'In progress',
+  COMPLETED: 'Completed',
+};
 
 export default function AssignmentsPage() {
   const [assignments, setAssignments] = useState<Assignment[]>([]);
@@ -29,8 +39,8 @@ export default function AssignmentsPage() {
     try {
       const res = await api.get('/teacher/assignments');
       setAssignments(res.data);
-    } catch (err) {
-      console.error(err);
+    } catch {
+      setMessage('Could not load assignments. Please refresh to try again.');
     } finally {
       setLoading(false);
     }
@@ -56,7 +66,7 @@ export default function AssignmentsPage() {
       setMessage('');
       setToast('Assignment created!'); // audit EL-F-011: visible confirmation
       fetchAssignments();
-    } catch (err) {
+    } catch {
       setMessage('Failed to create assignment.');
     }
   };
@@ -78,8 +88,9 @@ export default function AssignmentsPage() {
           <h2 className="text-xl font-semibold text-purple-200 mb-4">Assign Lesson to Student</h2>
           <form onSubmit={handleCreate} className="space-y-4">
             <div>
-              <label className="block text-sm text-purple-300 mb-1">Lesson</label>
+              <label htmlFor="assign-lesson" className="block text-sm text-purple-300 mb-1">Lesson</label>
               <select
+                id="assign-lesson"
                 value={contentId}
                 onChange={(e) => setContentId(e.target.value)}
                 className="w-full px-4 py-3 bg-white/10 border border-purple-300/30 rounded-lg text-white"
@@ -92,8 +103,9 @@ export default function AssignmentsPage() {
               </select>
             </div>
             <div>
-              <label className="block text-sm text-purple-300 mb-1">Student</label>
+              <label htmlFor="assign-student" className="block text-sm text-purple-300 mb-1">Student</label>
               <select
+                id="assign-student"
                 value={studentId}
                 onChange={(e) => setStudentId(e.target.value)}
                 className="w-full px-4 py-3 bg-white/10 border border-purple-300/30 rounded-lg text-white"
@@ -122,12 +134,22 @@ export default function AssignmentsPage() {
         ) : (
           <div className="space-y-3">
             {assignments.map(a => (
-              <div key={a.id} className="bg-white/5 p-4 rounded-lg flex justify-between items-center">
+              <div key={a.id} className="bg-white/5 p-4 rounded-lg flex flex-wrap justify-between items-center gap-2">
                 <div>
-                  <h3 className="text-purple-200 font-semibold">{a.title}</h3>
-                  <p className="text-purple-300 text-sm">Due: {a.dueDate}</p>
+                  <h3 className="text-purple-200 font-semibold">{a.lessonTitle}</h3>
+                  <p className="text-purple-300 text-sm">
+                    {a.studentName}
+                    {a.assignedAt ? ` · assigned ${new Date(a.assignedAt).toLocaleDateString()}` : ''}
+                  </p>
                 </div>
-                <button className="text-purple-300 hover:text-white">Review</button>
+                <div className="text-right">
+                  <span className="text-xs px-2 py-1 rounded-full bg-purple-600/30 text-purple-100">
+                    {STATUS_LABEL[a.status] ?? a.status}
+                  </span>
+                  {a.score != null && (
+                    <p className="text-purple-300 text-sm mt-1">Score {Math.round(a.score)}%</p>
+                  )}
+                </div>
               </div>
             ))}
           </div>

@@ -21,6 +21,7 @@
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import SidebarLayout from '@/components/layout/SidebarLayout';
+import api from '@/lib/axios';
 import { tutorAPI, progressAPI } from '@/lib/api';
 import {
   Lightbulb, Dumbbell, Volume2, Languages, GitBranch, ListChecks,
@@ -124,10 +125,12 @@ export default function AITutorPage() {
     if (!('speechSynthesis' in window)) { setSpeechSupported(false); return; }
     if (speaking) { window.speechSynthesis.cancel(); setSpeaking(false); return; }
     // Reading order = the lesson the tutor is grounded in (fetch its text).
-    fetch(`/api/content/lessons/${lessonId}`)
-      .then((r) => (r.ok ? r.json() : Promise.reject()))
-      .then((lesson: { title?: string; sections?: { heading?: string; body?: string }[] }) => {
-        const parts = (lesson.sections || []).map((s) => [s.heading, s.body].filter(Boolean).join('. ')).join(' ');
+    api.get(`/content/lessons/${lessonId}`)
+      .then((res) => {
+        const lesson = res.data as { title?: string; sections?: { heading?: string; body?: string | { text?: string; content?: string } }[] };
+        const bodyText = (b: string | { text?: string; content?: string } | undefined) =>
+          typeof b === 'string' ? b : b?.text || b?.content || '';
+        const parts = (lesson.sections || []).map((s) => [s.heading, bodyText(s.body)].filter(Boolean).join('. ')).join(' ');
         if (!parts.trim()) { setError('There is no lesson text to read yet.'); return; }
         const u = new SpeechSynthesisUtterance(`${lesson.title ?? 'Lesson'}. ${parts}`);
         u.onend = () => setSpeaking(false);
@@ -147,7 +150,7 @@ export default function AITutorPage() {
         <div className="flex items-center gap-3 flex-wrap">
           <BookOpen size={26} aria-hidden="true" />
           <h1 className="text-2xl font-bold">AI Tutor</h1>
-          <span className="text-xs px-2 py-1 rounded-full border border-[var(--border)] opacity-80">Learning helper — built into your lesson</span>
+          <span className="text-xs px-2 py-1 rounded-full border border-[var(--border-color)] opacity-80">Learning helper — built into your lesson</span>
         </div>
 
         {/* Lesson context picker: the tutor is always grounded in a lesson. */}
@@ -164,7 +167,7 @@ export default function AITutorPage() {
               id="tutor-lesson"
               value={lessonId ?? ''}
               onChange={(e) => { setLessonId(Number(e.target.value)); backToChoices(); }}
-              className="w-full max-w-md px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--surface)]"
+              className="w-full max-w-md px-3 py-2 rounded-lg border border-[var(--border-color)] bg-[var(--bg-card)]"
             >
               {lessons.map((l) => (
                 <option key={l.id} value={l.id}>{l.title}</option>
@@ -182,13 +185,13 @@ export default function AITutorPage() {
         {/* Result region — announced to screen readers. */}
         <div ref={resultRef} tabIndex={-1} aria-live="polite" className="outline-none">
           {busy && (
-            <div className="rounded-xl p-5 bg-[var(--surface)] border border-[var(--border)]" role="status">
+            <div className="rounded-xl p-5 bg-[var(--bg-card)] border border-[var(--border-color)]" role="status">
               <p className="text-sm opacity-80">Thinking about your lesson…</p>
             </div>
           )}
 
           {!busy && result && (
-            <div className="rounded-xl p-5 bg-[var(--surface)] border border-[var(--border)] space-y-4">
+            <div className="rounded-xl p-5 bg-[var(--bg-card)] border border-[var(--border-color)] space-y-4">
               {result.intro && (
                 <p className="text-sm font-medium opacity-90">{result.intro}</p>
               )}
@@ -198,7 +201,7 @@ export default function AITutorPage() {
                   <p className="whitespace-pre-line">{result.content}</p>
                   <button
                     onClick={() => ask('EXPLAIN', { variant: 'simpler' })}
-                    className="px-4 py-2 rounded-lg border border-[var(--border)] text-sm font-medium hover:bg-[var(--surface-muted)]"
+                    className="px-4 py-2 rounded-lg border border-[var(--border-color)] text-sm font-medium hover:bg-[var(--bg-card-hover)]"
                   >
                     Let&apos;s make it simpler
                   </button>
@@ -266,7 +269,7 @@ export default function AITutorPage() {
                   <p className="whitespace-pre-line font-medium">{practice.question}</p>
                   <div className="grid gap-2" role="radiogroup" aria-label="Your answer">
                     {practice.options.map((opt, i) => (
-                      <label key={i} className="flex items-center gap-3 px-3 py-2.5 rounded-lg border border-[var(--border)] cursor-pointer hover:bg-[var(--surface-muted)]">
+                      <label key={i} className="flex items-center gap-3 px-3 py-2.5 rounded-lg border border-[var(--border-color)] cursor-pointer hover:bg-[var(--bg-card-hover)]">
                         <input type="radio" name="tutor-practice" checked={answer === i} onChange={() => setAnswer(i)} />
                         <span>{opt}</span>
                       </label>
@@ -275,7 +278,7 @@ export default function AITutorPage() {
                   <button
                     onClick={submitAnswer}
                     disabled={answer === null || busy}
-                    className="px-4 py-2 rounded-lg bg-[var(--primary)] text-white font-medium disabled:opacity-50"
+                    className="px-4 py-2 rounded-lg bg-[var(--accent)] text-[var(--accent-contrast)] font-medium disabled:opacity-50"
                   >
                     Check my answer
                   </button>
@@ -289,15 +292,15 @@ export default function AITutorPage() {
                   </p>
                   <p>{result.feedback.explanation}</p>
                   <div className="flex gap-2 flex-wrap">
-                    <button onClick={() => ask('PRACTICE')} className="px-4 py-2 rounded-lg border border-[var(--border)] text-sm font-medium hover:bg-[var(--surface-muted)]">
+                    <button onClick={() => ask('PRACTICE')} className="px-4 py-2 rounded-lg border border-[var(--border-color)] text-sm font-medium hover:bg-[var(--bg-card-hover)]">
                       Another practice question
                     </button>
                   </div>
                 </div>
               )}
 
-              <div className="flex gap-2 flex-wrap pt-2 border-t border-[var(--border)]">
-                <button onClick={backToChoices} className="px-4 py-2 rounded-lg border border-[var(--border)] text-sm font-medium hover:bg-[var(--surface-muted)]">
+              <div className="flex gap-2 flex-wrap pt-2 border-t border-[var(--border-color)]">
+                <button onClick={backToChoices} className="px-4 py-2 rounded-lg border border-[var(--border-color)] text-sm font-medium hover:bg-[var(--bg-card-hover)]">
                   <ArrowLeft size={14} className="inline mr-1" aria-hidden="true" /> Back to choices
                 </button>
               </div>
@@ -318,7 +321,7 @@ export default function AITutorPage() {
                     onClick={() => (isRead ? readAloud() : ask(key))}
                     disabled={busy || (isRead && !speechSupported) || (!isRead && !lessonId)}
                     title={isRead && !speechSupported ? 'Your device does not support read-aloud' : hint}
-                    className="flex items-start gap-3 text-left p-4 rounded-xl bg-[var(--surface)] border border-[var(--border)] hover:bg-[var(--surface-muted)] transition disabled:opacity-50"
+                    className="flex items-start gap-3 text-left p-4 rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] hover:bg-[var(--bg-card-hover)] transition disabled:opacity-50"
                   >
                     <Icon size={20} aria-hidden="true" className="mt-0.5 shrink-0" />
                     <span>

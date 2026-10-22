@@ -46,11 +46,14 @@ export default function ElekezaAssist({ collapsed = false }: { collapsed?: boole
     return () => window.removeEventListener('elekeza:assist-open', openAssist);
   }, []);
 
-  // Focus management: focus the close button on open, return to trigger on close.
+  // Focus management: focus the close button on open, return to the trigger
+  // on close. `wasOpened` stops the page-load render from stealing focus.
+  const wasOpened = useRef(false);
   useEffect(() => {
     if (open) {
+      wasOpened.current = true;
       panelRef.current?.querySelector<HTMLElement>('[data-assist-close]')?.focus();
-    } else {
+    } else if (wasOpened.current) {
       triggerRef.current?.focus();
     }
   }, [open]);

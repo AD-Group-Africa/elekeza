@@ -129,8 +129,8 @@ export default function TeacherAssignmentsPage() {
   };
 
   return (
-    <main className="mx-auto max-w-4xl px-4 py-8">
-      <h1 className="text-2xl font-bold mb-1">Assignments</h1>
+    <div className="mx-auto max-w-4xl">
+      <h1 className="text-2xl font-bold text-purple-200 mb-1">Assignments</h1>
       <p className="mb-6" style={{ color: 'var(--text-secondary)' }}>Create work for your classes and grade what learners submit.</p>
 
       {message && (
@@ -223,7 +223,7 @@ export default function TeacherAssignmentsPage() {
       {loading ? (
         <p className="py-8 text-center" role="status" style={{ color: 'var(--text-muted)' }}>Loading…</p>
       ) : assignments.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-gray-300 p-8 text-center text-gray-500">
+        <div className="rounded-xl border border-dashed border-purple-300/30 p-8 text-center text-purple-300">
           No assignments for this class yet — create the first one above.
         </div>
       ) : (
@@ -311,6 +311,6 @@ export default function TeacherAssignmentsPage() {
           ))}
         </ul>
       )}
-    </main>
+    </div>
   );
 }

@@ -19,7 +19,6 @@ import {
   type ReceiptInfo,
   type PaymentInfo,
 } from '@/lib/api';
-import api from '@/lib/axios';
 
 interface LearnerRow { id: number; name: string }
 
@@ -144,7 +143,7 @@ export default function FinancePage() {
   );
 
   return (
-    <main className="mx-auto max-w-5xl px-4 py-8">
+    <div className="mx-auto max-w-5xl">
       <h1 className="text-2xl font-bold mb-1">Finance</h1>
       <p className="text-gray-600 mb-2">School fees and payments{summary?.periodName ? ` — ${summary.periodName}` : ''}.</p>
       {mpesaMock != null && (
@@ -409,6 +408,6 @@ export default function FinancePage() {
           </div>
         </div>
       )}
-    </main>
+    </div>
   );
 }

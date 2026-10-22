@@ -23,11 +23,12 @@ export default function QuizReview() {
   const { quizId } = useParams();
   const [review, setReview] = useState<ReviewData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [failed, setFailed] = useState(false);
 
   useEffect(() => {
     api.get(`/quiz/${quizId}/review`)
       .then(res => setReview(res.data))
-      .catch(console.error)
+      .catch(() => setFailed(true))
       .finally(() => setLoading(false));
   }, [quizId]);
 
@@ -40,7 +41,12 @@ export default function QuizReview() {
           <ArrowLeft size={18} /> Back
         </Link>
         <h1 className="text-2xl font-bold text-purple-200">Quiz Review</h1>
-        {review?.questions.map((q: ReviewQuestion, idx: number) => (
+        {(failed || !review?.questions?.length) && (
+          <p className="text-purple-300" role="status">
+            {failed ? 'We could not load this review right now. Please try again later.' : 'There is nothing to review for this quiz yet.'}
+          </p>
+        )}
+        {review?.questions?.map((q: ReviewQuestion, idx: number) => (
           <div key={idx} className="glass-card p-4">
             <div className="flex items-start gap-2">
               {q.correct ? (

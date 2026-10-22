@@ -9,7 +9,6 @@
  */
 
 import { useCallback, useEffect, useState } from 'react';
-import api from '@/lib/axios';
 import { attendanceAPI, type ClassInfo, type RosterEntry, type LearnerAttendance } from '@/lib/api';
 import { learnerCountLabel } from '@/lib/pluralize';
 
@@ -131,9 +130,9 @@ export default function AttendancePage() {
   }, {});
 
   return (
-    <main className="mx-auto max-w-4xl px-4 py-8">
-      <h1 className="text-2xl font-bold mb-1">Attendance</h1>
-      <p className="text-gray-600 mb-6">Mark the daily register for your class.</p>
+    <div className="mx-auto max-w-4xl">
+      <h1 className="text-2xl font-bold text-purple-200 mb-1">Attendance</h1>
+      <p className="text-purple-300 mb-6">Mark the daily register for your class.</p>
 
       <div className="flex flex-col sm:flex-row gap-3 sm:items-end mb-6">
         <label className="flex-1 text-sm font-medium">
@@ -178,9 +177,9 @@ export default function AttendancePage() {
       )}
 
       {loading ? (
-        <p className="py-8 text-center text-gray-500" role="status">Loading register…</p>
+        <p className="py-8 text-center text-purple-300" role="status">Loading register…</p>
       ) : roster.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-gray-300 p-8 text-center text-gray-500">
+        <div className="rounded-xl border border-dashed border-purple-300/30 p-8 text-center text-purple-300">
           {classes.length === 0
             ? 'No classes have been created for your school yet. An administrator can create them via the seed or API.'
             : 'No learners are enrolled in this class yet.'}
@@ -289,6 +288,6 @@ export default function AttendancePage() {
           )}
         </section>
       )}
-    </main>
+    </div>
   );
 }

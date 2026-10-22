@@ -20,6 +20,15 @@ const nextConfig = {
   rewrites: async () => [
     { source: '/api/:path*', destination: `${API_BASE}/api/:path*` }
   ],
+  // Retired pages: keep old links and bookmarks working.
+  redirects: async () => [
+    { source: '/dashboard', destination: '/', permanent: false },
+    { source: '/dashboard/history', destination: '/progress', permanent: false },
+    { source: '/document/:id', destination: '/lesson/:id', permanent: false },
+    { source: '/upload', destination: '/teacher/content', permanent: false },
+    { source: '/guardian/settings', destination: '/dashboard/settings', permanent: false },
+    { source: '/not-found', destination: '/', permanent: false },
+  ],
   // Allow images from any https source (school logos etc)
   images: {
     remotePatterns: [{ protocol: 'https' as const, hostname: '**' as const }]
@@ -62,5 +71,4 @@ export default withPWA({
     }
   ]
 })(nextConfig);
-
 

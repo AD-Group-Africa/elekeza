@@ -1,5 +1,7 @@
 'use client';
 import { useState, useRef } from 'react';
+import Link from 'next/link';
+import { roleHome } from '@/lib/roles';
 import SidebarLayout from '@/components/layout/SidebarLayout';
 import { api } from '@/lib/api';
 import { useAuth } from '@/hooks/useAuth';
@@ -16,7 +18,7 @@ export default function ImportPage() {
   const ref = useRef<HTMLInputElement>(null);
 
   // The backend must provide the tenant context; no hardcoded fallback.
-  const institutionId = (user as { institutionId?: number } | null)?.institutionId;
+  const institutionId = user?.institutionId;
 
   const onDrop = (e:React.DragEvent) => {
     e.preventDefault(); setOver(false);
@@ -122,9 +124,9 @@ export default function ImportPage() {
                 onChange={e=>{const f=e.target.files?.[0];if(f){setFile(f);setErr('');}}}/>
               <div className="text-5xl mb-3">{file?'📄':'⬆️'}</div>
               {file
-                ? <p className="font-semibold text-gray-800">{file.name}</p>
+                ? <p className="font-semibold text-purple-100">{file.name}</p>
                 : <>
-                    <p className="text-gray-600 font-medium">Drop your CSV here, or click to browse</p>
+                    <p className="text-purple-300 font-medium">Drop your CSV here, or click to browse</p>
                     <p className="text-purple-200 text-sm mt-1">.csv files only</p>
                   </>
               }
@@ -149,7 +151,7 @@ export default function ImportPage() {
                 <ul className="space-y-2">
                   {result.studentCredentials.map(s => (
                     <li key={s.email} className="text-sm bg-white/70 rounded-lg px-3 py-2 flex flex-wrap gap-x-4 gap-y-1">
-                      <span className="font-medium text-gray-800">{s.email}</span>
+                      <span className="font-medium text-purple-100">{s.email}</span>
                       <span className="font-mono text-emerald-700">temp password: {s.tempPassword}</span>
                     </li>
                   ))}
@@ -163,7 +165,7 @@ export default function ImportPage() {
                 <ul className="space-y-2">
                   {result.guardianCredentials.map(g => (
                     <li key={g.email + g.studentEmail} className="text-sm bg-white/70 rounded-lg px-3 py-2 flex flex-wrap gap-x-4 gap-y-1">
-                      <span className="font-medium text-gray-800">{g.email}</span>
+                      <span className="font-medium text-purple-100">{g.email}</span>
                       <span className="font-mono text-purple-700">temp password: {g.tempPassword}</span>
                       <span className="text-purple-400 text-xs">{g.relationship.toLowerCase().replace('_', ' ')} of {g.studentEmail}</span>
                     </li>
@@ -188,7 +190,7 @@ export default function ImportPage() {
             </div>
             {result.errors.length>0 && (
               <div className="mb-4">
-                <p className="text-sm font-medium text-gray-700 mb-2">Row errors</p>
+                <p className="text-sm font-medium text-purple-200 mb-2">Row errors</p>
                 <ul className="space-y-1 max-h-40 overflow-y-auto">
                   {result.errors.map(e=>(
                     <li key={e.row} className="text-xs bg-red-50 border border-red-100 rounded-lg px-3 py-2">
@@ -200,7 +202,7 @@ export default function ImportPage() {
             )}
             <div className="flex gap-3">
               <button onClick={()=>{setResult(null);setFile(null);}} className="btn-outline flex-1">Import more</button>
-              <button onClick={()=>window.location.href='/teacher'} className="btn-primary flex-1">Go to dashboard</button>
+              <Link href={roleHome(user?.role)} className="btn-primary flex-1">Go to dashboard</Link>
             </div>
           </div>
         )}

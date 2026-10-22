@@ -1,10 +1,15 @@
 'use client'
 
 import { createContext, ReactNode, useContext, useEffect, useMemo, useState } from 'react'
+import { SETTINGS_STORAGE_KEY } from '@/lib/storageKeys'
 
-const LOCAL_STORAGE_KEY = 'elekeza-settings'
+export type Theme = 'dark' | 'light' | 'calm'
 
 export type AccessibilitySettings = {
+  // Appearance
+  lightTheme: boolean
+  calmMode: boolean
+  // Presentation / support toggles
   calmUI: boolean
   focusMode: boolean
   autismFriendly: boolean
@@ -60,11 +65,14 @@ export type AccessibilityBooleanKey = {
 
 type AccessibilitySettingsContextType = {
   settings: AccessibilitySettings
+  theme: Theme
   setSetting: <K extends keyof AccessibilitySettings>(key: K, value: AccessibilitySettings[K]) => void
   toggleSetting: (key: AccessibilityBooleanKey) => void
 }
 
-const defaultSettings: AccessibilitySettings = {
+export const defaultSettings: AccessibilitySettings = {
+  lightTheme: false,
+  calmMode: false,
   calmUI: false,
   focusMode: false,
   autismFriendly: false,
@@ -114,9 +122,38 @@ const defaultSettings: AccessibilitySettings = {
   fontSize: 'md',
 }
 
+/** Theme precedence: Calm > Light > Dark (default). */
+export function resolveTheme(s: Pick<AccessibilitySettings, 'calmMode' | 'lightTheme'>): Theme {
+  if (s.calmMode) return 'calm'
+  if (s.lightTheme) return 'light'
+  return 'dark'
+}
+
+/**
+ * Reads stored settings, upgrading keys written by older versions of the
+ * settings page (`readAloud`, `dyslexiaFont`) so nobody loses a preference.
+ */
+function readStoredSettings(): AccessibilitySettings {
+  if (typeof window === 'undefined') return defaultSettings
+  try {
+    const raw = localStorage.getItem(SETTINGS_STORAGE_KEY)
+    if (!raw) return defaultSettings
+    const stored = JSON.parse(raw) as Record<string, unknown>
+    const merged: Record<string, unknown> = { ...defaultSettings }
+    for (const key of Object.keys(defaultSettings)) {
+      if (key in stored) merged[key] = stored[key]
+    }
+    if (stored.readAloud === true) merged.readTextAloud = true
+    if (stored.dyslexiaFont === true && merged.fontFamily === 'default') merged.fontFamily = 'dyslexiaFriendly'
+    return merged as AccessibilitySettings
+  } catch {
+    return defaultSettings
+  }
+}
+
 const AccessibilitySettingsContext = createContext<AccessibilitySettingsContextType | undefined>(undefined)
 
-const BODY_CLASS_MAP: Record<AccessibilityBooleanKey, string> = {
+const BODY_CLASS_MAP: Partial<Record<AccessibilityBooleanKey, string>> = {
   calmUI: 'a11y-calm-ui',
   focusMode: 'a11y-focus-mode',
   autismFriendly: 'a11y-autism-friendly',
@@ -164,68 +201,52 @@ const BODY_CLASS_MAP: Record<AccessibilityBooleanKey, string> = {
   encouragingFeedback: 'a11y-encouraging-feedback',
 }
 
+const FONT_FAMILY_CLASS: Record<AccessibilitySettings['fontFamily'], string> = {
+  default: 'a11y-font-family-default',
+  readableSans: 'a11y-font-family-readable-sans',
+  dyslexiaFriendly: 'a11y-font-family-dyslexia-friendly',
+  highClarity: 'a11y-font-family-high-clarity',
+}
+
 export function AccessibilitySettingsProvider({ children }: { children: ReactNode }) {
-  const [settings, setSettings] = useState<AccessibilitySettings>(() => {
-    if (typeof window === 'undefined') {
-      return defaultSettings
-    }
-
-    const stored = localStorage.getItem(LOCAL_STORAGE_KEY)
-    if (!stored) {
-      return defaultSettings
-    }
-
-    try {
-      return { ...defaultSettings, ...JSON.parse(stored) }
-    } catch {
-      return defaultSettings
-    }
-  })
+  const [settings, setSettings] = useState<AccessibilitySettings>(readStoredSettings)
+  const theme = resolveTheme(settings)
 
   useEffect(() => {
-    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(settings))
+    try {
+      localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(settings))
+    } catch {
+      /* storage may be unavailable (private mode); settings still apply */
+    }
   }, [settings])
 
   useEffect(() => {
-    if (typeof document === 'undefined') return
-
+    const root = document.documentElement
     const body = document.body
 
-    ;(Object.keys(BODY_CLASS_MAP) as AccessibilityBooleanKey[]).forEach((key) => {
-      body.classList.toggle(BODY_CLASS_MAP[key], settings[key])
-    })
+    root.setAttribute('data-theme', theme)
+    body.classList.toggle('calm-mode', theme === 'calm')
+
+    for (const [key, className] of Object.entries(BODY_CLASS_MAP)) {
+      body.classList.toggle(className, Boolean(settings[key as AccessibilityBooleanKey]))
+    }
 
     const resolvedFontSize = settings.largeText ? 'lg' : settings.fontSize
     body.classList.remove('a11y-font-sm', 'a11y-font-md', 'a11y-font-lg')
     body.classList.add(`a11y-font-${resolvedFontSize}`)
 
-    body.classList.remove(
-      'a11y-font-family-default',
-      'a11y-font-family-readable-sans',
-      'a11y-font-family-dyslexia-friendly',
-      'a11y-font-family-high-clarity'
-    )
-
-    const fontFamilyClassMap: Record<AccessibilitySettings['fontFamily'], string> = {
-      default: 'a11y-font-family-default',
-      readableSans: 'a11y-font-family-readable-sans',
-      dyslexiaFriendly: 'a11y-font-family-dyslexia-friendly',
-      highClarity: 'a11y-font-family-high-clarity',
-    }
-    body.classList.add(fontFamilyClassMap[settings.fontFamily])
-  }, [settings])
+    body.classList.remove(...Object.values(FONT_FAMILY_CLASS))
+    body.classList.add(FONT_FAMILY_CLASS[settings.fontFamily])
+  }, [settings, theme])
 
   const value = useMemo<AccessibilitySettingsContextType>(
     () => ({
       settings,
-      setSetting: (key, value) => {
-        setSettings((prev) => ({ ...prev, [key]: value }))
-      },
-      toggleSetting: (key) => {
-        setSettings((prev) => ({ ...prev, [key]: !prev[key] }))
-      },
+      theme,
+      setSetting: (key, next) => setSettings((prev) => ({ ...prev, [key]: next })),
+      toggleSetting: (key) => setSettings((prev) => ({ ...prev, [key]: !prev[key] })),
     }),
-    [settings]
+    [settings, theme]
   )
 
   return (
@@ -242,4 +263,3 @@ export function useAccessibilitySettings() {
   }
   return context
 }
-

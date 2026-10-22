@@ -13,6 +13,7 @@
  */
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import api from '@/lib/axios';
 import SidebarLayout from '@/components/layout/SidebarLayout';
 import { TrendingUp, Award, Download, BookOpen, Star } from 'lucide-react';
@@ -141,7 +142,7 @@ export default function StudentProgress() {
     const completedLessons = progress?.completedLessons || 0;
     const quizzesTaken = progress?.quizzesTaken || 0;
     const averageScore = progress?.averageScore || 0;
-    const streak = progress?.learningStreak ?? game?.level ?? 0;
+    const streak = progress?.learningStreak ?? analytics?.learningStreak ?? 0;
 
     const content =
       'Elekeza Student Progress Report\n' +
@@ -181,12 +182,12 @@ export default function StudentProgress() {
         <div className="p-6 text-center">
           <BookOpen size={40} className="text-purple-400 mx-auto mb-3" />
           <p className="text-purple-200">{error}</p>
-          <a
+          <Link
             href="/student-home"
             className="mt-4 inline-block rounded-lg bg-purple-600 px-5 py-2.5 text-sm text-white"
           >
             Back to home
-          </a>
+          </Link>
         </div>
       </SidebarLayout>
     );
@@ -326,11 +327,6 @@ export default function StudentProgress() {
                 <Badge key={label} emoji="🏅" label={label} />
               ))}
             </div>
-            {game.achievements.length === 0 && (
-              <p className="text-purple-300 text-sm">
-                No achievements yet — every lesson and quiz you complete unlocks new ones.
-              </p>
-            )}
           </div>
         )}
 

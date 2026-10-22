@@ -82,9 +82,9 @@ export default function LearnerAssignmentsPage() {
   };
 
   return (
-    <main className="mx-auto max-w-3xl px-4 py-8">
-      <h1 className="text-2xl font-bold mb-1">My assignments</h1>
-      <p className="text-gray-600 mb-6">Work set by your teachers. Take your time — you can always improve your answer.</p>
+    <div className="mx-auto max-w-3xl">
+      <h1 className="text-2xl font-bold text-purple-200 mb-1">My assignments</h1>
+      <p className="text-purple-300 mb-6">Work set by your teachers. Take your time — you can always improve your answer.</p>
 
       {message && (
         <div
@@ -100,9 +100,9 @@ export default function LearnerAssignmentsPage() {
       )}
 
       {loading ? (
-        <p className="py-8 text-center text-gray-500" role="status">Loading…</p>
+        <p className="py-8 text-center text-purple-300" role="status">Loading…</p>
       ) : assignments.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-gray-300 p-8 text-center text-gray-500">
+        <div className="rounded-xl border border-dashed border-purple-300/30 p-8 text-center text-purple-300">
           No assignments right now. Enjoy the breather — new work will appear here.
         </div>
       ) : (
@@ -179,6 +179,6 @@ export default function LearnerAssignmentsPage() {
           })}
         </ul>
       )}
-    </main>
+    </div>
   );
 }

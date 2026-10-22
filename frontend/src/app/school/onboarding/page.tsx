@@ -75,7 +75,7 @@ export default function SchoolOnboarding() {
 
           {/* Step 1 — School */}
           {step===1 && <div>
-            <h2 className="text-xl font-semibold text-gray-900 mb-5">About your school</h2>
+            <h2 className="text-xl font-semibold text-purple-100 mb-5">About your school</h2>
             <div className="space-y-4">
               <div>
                 <label className="label">School name *</label>
@@ -108,7 +108,7 @@ export default function SchoolOnboarding() {
 
           {/* Step 2 — Admin account */}
           {step===2 && <div>
-            <h2 className="text-xl font-semibold text-gray-900 mb-1">Create admin account</h2>
+            <h2 className="text-xl font-semibold text-purple-100 mb-1">Create admin account</h2>
             <p className="text-purple-200 text-sm mb-5">You&apos;ll manage teachers and students from this account</p>
             <div className="space-y-4">
               <div>
@@ -141,12 +141,12 @@ export default function SchoolOnboarding() {
 
           {/* Step 3 — Confirm */}
           {step===3 && <div>
-            <h2 className="text-xl font-semibold text-gray-900 mb-5">Confirm &amp; create</h2>
+            <h2 className="text-xl font-semibold text-purple-100 mb-5">Confirm &amp; create</h2>
             <div className="glass-card rounded-xl p-4 space-y-2 text-sm mb-6">
               {[['School',f.name],['Type',f.type],['County',f.county||'—'],['Admin',f.adminName],['Email',f.adminEmail]].map(([k,v])=>(
                 <div key={k} className="flex justify-between">
                   <span className="text-purple-300">{k}</span>
-                  <span className="font-medium text-gray-800">{v}</span>
+                  <span className="font-medium text-purple-100">{v}</span>
                 </div>
               ))}
             </div>

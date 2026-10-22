@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import NotificationBell from '@/components/layout/NotificationBell';
 import ElekezaAssist from '@/components/assist/ElekezaAssist';
+import { roleHome } from '@/lib/roles';
 
 const teacherItems = [
   { href: '/teacher', label: 'Dashboard', icon: LayoutDashboard },
@@ -24,10 +25,8 @@ const teacherItems = [
   { href: '/teacher/quiz-results', label: 'Quiz Results', icon: ClipboardCheck },
   { href: '/teacher/support', label: 'Support Signals', icon: AlertTriangle },
   { href: '/teacher/progress', label: 'Progress', icon: TrendingUp },
-  { href: '/teacher/plans', label: 'Lesson Plans', icon: BookOpen },
   { href: '/teacher/timetable', label: 'Timetable', icon: Calendar },
   { href: '/teacher/communication', label: 'Communication', icon: MessageSquare },
-  { href: '/teacher/schedule', label: 'Schedule', icon: Calendar },
   { href: '/attendance', label: 'Attendance', icon: UserCheck },
 ];
 
@@ -100,7 +99,17 @@ export default function SidebarLayout({ children }: { children: React.ReactNode 
   const pathname = usePathname();
   const { user, logout } = useAuth();
 
-  const role = user?.role || 'STUDENT';
+  // No role until the session resolves — never flash another role's menu.
+  const role = user?.role ?? '';
+
+  // Mobile menu: close on Escape.
+  useEffect(() => {
+    if (!mobileOpen) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setMobileOpen(false); };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [mobileOpen]);
+  const closeMobile = () => setMobileOpen(false);
 
   const navItems = (() => {
     switch (role) {
@@ -116,8 +125,7 @@ export default function SidebarLayout({ children }: { children: React.ReactNode 
   const sidebar = (
     <div className="flex flex-col h-full backdrop-blur-md border-r p-4" style={{ background: "var(--bg-card)", borderColor: "var(--border-color)" }}>
       <div className="flex items-center justify-between mb-6">
-        {!collapsed && <Link href={role === 'STUDENT' ? '/student-home' : '/' + role.toLowerCase().replace
-        ('_', '-')} className="text-xl font-bold text-purple-200 hover:text-white transition" aria-label="Elekeza home">
+        {!collapsed && <Link href={roleHome(role)} onClick={closeMobile} className="text-xl font-bold text-purple-200 hover:text-white transition" aria-label="Elekeza home">
           <Image src="/Elekeza Logo.png" alt="Elekeza" width={220} height={220}
             className="h-auto w-auto max-w-[150px] max-h-9 object-contain" priority />
         </Link>}
@@ -131,6 +139,7 @@ export default function SidebarLayout({ children }: { children: React.ReactNode 
           <Link
             key={item.href}
             href={item.href}
+            onClick={closeMobile}
             aria-current={pathname === item.href ? 'page' : undefined}
             className={'flex items-center gap-3 p-2 rounded-lg transition ' + (pathname === item.href ? 'bg-purple-600/40 text-white' : 'text-purple-200 hover:bg-white/10')}
           >
@@ -145,6 +154,7 @@ export default function SidebarLayout({ children }: { children: React.ReactNode 
           <Link
             key={item.href}
             href={item.href}
+            onClick={closeMobile}
             aria-current={pathname === item.href ? 'page' : undefined}
             className={'flex items-center gap-3 p-2 rounded-lg transition ' + (pathname === item.href ? 'bg-purple-600/40 text-white' : 'text-purple-200 hover:bg-white/10')}
           >
@@ -182,7 +192,7 @@ export default function SidebarLayout({ children }: { children: React.ReactNode 
       {mobileOpen && (
         <div className="md:hidden fixed inset-0 z-50 flex">
           <div className="absolute inset-0 bg-black/50" onClick={() => setMobileOpen(false)} />
-          <aside className="relative w-56 z-50">
+          <aside className="relative w-56 z-50" role="dialog" aria-modal="true" aria-label="Menu">
             {sidebar}
           </aside>
         </div>

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import SidebarLayout from '@/components/layout/SidebarLayout';
 import api from '@/lib/axios';
+import { roleHome } from '@/lib/roles';
 
 /**
  * Learner onboarding — persisted against the real backend:
@@ -57,7 +58,7 @@ export default function OnboardingProfile() {
   useEffect(() => {
     if (!authLoading && user && user.role !== 'STUDENT') {
       // Onboarding is learner-only; everyone else goes to their role home.
-      router.replace(user.role === 'TEACHER' ? '/teacher' : user.role === 'GUARDIAN' ? '/guardian' : '/admin');
+      router.replace(roleHome(user.role));
     }
   }, [authLoading, user, router]);
 
@@ -67,6 +68,18 @@ export default function OnboardingProfile() {
 
   const handleFinish = async () => {
     setError('');
+    // The reading check is optional: validate it only when a score was entered,
+    // and before anything is saved so a typo never leaves a half-saved profile.
+    const hasPlacement = placementScore.trim() !== '';
+    const score = Number(placementScore);
+    const total = Number(placementTotal);
+    if (hasPlacement && (
+      !Number.isInteger(score) || score < 0 ||
+      !Number.isInteger(total) || total < 1 || score > total
+    )) {
+      setError('Enter a valid score (e.g. 6 out of 10), or leave the score empty to skip it.');
+      return;
+    }
     setSaving(true);
     try {
       const profiles = supportProfile === 'none' ? [] : [supportProfile];
@@ -76,18 +89,9 @@ export default function OnboardingProfile() {
         learningGoal: learningGoal.trim() || null,
         cognitiveProfiles: profiles,
       });
-      const score = Number(placementScore);
-      const total = Number(placementTotal);
-      if (
-        !placementScore.trim() ||
-        !Number.isInteger(score) || score < 0 ||
-        !Number.isInteger(total) || total < 1 || score > total
-      ) {
-        setError('Enter a valid baseline score (e.g. 6 out of 10). This is optional guidance — you can leave it and finish.');
-        setSaving(false);
-        return;
+      if (hasPlacement) {
+        await csrfPost('/onboarding/placement', { score, totalQuestions: total });
       }
-      await csrfPost('/onboarding/placement', { score, totalQuestions: total });
       if (guardianName.trim() && guardianContact.trim()) {
         const isEmail = guardianContact.includes('@');
         await csrfPost('/onboarding/guardian-link', {

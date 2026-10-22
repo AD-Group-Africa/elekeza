@@ -118,26 +118,26 @@ export default function StaffManagementPage() {
   // once the session has actually loaded without an institution.
   if (authLoading) {
     return (
-      <main className="p-6">
+      <div className="p-6">
         <div className="glass-card p-6 max-w-md mx-auto mt-10 text-center" aria-busy="true" aria-live="polite">
           <p className="text-purple-200">Loading your school…</p>
         </div>
-      </main>
+      </div>
     );
   }
 
   if (!institutionId) {
     return (
-      <main className="p-6">
+      <div className="p-6">
         <div className="glass-card p-6 max-w-md mx-auto mt-10 text-center" role="alert">
           <p>Your account is not linked to a school, so staff management is not available.</p>
         </div>
-      </main>
+      </div>
     );
   }
 
   return (
-    <main className="p-6 space-y-6 max-w-4xl mx-auto">
+    <div className="p-6 space-y-6 max-w-4xl mx-auto">
       <header>
         <h1 className="text-2xl font-bold text-purple-200">Staff Accounts</h1>
         <p className="text-purple-300 text-sm mt-1">
@@ -257,6 +257,6 @@ export default function StaffManagementPage() {
           </div>
         )}
       </section>
-    </main>
+    </div>
   );
 }

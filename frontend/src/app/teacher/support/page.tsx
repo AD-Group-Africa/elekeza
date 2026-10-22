@@ -39,10 +39,14 @@ export default function TeacherSupport() {
     reviewDate: '',
   });
 
+  // One entry per learner (a learner can have several open signals).
+  const learners = Array.from(new Map(signals.map(s => [s.learnerId, s.learnerName])).entries());
+  const learnerName = (id: number) => learners.find(([lid]) => lid === id)?.[1] ?? `Learner #${id}`;
+
   const load = () => {
     api.get('/teacher/support-signals')
       .then(res => setSignals(res.data || []))
-      .catch(console.error)
+      .catch(() => setMessage('Could not load support signals. Please refresh to try again.'))
       .finally(() => setLoading(false));
     api.get('/teacher/interventions')
       .then(res => setInterventions(res.data || []))
@@ -100,18 +104,22 @@ export default function TeacherSupport() {
         {showForm && (
           <div className="glass-card p-4 space-y-3">
             <h2 className="text-purple-200 font-semibold">New Intervention</h2>
+            <label htmlFor="iv-learner" className="sr-only">Learner</label>
             <select
+              id="iv-learner"
               value={form.learnerId}
               onChange={e => setForm({ ...form, learnerId: e.target.value })}
               className="w-full px-3 py-2 rounded-lg border text-purple-200"
               style={{ background: 'var(--bg-card)', borderColor: 'var(--border-color)' }}
             >
               <option value="" className="bg-gray-800">Select learner…</option>
-              {signals.map(s => (
-                <option key={s.learnerId} value={s.learnerId} className="bg-gray-800">{s.learnerName}</option>
+              {learners.map(([id, name]) => (
+                <option key={id} value={id} className="bg-gray-800">{name}</option>
               ))}
             </select>
+            <label htmlFor="iv-type" className="sr-only">Support type</label>
             <select
+              id="iv-type"
               value={form.type}
               onChange={e => setForm({ ...form, type: e.target.value })}
               className="w-full px-3 py-2 rounded-lg border text-purple-200"
@@ -123,7 +131,9 @@ export default function TeacherSupport() {
               <option value="PARENT_CONTACT" className="bg-gray-800">Parent contact</option>
               <option value="OTHER" className="bg-gray-800">Other</option>
             </select>
+            <label htmlFor="iv-target" className="sr-only">Support action</label>
             <input
+              id="iv-target"
               value={form.target}
               onChange={e => setForm({ ...form, target: e.target.value })}
               placeholder="Support action (e.g. weekly review of water-cycle strand with extra practice quiz)"
@@ -131,10 +141,10 @@ export default function TeacherSupport() {
               style={{ background: 'var(--bg-card)', borderColor: 'var(--border-color)' }}
             />
             <div className="flex gap-3">
-              <input type="date" value={form.startDate} onChange={e => setForm({ ...form, startDate: e.target.value })}
+              <input type="date" aria-label="Start date" value={form.startDate} onChange={e => setForm({ ...form, startDate: e.target.value })}
                 className="flex-1 px-3 py-2 rounded-lg border text-purple-200"
                 style={{ background: 'var(--bg-card)', borderColor: 'var(--border-color)' }} />
-              <input type="date" value={form.reviewDate} onChange={e => setForm({ ...form, reviewDate: e.target.value })}
+              <input type="date" aria-label="Review date (optional)" value={form.reviewDate} onChange={e => setForm({ ...form, reviewDate: e.target.value })}
                 className="flex-1 px-3 py-2 rounded-lg border text-purple-200"
                 style={{ background: 'var(--bg-card)', borderColor: 'var(--border-color)' }} />
             </div>
@@ -193,7 +203,7 @@ export default function TeacherSupport() {
               {interventions.map(iv => (
                 <div key={iv.id} className="glass-card p-4">
                   <div className="flex justify-between items-center">
-                    <p className="text-purple-100 font-semibold">{iv.type.replace(/_/g, ' ')} · learner #{iv.learnerId}</p>
+                    <p className="text-purple-100 font-semibold">{iv.type.replace(/_/g, ' ')} · {learnerName(iv.learnerId)}</p>
                     <span className="text-xs text-purple-300">{iv.status}</span>
                   </div>
                   <p className="text-sm text-purple-300 mt-1">{iv.target}</p>

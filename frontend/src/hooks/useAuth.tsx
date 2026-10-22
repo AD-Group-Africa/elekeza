@@ -3,8 +3,9 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import api from '@/lib/axios';
+import { roleHome } from '@/lib/roles';
 
-interface User {
+export interface User {
   learnerId: number;
   email: string;
   name: string;
@@ -16,15 +17,26 @@ interface User {
   institutionId?: number;
 }
 
-interface AuthContextType {
-  user: User | null;
-  login: (email: string, password: string) => Promise<User>;
-  register: (email: string, password: string, name: string, phone: string, role: string, termsAccepted: boolean, gender?: string) => Promise<void>;
-  logout: () => Promise<void>;
-  loading: boolean;
+export interface RegisterInput {
+  email: string;
+  password: string;
+  name: string;
+  phone?: string;
+  gender?: string;
+  termsAccepted: boolean;
 }
 
-const AuthContext = createContext<AuthContextType>({} as AuthContextType);
+interface AuthContextType {
+  user: User | null;
+  loading: boolean;
+  /** Signs in. Navigates to the role's home unless `redirect` is false. */
+  login: (email: string, password: string, options?: { redirect?: boolean }) => Promise<User>;
+  /** Creates a learner account and signs in, without navigating. */
+  register: (input: RegisterInput) => Promise<User>;
+  logout: () => Promise<void>;
+}
+
+const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -37,29 +49,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
-  const login = useCallback(async (email: string, password: string) => {
+  const login = useCallback(async (email: string, password: string, options?: { redirect?: boolean }) => {
     const res = await api.post('/auth/login', { email, password });
-    const userData = res.data;
+    const userData = res.data as User;
     setUser(userData);
-    switch (userData.role) {
-      case 'TEACHER': router.push('/teacher'); break;
-      case 'STUDENT': router.push('/student-home'); break;
-      case 'GUARDIAN': router.push('/guardian'); break;
-      case 'SCHOOL_ADMIN':
-      case 'ADMIN': router.push('/admin'); break;
-      default: router.push('/student-home');
-    }
+    if (options?.redirect !== false) router.push(roleHome(userData.role));
     return userData;
   }, [router]);
 
-  const register = useCallback(async (email: string, password: string, name: string, phone: string, role: string, termsAccepted: boolean, gender?: string) => {
-    await api.post('/auth/register', { email, password, name, phone, termsAccepted, gender });
-    await login(email, password);
+  const register = useCallback(async (input: RegisterInput) => {
+    // Public sign-up always creates a learner account (the backend has no
+    // role field); staff accounts are created by the school.
+    await api.post('/auth/register', input);
+    return login(input.email, input.password, { redirect: false });
   }, [login]);
 
-
   const logout = useCallback(async () => {
-    try { await api.post('/auth/logout'); } catch {}
+    try { await api.post('/auth/logout'); } catch { /* signing out locally anyway */ }
     setUser(null);
     router.push('/login');
   }, [router]);
@@ -71,6 +77,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   );
 }
 
-export const useAuth = () => useContext(AuthContext);
-
-
+export function useAuth(): AuthContextType {
+  const context = useContext(AuthContext);
+  if (!context) throw new Error('useAuth must be used within AuthProvider');
+  return context;
+}

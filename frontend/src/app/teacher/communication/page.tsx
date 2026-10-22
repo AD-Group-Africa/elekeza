@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import api from '@/lib/axios';
 import { MessageSquare, Reply, Send } from 'lucide-react';
 import Toast from '@/components/Toast';
+import { formatDateTime } from '@/lib/format';
 
 // NotificationDto from GET /api/teacher/messages: human messages addressed to
 // the teacher carry senderId/senderName (V17 sender attribution). System
@@ -74,7 +75,7 @@ export default function TeacherCommunication() {
         setGuardianTargets(Array.from(unique.values()));
       }),
     ])
-      .catch(console.error)
+      .catch(() => setToast('Could not load messages. Please refresh to try again.'))
       .finally(() => setLoading(false));
   }, []);
 
@@ -91,7 +92,7 @@ export default function TeacherCommunication() {
       setToast('Reply sent!');
       const res = await api.get('/teacher/messages');
       setMessages(toMessageRows(res.data));
-    } catch (err) {
+    } catch {
       setToast('Failed to send message.');
     } finally {
       setSending(false);
@@ -135,7 +136,7 @@ export default function TeacherCommunication() {
                     )}
                   </div>
                   <p className="text-purple-200 text-sm">{m.message}</p>
-                  <p className="text-purple-400 text-xs">{m.timestamp}</p>
+                  <p className="text-purple-400 text-xs">{formatDateTime(m.timestamp)}</p>
                 </div>
               ))
             )}
@@ -170,7 +171,9 @@ export default function TeacherCommunication() {
               </select>
             </label>
 
+            <label htmlFor="teacher-reply" className="sr-only">Your reply</label>
             <textarea
+              id="teacher-reply"
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               rows={4}

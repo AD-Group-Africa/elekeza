@@ -1,11 +1,12 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import api from '@/lib/axios';
 import SidebarLayout from '@/components/layout/SidebarLayout';
 import { useOfflineSync } from '@/hooks/useOfflineSync';
-import { ChevronRight, ChevronLeft, SkipForward, Check, X, Award, RefreshCw, WifiOff } from 'lucide-react';
+import { ChevronRight, ChevronLeft, SkipForward, Check, X, RefreshCw, WifiOff } from 'lucide-react';
 import Celebration, { CelebrationData } from '@/components/learner/Celebration';
 import LearningCompanion from '@/components/learner/LearningCompanion';
 
@@ -29,10 +30,15 @@ interface FeedbackRow {
 
 interface AnswerResult {
   correct: boolean;
+  /** The answer never reached the server; the learner may retry. */
+  failed?: boolean;
   learnerMessage?: string;
   directive?: string;
   queued?: boolean;
 }
+
+/** Wall-clock time for answer-latency measurement (event handlers only). */
+const now = () => Date.now();
 
 export default function QuizPage() {
   const { lessonId } = useParams();
@@ -49,8 +55,9 @@ export default function QuizPage() {
   const [submitting, setSubmitting] = useState(false);
   const [celebration, setCelebration] = useState<CelebrationData | null>(null);
   const [offlineNotice, setOfflineNotice] = useState(false);
+  const [submitError, setSubmitError] = useState('');
   const { isOnline, pendingCount, queueAnswer } = useOfflineSync();
-  const questionStart = useRef(Date.now());
+  const questionStart = useRef(0);
 
   useEffect(() => {
     api.get('/quiz/' + lessonId + '/start')
@@ -61,7 +68,7 @@ export default function QuizPage() {
 
   // Restart the latency timer whenever the question changes.
   useEffect(() => {
-    questionStart.current = Date.now();
+    questionStart.current = now();
   }, [currentQ]);
 
   const letterFor = (optionIdx: number) => String.fromCharCode(65 + optionIdx);
@@ -72,7 +79,7 @@ export default function QuizPage() {
   const handleAnswer = async (optionIdx: number) => {
     if (submitted || answers[currentQ] !== undefined || !quiz) return;
     const q = quiz.questions[currentQ];
-    const latencyMs = Date.now() - questionStart.current;
+    const latencyMs = now() - questionStart.current;
     setAnswers(prev => ({ ...prev, [currentQ]: optionIdx }));
     if (!isOnline) {
       // Offline: persist to the IndexedDB sync queue (idempotency key per
@@ -110,11 +117,17 @@ export default function QuizPage() {
           directive: res.data.directive,
         },
       }));
-    } catch (err) {
-      console.error(err);
-      // Honest, actionable copy when an answer cannot reach the server
-      // (audit EL-F-005r: the learner previously saw only a red flash).
-      setResults(prev => ({ ...prev, [currentQ]: { correct: false, learnerMessage: 'We could not save that answer. Check your connection and try again.' } }));
+    } catch {
+      // The answer did not reach the server: un-select it so the learner can
+      // actually try again, and stay on this question.
+      const failedQ = currentQ;
+      setAnswers(prev => {
+        const next = { ...prev };
+        delete next[failedQ];
+        return next;
+      });
+      setResults(prev => ({ ...prev, [failedQ]: { correct: false, failed: true, learnerMessage: 'We could not save that answer. Check your connection and try again.' } }));
+      return;
     }
     // Auto-advance after the server responds (skip if the learner already navigated).
     setTimeout(() => {
@@ -134,6 +147,7 @@ export default function QuizPage() {
       return;
     }
     setSubmitting(true);
+    setSubmitError('');
     const answersArray = quiz.questions.map((q: QuizQuestion, idx: number) => ({
       questionId: q.id,
       selectedOption: letterFor(answers[idx] ?? -1),
@@ -165,7 +179,6 @@ export default function QuizPage() {
         });
       } catch { /* celebration is optional */ }
     } catch (err) {
-      console.error(err);
       // A 409 means this attempt was already submitted (server now rejects
       // duplicate completes — audit EL-F-013). Send the learner to their
       // saved review instead of leaving them on a dead quiz form.
@@ -174,6 +187,8 @@ export default function QuizPage() {
         setScore(null);
         setSubmitted(true);
         router.push(`/quiz/review/${quiz.quizId}`);
+      } else {
+        setSubmitError('We could not submit your quiz. Your answers are kept — please try again.');
       }
     } finally {
       setSubmitting(false);
@@ -187,7 +202,7 @@ export default function QuizPage() {
   };
 
   if (loading) return <SidebarLayout><div className="p-6 text-purple-200">Loading quiz…</div></SidebarLayout>;
-  if (!quiz) return <SidebarLayout><div className="p-6 space-y-3"><p className="text-purple-200">This practice quiz isn't available right now. You can keep reading the lesson and come back to it in a moment.</p><a href="/student-home" className="inline-block rounded-lg bg-purple-600 px-5 py-2.5 text-sm text-white">Back to your home</a></div></SidebarLayout>;
+  if (!quiz) return <SidebarLayout><div className="p-6 space-y-3"><p className="text-purple-200">This practice quiz isn&apos;t available right now. You can keep reading the lesson and come back to it in a moment.</p><Link href="/student-home" className="inline-block rounded-lg bg-purple-600 px-5 py-2.5 text-sm text-white">Back to your home</Link></div></SidebarLayout>;
 
   const q = quiz.questions[currentQ];
   const options = q.options ? (Array.isArray(q.options) ? q.options : q.options.split('\n').filter((o: string) => o.trim().length > 0)) : [];
@@ -250,7 +265,7 @@ export default function QuizPage() {
                         <X size={18} className="text-red-400 mt-1" />
                       )}
                       <div>
-                        <p className="text-purple-200 font-semibold">{quiz.questions[idx]?.questionText || `Question ${idx + 1}`}</p>
+                        <p className="text-purple-200 font-semibold">{quiz.questions[idx]?.questionText || quiz.questions[idx]?.question || `Question ${idx + 1}`}</p>
                         {!f.correct && <p className="text-green-300 text-sm">Correct: {f.correctOption}</p>}
                         {f.explanation && <p className="text-purple-400 text-xs mt-1">{f.explanation}</p>}
                       </div>
@@ -291,14 +306,20 @@ export default function QuizPage() {
               </div>
               {result && (
                 <div className={'mt-4 p-3 rounded-lg text-sm ' + (result.queued ? 'bg-amber-500/20 text-amber-200' : result.correct ? 'bg-green-600/20 text-green-200' : 'bg-red-600/20 text-red-200')}>
-                  {result.queued ? 'Saved offline — will sync when you reconnect.' : result.correct ? 'Correct! Well done.' : 'Not quite — keep going, you are learning.'}
-                  {result.learnerMessage && <p className="mt-1 text-purple-200">{result.learnerMessage}</p>}
+                  {result.failed
+                    ? result.learnerMessage
+                    : result.queued ? 'Saved offline — will sync when you reconnect.' : result.correct ? 'Correct! Well done.' : 'Not quite — keep going, you are learning.'}
+                  {result.learnerMessage && !result.failed && <p className="mt-1 text-purple-200">{result.learnerMessage}</p>}
                   {result.directive && !result.correct && (
                     <p className="mt-1 text-purple-300">Tip: {result.directive}</p>
                   )}
                 </div>
               )}
             </div>
+
+            {submitError && (
+              <p role="alert" className="text-red-300 text-sm">{submitError}</p>
+            )}
 
             {offlineNotice && (
               <p role="alert" className="text-amber-200 text-sm">You&apos;re offline. Answers are saved locally — submit again once you reconnect.</p>

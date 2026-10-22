@@ -8,7 +8,8 @@ import Link from 'next/link';
 interface WardRow {
   id: number;
   name: string;
-  progress?: number;
+  lessonsCompleted?: number;
+  averageScore?: number;
 }
 
 export default function GuardianWards() {
@@ -18,7 +19,7 @@ export default function GuardianWards() {
   useEffect(() => {
     api.get('/guardian/wards')
       .then(res => setChildren(res.data))
-      .catch(console.error)
+      .catch(() => setChildren([]))
       .finally(() => setLoading(false));
   }, []);
 
@@ -41,7 +42,9 @@ export default function GuardianWards() {
                   <User size={24} className="text-blue-400" />
                   <div>
                     <h3 className="text-lg font-semibold opacity-90">{child.name}</h3>
-                    <p className="opacity-75 text-sm">Progress: {child.progress || 0}%</p>
+                    <p className="opacity-75 text-sm">
+                      {child.lessonsCompleted ?? 0} lessons completed · average score {Math.round(child.averageScore ?? 0)}%
+                    </p>
                   </div>
                 </div>
               </div>

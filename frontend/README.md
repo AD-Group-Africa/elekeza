@@ -13,7 +13,7 @@ Frontend for the ELEKEZA adaptive literacy platform, built with Next.js (App Rou
 
 ## Prerequisites
 
-- Node.js `20+` (recommended: latest LTS)
+- Node.js `20.19+` or `22.12+` (recommended: latest LTS)
 - npm `10+`
 - Backend running on `http://localhost:8080`
 

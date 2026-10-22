@@ -63,8 +63,8 @@ export default function GuardianDashboard() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">{greeting()}, here is your child's day</h1>
-      <p className="text-sm opacity-75">Today at a glance — what they're learning, what they've completed, and anything that needs your attention.</p>
+      <h1 className="text-2xl font-bold">{greeting()}, here is your child&apos;s day</h1>
+      <p className="text-sm opacity-75">Today at a glance — what they&apos;re learning, what they&apos;ve completed, and anything that needs your attention.</p>
       <p className="text-xs opacity-50">A guardian can be a parent, caregiver, older sibling, legal guardian, or another authorized adult.</p>
 
       {/* Child Tabs */}

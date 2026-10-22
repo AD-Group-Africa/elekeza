@@ -1,16 +1,12 @@
-'use client';
-import { HelpCircle } from 'lucide-react';
-
+import { Landmark } from 'lucide-react';
 import ComingSoon from '@/components/ComingSoon';
 
-export default function Page() {
+export default function GovernmentPortalPage() {
   return (
     <ComingSoon
       title="Government Portal"
       description="County and national dashboards with anonymised learning analytics."
-      icon={<HelpCircle size={24} />}
+      icon={<Landmark size={48} />}
     />
   );
 }
-
-

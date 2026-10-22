@@ -42,9 +42,9 @@ export default function LearnerHome() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    api.get('/progress/dashboard').then(res => setProgress(res.data)).catch(() => {});
+    const progressReq = api.get('/progress/dashboard').then(res => setProgress(res.data)).catch(() => {});
     api.get('/gamification/student').then(res => setGame(res.data)).catch(() => {});
-    api.get('/progress/dashboard').finally(() => setLoading(false));
+    progressReq.finally(() => setLoading(false));
   }, []);
 
   const name = progress?.name || 'Learner';
@@ -60,7 +60,7 @@ export default function LearnerHome() {
 
   return (
     <SidebarLayout>
-      <main className="min-h-screen bg-gradient-to-b from-indigo-950 via-purple-950 to-indigo-950 px-4 py-8 md:px-8">
+      <div className="min-h-screen bg-gradient-to-b from-indigo-950 via-purple-950 to-indigo-950 px-4 py-8 md:px-8">
         {/* Companion greeting — the emotional anchor of the page */}
         <section className="mx-auto max-w-2xl text-center" aria-live="polite">
           <LearningCompanion state={companionState} size={120} className="mx-auto" />
@@ -149,7 +149,7 @@ export default function LearnerHome() {
             />
           </div>
         </section>
-      </main>
+      </div>
     </SidebarLayout>
   );
 }

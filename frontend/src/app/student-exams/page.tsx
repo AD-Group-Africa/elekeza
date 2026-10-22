@@ -74,8 +74,9 @@ export default function StudentExams() {
   const [fullscreenHint, setFullscreenHint] = useState(false);
   const [resultDetail, setResultDetail] = useState<ResultDetail | null>(null);
 
+  // Latest attempt for timers/handlers that outlive a render.
   const attemptRef = useRef<StartResponse | null>(null);
-  attemptRef.current = attempt;
+  useEffect(() => { attemptRef.current = attempt; }, [attempt]);
 
   const load = useCallback(() => {
     setLoading(true);
@@ -187,9 +188,9 @@ export default function StudentExams() {
   // Auto-submit when the server-side window closes. `submit` closes over the
   // current attempt/answers; rerunning on its identity change would double-fire,
   // so it is intentionally excluded from the dependency list.
-  // eslint-disable-next-line react-hooks/exhaustive-deps -- see comment above
   useEffect(() => {
     if (attempt && remaining === 0 && !submitting) { void submit(); }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- see comment above
   }, [remaining, attempt, submitting]);
 
   const fmt = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
