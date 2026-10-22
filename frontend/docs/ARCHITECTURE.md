@@ -136,8 +136,13 @@ Conventions:
   the rest `role="status"`. Loading: `<LoadingState>`. Nothing yet: `<EmptyState>`.
 - Colours: prefer the semantic Tailwind names, which follow the active theme —
   `bg-surface`, `text-fg`, `text-fg-muted`, `border-line`, `bg-accent`, `text-danger`, … (see
-  `tailwind.config.ts`). Older screens still use `text-purple-*` classes; `styles/theme-remaps.css`
-  maps those onto tokens, so they theme correctly too.
+  `tailwind.config.ts`). Older screens still use dark-theme classes (`text-purple-200`,
+  `text-white`, `bg-white/5`, `text-emerald-200`…); the "light surfaces" section at the end of
+  `styles/theme-remaps.css` maps them to readable colours on the light and calm themes. White text
+  stays white only on solid colour fills listed there (e.g. `bg-purple-600`, `bg-accent`,
+  `from-fuchsia-*` gradients). If you add a new solid fill with `text-white`, add it to that list, or
+  better, use `bg-accent text-accent-contrast`.
+- Check contrast in **all three themes** (Settings → Appearance) before merging a screen change.
 - Never convey meaning by colour alone (pair it with text or an icon); keep visible text inside
   accessible names; give icon-only buttons an `aria-label`.
 - Planned features use `<ComingSoon>` — no fake data or controls that do nothing.
@@ -201,9 +206,11 @@ Add it to `Role` and the maps in `lib/roles.ts`, then give it a menu in `NAV_BY_
 - **Tailwind v4**: the code targets Tailwind v3. Migrating means switching PostCSS to
   `@tailwindcss/postcss`, replacing the `@tailwind` directives with `@import "tailwindcss"`, and moving
   the theme extension in `tailwind.config.ts` into CSS — then a visual check of every screen.
-- **Design tokens**: `styles/tokens.css` contains unused role palettes (`blue`, `purple`, `green`
-  themes are never applied) and combined selectors that can never match; `theme-remaps.css` exists
-  only for legacy `purple-*` classes. As screens move to semantic colour names, both can shrink.
+- **Design tokens**: the palette primitives (`--ek-blue-*`, `--ek-purple-*`, …) live in `:root` so
+  every theme can use them (light mode's accent was undefined before, which hid primary buttons).
+  `tokens.css` still has role palettes (`blue`, `purple`, `green` themes) that are never applied and
+  combined selectors that can never match; `theme-remaps.css` exists only for legacy classes. As
+  screens move to semantic colour names, both can shrink.
 - **Backend contract gaps found during the review** (frontend works around them):
   - `POST /api/content/upload/file` ignores a lesson title — file lessons are titled with the file
     name.

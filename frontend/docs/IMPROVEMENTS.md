@@ -26,7 +26,7 @@ Items marked **backend** need an API change first.
 | 2.4 | **Fee reminders** to guardians (in-app + SMS) before the due date and when overdue | Directly improves fee collection, the main pain point for school admins. | M |
 | 2.5 | **Guardian self-linking with a code** printed on the learner's record | Removes admin work: the school gives the parent a code, the parent links themselves. | M (**backend**) |
 | 2.6 | **Lesson-to-objective linking in bulk** from the curriculum page | Today a teacher links one lesson at a time; competency tracking only works once lessons are linked. | S |
-| 2.7 | **Timetable editor** for school admins | Timetables are read-only in the UI; schools need to set them up without the API. | M |
+| 2.7 | **Timetable set-up helpers** (copy last term, add a period row, print view) | The timetable is already editable cell by cell (`/teacher/timetable`); setting up a whole school still takes many clicks. | S |
 | 2.8 | **Export to CSV** for learners, fees and attendance | Admins share data with boards and auditors in spreadsheets. | S |
 | 2.9 | **Offline-first lessons** (cache assigned lessons + quiz answers queue) for low-connectivity schools | Quizzes already work offline; extending this to lesson reading makes shared tablets usable without Wi-Fi. | M |
 
@@ -35,11 +35,12 @@ Items marked **backend** need an API change first.
 | # | Item | Why | Size |
 | --- | --- | --- | --- |
 | 3.1 | Replace `cn` with `clsx` + `tailwind-merge` | The kit now resolves width/padding overrides on inputs itself (`controlClass`), but other components still can't override conflicting classes. | S |
-| 3.2 | Move remaining `text-purple-*` classes to semantic tokens (`text-fg`, `text-fg-muted`…) | Lets `styles/theme-remaps.css` be deleted and makes themes predictable. Do it screen by screen. | M |
+| 3.2 | Move remaining `text-purple-*`, `text-white` and `bg-white/*` classes to semantic tokens (`text-fg`, `text-fg-muted`, `bg-surface`…) | Light mode now reads correctly through overrides in `styles/theme-remaps.css`; moving screens to semantic classes lets those overrides be deleted. Do it screen by screen. | M |
 | 3.3 | Generate API types from the backend's OpenAPI spec | Today types in each `api.ts` are hand-written; a generator catches contract drift (like 1.2) at build time. | M |
 | 3.4 | Add Playwright journeys for the new admin flows (classes → attendance, fee setup → bill → pay, curriculum → link lesson → learner competency) | The scratch smoke run passed; checking these flows in CI keeps them from breaking. | S |
 | 3.5 | Role-based route guard in the app shell | Pages rely on the backend's 403s; a guard would show a friendly "not for your role" page instead of empty data when someone types a URL. | S |
 | 3.6 | Tailwind v4 migration | See ARCHITECTURE.md §8. | M |
+| 3.7 | Automated contrast check in CI: open every page in dark, light and calm and fail on text below 4.5:1 | Light mode broke silently because nobody looked at it; a check catches the next regression. | S |
 
 ## 4. Product ideas
 
