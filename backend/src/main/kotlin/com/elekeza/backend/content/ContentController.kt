@@ -95,8 +95,9 @@ class ContentController(
     // ── POST /api/content/upload/file ──────────────────────────────────────
     @PostMapping("/upload/file")
     @PreAuthorize("hasAnyRole('TEACHER', 'SCHOOL_ADMIN', 'ADMIN')")
-    fun uploadFile(
+   fun uploadFile(
         @RequestParam("file") file: MultipartFile,
+        @RequestParam(required = false) title: String?,
         @AuthenticationPrincipal user: User
     ): Map<String, Any> {
         // 1. Validate file size
@@ -137,11 +138,24 @@ class ContentController(
             )
         }
 
-        // 4. Extract readable text where the format allows it (txt/pdf/docx/doc)
+        // 4. Honor the submitted title when present (Sprint 3: the title field
+        // previously had no @RequestParam and was silently dropped in favour of
+        // the filename). Missing or blank falls back to the filename, matching
+        // the text-upload convention; anything longer than the 255-char column
+        // is rejected up front rather than truncated or failed at the DB.
+        val contentTitle = title?.trim()?.takeIf { it.isNotBlank() }?.let {
+            if (it.length > 255) throw ResponseStatusException(
+                HttpStatus.BAD_REQUEST,
+                "Title exceeds the maximum length of 255 characters"
+            )
+            it
+        } ?: originalFilename.take(255)
+
+        // 5. Extract readable text where the format allows it (txt/pdf/docx/doc)
         val rawText = textExtractor.extract(file, extension)
         val content = contentRepository.save(Content(
             userId = user.id,
-            title = originalFilename.take(255),
+            title = contentTitle,
             originalFilename = originalFilename,
             filePath = storageName,
             status = ContentStatus.UPLOADING,

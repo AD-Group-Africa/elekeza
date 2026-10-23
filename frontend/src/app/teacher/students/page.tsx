@@ -25,7 +25,9 @@ function masteryStateOf(value: string): MasteryState {
 }
 
 interface Student {
-  id: string;
+  // Numeric ID is the established API contract (Sprint 3: backend stopped
+  // stringifying these).
+  id: number;
   name: string;
   email: string;
   sneType: string;
@@ -72,12 +74,12 @@ export default function StudentsPage() {
   const [message, setMessage] = useState('');
   const [adding, setAdding] = useState(false);
 
-  const [expanded, setExpanded] = useState<string | null>(null);
-  const [support, setSupport] = useState<Record<string, SupportSummary>>({});
-  const [mastery, setMastery] = useState<Record<string, MasteryRow[]>>({});
-  const [supportLoading, setSupportLoading] = useState<string | null>(null);
-  const [supportError, setSupportError] = useState<Record<string, string>>({});
-  const [guideMsg, setGuideMsg] = useState<Record<string, string>>({});
+  const [expanded, setExpanded] = useState<number | null>(null);
+  const [support, setSupport] = useState<Record<number, SupportSummary>>({});
+  const [mastery, setMastery] = useState<Record<number, MasteryRow[]>>({});
+  const [supportLoading, setSupportLoading] = useState<number | null>(null);
+  const [supportError, setSupportError] = useState<Record<number, string>>({});
+  const [guideMsg, setGuideMsg] = useState<Record<number, string>>({});
 
   const fetchStudents = async () => {
     try {

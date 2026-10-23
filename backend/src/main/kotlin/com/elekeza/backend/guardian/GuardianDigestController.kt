@@ -5,6 +5,7 @@ import com.elekeza.backend.assignments.AssignmentStatus
 import com.elekeza.backend.assignments.AssignmentSubmissionRepository
 import com.elekeza.backend.attendance.AttendanceRecordRepository
 import com.elekeza.backend.attendance.AttendanceSessionRepository
+import com.elekeza.backend.attendance.AttendancePolicy
 import com.elekeza.backend.attendance.AttendanceStatus
 import com.elekeza.backend.attendance.ClassEnrollmentRepository
 import com.elekeza.backend.auth.User
@@ -69,12 +70,16 @@ class GuardianDigestController(
         val avgScore = if (completed.isNotEmpty()) completed.mapNotNull { it.quizScore }.average() else null
 
         // ── Attendance ────────────────────────────────────────────────────
+        // Rate now comes from the shared AttendancePolicy (Sprint 3): the old
+        // inline formula divided by ALL records including EXCUSED, so guardian
+        // digests understated attendance vs the /api/attendance endpoints for
+        // the same marks. EXCUSED is now excluded on both sides.
         val classIds = enrollmentRepo.findByLearnerIdAndActiveTrue(learner.id).map { it.classId }
-        val sessions = if (classIds.isEmpty()) emptyList() else sessionRepo.findByClassIdInAndSessionDateBetween(classIds, today.minusDays(60), today)
+        val periodFrom = today.minusDays(60)
+        val sessions = if (classIds.isEmpty()) emptyList() else sessionRepo.findByClassIdInAndSessionDateBetween(classIds, periodFrom, today)
         val records = recordRepo.findBySessionIdIn(sessions.map { it.id })
             .filter { it.learnerId == learner.id }
-        val presentish = records.count { it.status == AttendanceStatus.PRESENT || it.status == AttendanceStatus.LATE }
-        val attendanceRate = if (records.isNotEmpty()) Math.round(presentish * 100.0 / records.size) else null
+        val attendanceRate = AttendancePolicy.rate(records.map { it.status })
         val todaySessionIds = sessions.filter { it.sessionDate == today }.map { it.id }.toSet()
         val todayStatus = records.firstOrNull { it.sessionId in todaySessionIds }?.status?.name
 
@@ -124,7 +129,10 @@ class GuardianDigestController(
             "attendance" to mapOf(
                 "rate" to attendanceRate,
                 "sessionsMarked" to records.size,
-                "today" to todayStatus
+                "today" to todayStatus,
+                "periodFrom" to periodFrom.toString(),
+                "periodTo" to today.toString(),
+                "periodLabel" to "LAST_60_DAYS"
             ),
             "classwork" to mapOf(
                 "dueSoon" to dueSoon,

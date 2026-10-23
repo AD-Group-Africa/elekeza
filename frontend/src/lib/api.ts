@@ -215,7 +215,8 @@ export interface AttendanceSessionInfo {
 }
 export interface LearnerAttendance {
   learnerId: number; learnerName: string; className: string | null; sessionsMarked: number;
-  counts: Record<string, number>; attendanceRate: number;
+  counts: Record<string, number>; attendanceRate: number | null; // null = nothing assessed yet
+  periodFrom: string | null; periodTo: string | null; periodLabel: string;
   records: Array<{ date: string; status: string; note: string | null; className: string }>
 }
 

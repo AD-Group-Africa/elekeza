@@ -55,7 +55,7 @@ class AttendanceController(private val attendanceService: AttendanceService) {
         @AuthenticationPrincipal user: User,
         @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) from: LocalDate?,
         @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) to: LocalDate?
-    ): Map<String, Any> {
+    ): Map<String, Any?> {
         val to_ = to ?: LocalDate.now()
         val from_ = from ?: to_.minusDays(30)
         return attendanceService.institutionSummary(user, from_, to_)

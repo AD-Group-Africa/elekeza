@@ -249,7 +249,12 @@ export default function AttendancePage() {
             <div>
               <h2 className="font-semibold">{history.learnerName} — history</h2>
               <p className="text-sm text-gray-600">
-                {history.className ?? 'No class'} · attendance rate {history.attendanceRate}% over {history.sessionsMarked} days
+                {history.className ?? 'No class'} ·{' '}
+                {history.attendanceRate != null
+                  ? `attendance rate ${history.attendanceRate}% over ${history.sessionsMarked} days`
+                  : `no assessed records yet (${history.sessionsMarked} marked)`}{' '}
+                · {history.periodLabel === 'ALL_TIME' ? 'all recorded dates' : history.periodLabel}
+                {history.periodFrom && history.periodTo ? ` (${history.periodFrom} → ${history.periodTo})` : ''}
               </p>
             </div>
             <button type="button" onClick={() => setHistory(null)} className="text-sm text-gray-500 underline">Close</button>

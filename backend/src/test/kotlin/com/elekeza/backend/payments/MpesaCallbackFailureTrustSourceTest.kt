@@ -2,7 +2,6 @@
 
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
-import org.junit.jupiter.api.Assertions.fail
 import org.junit.jupiter.api.Test
 import java.io.File
 
@@ -26,8 +25,12 @@ class MpesaCallbackFailureTrustSourceTest {
             File("backend/src/main/kotlin/com/elekeza/backend/payments/MpesaService.kt"),
             File("../backend/src/main/kotlin/com/elekeza/backend/payments/MpesaService.kt"),
         )
+        // JUnit's fail provides no target type in this position; an explicit
+        // throw keeps locateSource's File? handling unambiguous.
         return candidates.firstOrNull { it.exists() && it.length() > 0 }
-            ?: fail("Could not locate MpesaService.kt. cwd=${File(".").absolutePath}").let { File("") }
+            ?: throw java.lang.IllegalStateException(
+                "Could not locate MpesaService.kt. cwd=${File(".").absolutePath}"
+            )
     }
 
     @Test

@@ -157,7 +157,7 @@ class MpesaCallbackVerificationTest {
     fun `unverifiable success callback creates no credit and parks the transaction`() {
         val checkoutId = "VER-UNAVAILABLE-1"
         seed(checkoutId)
-        verifier.outcome = VerificationOutcome.Unavailable("provider unreachable")
+        verifier.outcome = VerificationOutcome.Unavailable(reason = "provider unreachable")
 
         val response = service.processCallback(callback(checkoutId, 0))
 
@@ -251,13 +251,51 @@ class MpesaCallbackVerificationTest {
     }
 
     @Test
-    fun `provider-declared failure is recorded as FAILED with no credit`() {
+    fun `provider-confirmed failure is recorded as FAILED with no credit`() {
+        // Sprint 3 P1: a non-zero ResultCode from an unsigned callback is not
+        // proof of failure in live mode — the transaction is marked FAILED only
+        // when the provider query itself says the payment is not successful.
         val checkoutId = "VER-FAILED-1"
         seed(checkoutId)
+        verifier.outcome = VerificationOutcome.NotSuccessful
 
         service.processCallback(callback(checkoutId, 1032, amount = null, receipt = null))
 
         assertThat(txRepo.findByCheckoutRequestId(checkoutId)!!.status).isEqualTo(MpesaStatus.FAILED)
         assertThat(paymentsFor(checkoutId)).isEmpty()
+    }
+
+    @Test
+    fun `a forged failure callback cannot terminate a payment the provider confirms`() {
+        // Sprint 3 P1: FAILED is terminal, so an attacker with a known checkout
+        // ID used to be able to hurt a legitimate in-flight payment by sending
+        // a forged failure callback. In live mode the provider-confirmed truth
+        // wins: the transaction is finalised and credited, and the
+        // contradiction is audited.
+        val checkoutId = "VER-FORGE-FAIL-1"
+        seed(checkoutId)
+        verifier.outcome = VerificationOutcome.Confirmed
+
+        service.processCallback(callback(checkoutId, 1032, amount = null, receipt = null))
+
+        assertThat(txRepo.findByCheckoutRequestId(checkoutId)!!.status).isEqualTo(MpesaStatus.COMPLETED)
+        assertThat(paymentsFor(checkoutId)).hasSize(1)
+        assertThat(awaitAudit("MPESA_FAILURE_CALLBACK_CONTRADICTED", checkoutId)).isTrue()
+    }
+
+    @Test
+    fun `a forged failure callback parks an unverifiable payment instead of failing it`() {
+        // Sprint 3 P1: when the provider is unreachable the callback must NOT
+        // produce a terminal FAILED — reconciliation still gets its chance.
+        val checkoutId = "VER-FORGE-UNAVAIL-1"
+        seed(checkoutId)
+        verifier.outcome = VerificationOutcome.Unavailable(reason = "provider query unreachable (scripted)")
+
+        service.processCallback(callback(checkoutId, 1032, amount = null, receipt = null))
+
+        val tx = txRepo.findByCheckoutRequestId(checkoutId)!!
+        assertThat(tx.status).isNotEqualTo(MpesaStatus.FAILED)
+        assertThat(paymentsFor(checkoutId)).isEmpty()
+        assertThat(awaitAudit("MPESA_FAILURE_CALLBACK_UNVERIFIED", checkoutId)).isTrue()
     }
 }
