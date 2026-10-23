@@ -16,6 +16,7 @@ These are in commit `backend: class management endpoints for the admin UI`, with
 | `DELETE /api/attendance/classes/{id}/learners/{learnerId}` | Remove a learner from a class. |
 | `GET /api/content/list` returns `objectiveId` | Shows which curriculum objective a lesson is linked to. |
 | Guardian digest attendance rate excludes `EXCUSED` days | The guardian page showed two different percentages for the same child (80% vs 88.9%). Both now use the attendance module's formula. |
+| One quiz per lesson, even when several learners start it at once (`QuizProvisioner`); lookups take the first quiz if old duplicates exist | Simultaneous first starts created several quizzes for one lesson; that lesson's quiz then failed to start and `/api/mastery/learner` returned 500 on every load. Test: `QuizStartConcurrencyTest`. |
 
 ## 1. Must fix (wrong or inconsistent today)
 
@@ -26,6 +27,7 @@ These are in commit `backend: class management endpoints for the admin UI`, with
 | 1.3 | `POST /api/content/upload/file` ignores the lesson title. | Accept a `title` form field; fall back to the file name. | File lessons are named after the file. | S |
 | 1.4 | Feature-flag overrides are kept in memory and lost on restart. | Persist overrides in a table. | The platform console warns about this. | S |
 | 1.5 | Attendance percentages cover different periods: guardian digest = last 60 days, learner history = all time, admin summary = last 30 days. | Return the period (`from`, `to`) with each rate, or accept a `days` parameter everywhere. | Shows the rates without their period. | S |
+| 1.6 | The one-quiz-per-lesson guard is a lock inside one backend process. | Flyway migration: merge duplicate `quiz` rows per `content_id` (move their questions/attempts to the lowest id), then add a unique index on `quiz.content_id`. Needed before running more than one backend instance. | Works today on a single instance. | S |
 
 ## 2. Missing endpoints for existing screens
 
