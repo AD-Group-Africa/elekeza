@@ -22,7 +22,7 @@ class ProgressController(
         val upcoming = progressRepo.findByUserIdOrderByCreatedAtDesc(user.id)
             .filter { !it.completed }
             .mapNotNull { p ->
-                val quiz = quizRepo.findByContentId(p.contentId) ?: return@mapNotNull null
+                val quiz = quizRepo.findFirstByContentIdOrderByIdAsc(p.contentId) ?: return@mapNotNull null
                 val title = contentRepo.findById(p.contentId).map { it.title ?: "Lesson ${p.contentId}" }.orElse("Lesson ${p.contentId}")
                 mapOf("id" to quiz.id, "lessonId" to p.contentId, "title" to title)
             }

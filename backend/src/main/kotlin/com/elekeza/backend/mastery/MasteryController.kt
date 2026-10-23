@@ -53,7 +53,7 @@ class MasteryController(
     )
 
     private fun evaluateLesson(userId: Long, contentId: Long, title: String?): LessonMasteryDto {
-        val quiz = quizRepo.findByContentId(contentId)
+        val quiz = quizRepo.findFirstByContentIdOrderByIdAsc(contentId)
         val scores: List<Double> = quiz?.let { q ->
             attemptRepo.findByQuizIdAndUserId(q.id, userId)
                 .filter { it.completed && it.score != null }
