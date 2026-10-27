@@ -2,7 +2,8 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { Bell, Building2, GraduationCap, Users } from 'lucide-react';
-import { Card, PageHeader } from '@/components/ui';
+import { Card, EmptyState, LoadingState, PageHeader } from '@/components/ui';
+import { useAuth } from '@/features/auth';
 import { notificationKeys, notificationsApi } from '@/features/notifications/api';
 import { adminApi, adminKeys } from '../api';
 
@@ -20,9 +21,28 @@ function Kpi({ icon, label, value }: { icon: React.ReactNode; label: string; val
 
 /** Platform-wide overview for ADMIN users. */
 export default function PlatformAdminScreen() {
-  const overview = useQuery({ queryKey: adminKeys.platformOverview, queryFn: adminApi.platformOverview });
-  const schools = useQuery({ queryKey: adminKeys.institutions, queryFn: adminApi.institutions });
-  const notifications = useQuery({ queryKey: notificationKeys.list, queryFn: notificationsApi.list });
+  // Client-side role guard (sprint 3): the backend enforces ADMIN on every
+  // request; this keeps the screen and its requests from firing for other roles.
+  const { user, loading: authLoading } = useAuth();
+  const isAdmin = user?.role === 'ADMIN';
+  const overview = useQuery({ queryKey: adminKeys.platformOverview, queryFn: adminApi.platformOverview, enabled: isAdmin });
+  const schools = useQuery({ queryKey: adminKeys.institutions, queryFn: adminApi.institutions, enabled: isAdmin });
+  const notifications = useQuery({ queryKey: notificationKeys.list, queryFn: notificationsApi.list, enabled: isAdmin });
+
+  if (authLoading) return <LoadingState />;
+  if (!isAdmin) {
+    return (
+      <EmptyState
+        title="Platform Administration"
+        description="You are not authorized to view this page."
+        action={
+          <a href="/admin" className="underline">
+            Return to your dashboard
+          </a>
+        }
+      />
+    );
+  }
 
   return (
     <div className="space-y-6">

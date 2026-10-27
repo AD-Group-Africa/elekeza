@@ -252,8 +252,12 @@ function AttendanceHistory({ history, onClose }: { history: LearnerAttendance; o
         <div>
           <h2 className="font-semibold text-fg">{history.learnerName} — history</h2>
           <p className="text-sm text-fg-muted">
-            {history.className ?? 'No class'} · attendance rate {history.attendanceRate}% over {history.sessionsMarked}{' '}
-            days
+            {history.className ?? 'No class'} ·{' '}
+            {history.attendanceRate != null
+              ? `attendance rate ${history.attendanceRate}% over ${history.sessionsMarked} days`
+              : `no assessed records yet (${history.sessionsMarked} marked)`}{' '}
+            · {history.periodLabel === 'ALL_TIME' ? 'all recorded dates' : history.periodLabel}
+            {history.periodFrom && history.periodTo ? ` (${history.periodFrom} → ${history.periodTo})` : ''}
           </p>
         </div>
         <button type="button" onClick={onClose} className="text-sm text-fg-muted underline">
