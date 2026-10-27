@@ -26,6 +26,8 @@ const config: Config = {
         },
         accent: {
           DEFAULT: "var(--accent)",
+          // hover fill for bg-accent; strong is the readable text accent
+          hover: "var(--accent-hover)",
           strong: "var(--accent-strong)",
           soft: "var(--accent-soft)",
           contrast: "var(--accent-contrast)",

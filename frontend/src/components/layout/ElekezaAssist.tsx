@@ -154,7 +154,7 @@ export default function ElekezaAssist({ collapsed = false }: { collapsed?: boole
           onClick={() => setOpen(true)}
           aria-label="Elekeza Assist — open help"
           aria-expanded={false}
-          className={`fixed bottom-24 md:bottom-6 z-40 flex items-center gap-2 rounded-full bg-[var(--accent)] px-4 py-3 text-[var(--accent-contrast)] shadow-lg transition motion-reduce:transition-none hover:bg-[var(--accent-strong)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-primary)] ${horizontal}`}
+          className={`fixed bottom-24 md:bottom-6 z-40 flex items-center gap-2 rounded-full bg-[var(--accent)] px-4 py-3 text-[var(--accent-contrast)] shadow-lg transition motion-reduce:transition-none hover:bg-[var(--accent-hover)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-primary)] ${horizontal}`}
         >
           <CircleHelp size={20} aria-hidden="true" />
           <span className="text-sm font-semibold">Elekeza Assist</span>
