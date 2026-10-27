@@ -10,6 +10,11 @@ export interface ServerAccessibilityProfile {
 }
 
 export const accessibilityApi = {
+  /** the profile saved to the account; empty when the user never saved one. */
+  getProfile: (userId: number) =>
+    apiClient
+      .get<{ userId: number; settings?: Partial<ServerAccessibilityProfile> }>(`/accessibility-profiles/${userId}`)
+      .then((r) => r.data?.settings ?? {}),
   /** Mirrors the profile to the server and records one engagement event. */
   saveProfile: async (userId: number, settings: ServerAccessibilityProfile) => {
     await apiClient.put(`/accessibility-profiles/${userId}`, { settings });

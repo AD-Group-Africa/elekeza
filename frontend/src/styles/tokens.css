@@ -6,7 +6,7 @@
  *   data-role   the colour family, set from the signed-in user's role
  *               learner   bright purple   (STUDENT)
  *               teacher   moss green      (TEACHER)
- *               guardian  forest green    (GUARDIAN)
+ *               guardian  fresh green     (GUARDIAN)
  *               admin     light blue      (SCHOOL_ADMIN, ADMIN)
  *               no attribute falls back to learner purple (public pages).
  *
@@ -66,7 +66,20 @@
   --ek-moss-100: #e3f2e9;
   --ek-moss-050: #f2f9f5;
 
-  /* ---- guardian: forest green with warm cream ---- */
+  /* ---- guardian: fresh leaf green ---- */
+  --ek-fresh-050: #f0fdf4;
+  --ek-fresh-100: #dcfce7;
+  --ek-fresh-200: #bbf7d0;
+  --ek-fresh-300: #86efac;
+  --ek-fresh-400: #4ade80;
+  --ek-fresh-500: #22c55e;
+  --ek-fresh-600: #16a34a;
+  --ek-fresh-700: #15803d;
+  --ek-fresh-800: #166534;
+  --ek-fresh-900: #14532d;
+  --ek-fresh-950: #052e16;
+
+  /* ---- forest green and warm cream (used by remapped utility classes) ---- */
   --ek-green-950: #12241a;
   --ek-green-900: #1a3326;
   --ek-green-800: #245039;
@@ -182,19 +195,19 @@
 }
 
 [data-role='guardian'] {
-  --hue-050: var(--ek-green-050);
-  --hue-100: var(--ek-green-100);
-  --hue-200: var(--ek-green-200);
-  --hue-300: var(--ek-green-300);
-  --hue-400: var(--ek-green-400);
-  --hue-500: var(--ek-green-500);
-  --hue-600: var(--ek-green-600);
-  --hue-700: var(--ek-green-700);
-  --hue-800: var(--ek-green-800);
-  --hue-900: var(--ek-green-900);
-  --hue-950: var(--ek-green-950);
-  --hue-fill: var(--ek-green-700);
-  --hue-fill-hover: var(--ek-green-800);
+  --hue-050: var(--ek-fresh-050);
+  --hue-100: var(--ek-fresh-100);
+  --hue-200: var(--ek-fresh-200);
+  --hue-300: var(--ek-fresh-300);
+  --hue-400: var(--ek-fresh-400);
+  --hue-500: var(--ek-fresh-500);
+  --hue-600: var(--ek-fresh-600);
+  --hue-700: var(--ek-fresh-700);
+  --hue-800: var(--ek-fresh-800);
+  --hue-900: var(--ek-fresh-900);
+  --hue-950: var(--ek-fresh-950);
+  --hue-fill: var(--ek-fresh-700);
+  --hue-fill-hover: var(--ek-fresh-800);
 }
 
 [data-role='admin'] {

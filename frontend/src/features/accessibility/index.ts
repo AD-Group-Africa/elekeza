@@ -4,6 +4,7 @@ export {
   useAccessibilitySettings,
   defaultSettings,
   resolveTheme,
+  themeSettings,
   type AccessibilitySettings,
   type AccessibilityBooleanKey,
   type Theme,
@@ -19,3 +20,4 @@ export {
   type RolePalette,
 } from './rolePalette';
 export { RolePaletteSync } from './RolePaletteSync';
+export { AccountThemeSync } from './AccountThemeSync';

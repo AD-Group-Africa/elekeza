@@ -6,13 +6,15 @@ Two attributes on `<html>` drive every colour:
 
 | Attribute | Values | Set by |
 |---|---|---|
-| `data-role` | `learner` (bright purple), `teacher` (moss green), `guardian` (forest green), `admin` (light blue) | `RolePaletteSync`, from the signed-in user's role (`SCHOOL_ADMIN` and `ADMIN` both use `admin`) |
+| `data-role` | `learner` (bright purple), `teacher` (moss green), `guardian` (fresh green), `admin` (light blue) | `RolePaletteSync`, from the signed-in user's role (`SCHOOL_ADMIN` and `ADMIN` both use `admin`) |
 | `data-theme` | `dark` (default), `light` (warm cream), `calm` (low stimulation) | Accessibility settings (Appearance: Light Theme, Calm Mode; calm wins) |
 
 - `src/styles/tokens.css` defines every colour ramp at `:root`, maps the generic `--hue-*` ramp per role, and derives the semantic tokens (`--bg-*`, `--text-*`, `--accent*`, `--border-*`) and the legacy `--p*` aliases per mode. 4 roles x 3 modes = 12 looks from 7 blocks.
 - `src/styles/theme-remaps.css` keeps legacy palette classes (`text-purple-200`, `bg-purple-600` ...) working through the `--p*` aliases. A light/calm compatibility layer keeps white-on-dark utilities (`text-white`, `bg-white/10`, pale status text) readable on cream and calm surfaces, except on filled buttons and accent gradients.
 - `src/app/layout.tsx` restores both attributes from local storage before first paint, so reloads never flash the wrong colours. `RolePaletteSync` keeps `data-role` current after sign-in. While signed out, the last palette stays.
 - `--accent-hover` is the hover fill for filled buttons. `--accent-strong` is the readable accent text colour.
+- Guardians use a fresh leaf green ramp (`--ek-fresh-*`), distinct from the teacher moss.
+- `AccountThemeSync` restores the theme saved to the account (`/api/accessibility-profiles/{id}`) on sign-in. The settings screen keeps that copy current. If the profile can't be loaded, the device's own choice stays.
 
 New code should use the semantic Tailwind tokens (`bg-canvas`, `bg-surface`, `text-fg`, `text-fg-muted`, `border-line`, `bg-accent`, `hover:bg-accent-hover`, `text-accent-strong`) rather than palette classes.
 
@@ -35,7 +37,6 @@ New code should use the semantic Tailwind tokens (`bg-canvas`, `bg-surface`, `te
 
 ## Known limitations / next steps
 
-- Teacher (moss) and guardian (forest green) are close in hue. Waiting on product direction for guardians.
 - Lesson body text still uses the legacy purple class, so it reads in the role colour rather than near-black. It is readable (>= 4.5:1) but will move to `text-fg` during screen migration.
 - About 550 legacy palette classes remain in screens. The compatibility layer keeps them readable. Migrating screens to semantic tokens is the next workstream.
-- Theme mode is saved on the device and mirrored to `/api/accessibility-profiles`, but it is not yet loaded back on sign-in. Custom accent colours need a new allowed key on that endpoint (backend dependency).
+- Custom accent colours would need a new allowed key on `/api/accessibility-profiles` (backend dependency). Until then, only the three modes are saved to the account.

@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { ROLE_PALETTE_STORAGE_KEY } from '@/lib/storageKeys';
-import { resolveTheme } from './AccessibilitySettingsProvider';
+import { resolveTheme, themeSettings } from './AccessibilitySettingsProvider';
 import {
   DEFAULT_ROLE_PALETTE,
   applyRolePalette,
@@ -66,5 +66,23 @@ describe('resolveTheme', () => {
 
   it('lets calm win over light so SNE learners keep the low-stimulation mode', () => {
     expect(resolveTheme({ calmMode: true, lightTheme: true })).toBe('calm');
+  });
+});
+
+describe('themeSettings (restoring the theme saved to the account)', () => {
+  it('turns every saved theme back into the settings that produce it', () => {
+    const base = { calmMode: false, lightTheme: false };
+    for (const theme of ['dark', 'light', 'calm'] as const) {
+      expect(resolveTheme({ ...base, ...themeSettings(theme) })).toBe(theme);
+    }
+  });
+
+  it('keeps the light choice underneath calm so turning calm off returns to it', () => {
+    expect(themeSettings('calm')).toEqual({ calmMode: true });
+  });
+
+  it('ignores missing or unknown values so the device keeps its own choice', () => {
+    expect(themeSettings(undefined)).toBeNull();
+    expect(themeSettings('neon')).toBeNull();
   });
 });

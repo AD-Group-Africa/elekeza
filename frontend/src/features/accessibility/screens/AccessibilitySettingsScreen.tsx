@@ -55,7 +55,7 @@ const categories: SettingCategory[] = [
     title: 'Appearance',
     icon: '🎨',
     settings: [
-      { key: 'lightTheme', label: 'Light Theme', description: 'Switch to a clean paper-and-moss light mode' },
+      { key: 'lightTheme', label: 'Light Theme', description: 'Warm cream background in your colours' },
       {
         key: 'calmMode',
         label: 'Calm Mode',

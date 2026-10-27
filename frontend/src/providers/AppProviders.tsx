@@ -3,7 +3,7 @@
 import { useState, type ReactNode } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from '@/features/auth';
-import { AccessibilitySettingsProvider, RolePaletteSync } from '@/features/accessibility';
+import { AccessibilitySettingsProvider, AccountThemeSync, RolePaletteSync } from '@/features/accessibility';
 import { getErrorStatus } from '@/lib/api';
 
 function createQueryClient() {
@@ -33,6 +33,7 @@ export function AppProviders({ children }: { children: ReactNode }) {
       <AuthProvider>
         <AccessibilitySettingsProvider>
           <RolePaletteSync />
+          <AccountThemeSync />
           {children}
         </AccessibilitySettingsProvider>
       </AuthProvider>

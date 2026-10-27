@@ -4,13 +4,13 @@ import { Suspense, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { Alert, Button, Field, TextInput } from '@/components/ui';
-import { getErrorMessage, getErrorStatus, isNetworkError } from '@/lib/api';
+import { CONNECTION_ERROR_MESSAGE, getErrorMessage, getErrorStatus, isConnectionFailure } from '@/lib/api';
 import { useAuth } from '../AuthProvider';
 import { AuthCard } from '../components/AuthCard';
 import { PasswordInput } from '../components/PasswordInput';
 
 function loginErrorMessage(err: unknown): string {
-  if (isNetworkError(err)) return 'Could not reach Elekeza. Check your connection and try again.';
+  if (isConnectionFailure(err)) return CONNECTION_ERROR_MESSAGE;
   const status = getErrorStatus(err);
   if (status === 401 || status === 400) return 'Invalid email or password.';
   return getErrorMessage(err, 'Sign-in failed. Please try again.');
