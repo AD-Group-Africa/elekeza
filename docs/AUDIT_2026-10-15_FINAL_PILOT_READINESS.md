@@ -203,6 +203,101 @@ release gates: (1) Daraja credentials + callback signature, (2) rotating all
 demo credentials at/first deployment, (3) governance hierarchy remains a
 documented product gap until approved and specified.
 
+## K. Governance engineering sprint (2026-10-16, 60-min)
+
+Branch `feat/elekeza-pilot-completion` @ baseline `1299c5b`; clean tree at start;
+all prior audit fixes verified present in HEAD (committed 05b31af).
+
+### K.1 FACT-CORRECTION on J.1
+`institutions` **does** have `county` and `sub_county` columns (V1 baseline,
+lines 123–124; demo seed populates them). The J.1 wording "no geography in
+schema" overstated: the accurate finding is **no authorization logic consumes
+the geographic columns** — there is no jurisdiction/assignment table and no
+scope filtering. Officials' hierarchy remains NOT IMPLEMENTED because nothing
+joins a user to an area, which is the defect that matters.
+
+### K.2 Regression lock-in (new automated tests)
+[governance/GovernanceRegressionTest.kt](../backend/src/test/kotlin/com/elekeza/backend/governance/GovernanceRegressionTest.kt)
+— HTTP-level through the real filter chain (JWT filter + CSRF + real cookie
+login, on the dev H2 profile):
+
+| Test | Locks in | Result |
+|---|---|---|
+| T10/P0 suspension | Suspension executed via the real tenant-scoped staff API by a SCHOOL_ADMIN; suspended account: `/api/auth/me` 401, refresh 401; reactivation restores the SAME cookie (200); never-suspended control account stays 200 | PASS |
+| T4/P1 scoping | Creates a 2nd institution + learner; SCHOOL_ADMIN `totalInstitutions=1` and learner count exactly equals institution-1 students (no leak); ADMIN equals full repo/student and institution counts (platform-wide) | PASS |
+| Boundary | `/analytics/admin/overview` 403 for SCHOOL_ADMIN / 200 for ADMIN; unauthenticated privileged access → structured 401 `AUTH_REQUIRED`; wrong role → structured 403 `ACCESS_DENIED` | PASS |
+
+Isolation: throwaway fixtures; refresh tokens deleted before users (FK); test
+institution removed in teardown; suspension state never left behind.
+
+### K.3 P3 closed — `/super-admin` client guard
+[super-admin/page.tsx](../frontend/src/app/super-admin/page.tsx) now renders nothing while auth is loading and an explicit "not
+authorized" state for non-ADMIN users; data requests no longer fire for
+non-ADMIN. Backend remains the boundary (unchanged, still enforced).
+
+### K.4 Specification of record
+[GOVERNANCE-HIERARCHY-SPEC.md](GOVERNANCE-HIERARCHY-SPEC.md) — proposed ED_OFFICIAL role + jurisdiction
+assignments, aggregated/k-suppressed oversight reporting, do-not-introduce
+list, and 6 explicit founder-approval decisions. NOTHING is migrated or
+implemented from it without sign-off.
+
+### K.5 Validation (all exit codes as returned)
+* Backend: `./gradlew test` — BUILD SUCCESSFUL, **exit 0** (full suite incl. the new governance tests).
+* Frontend: `tsc --noEmit` — **exit 0**; `vitest run` — 20/20, **exit 0**.
+
+### K.6 Pilot-readiness impact
+No change to **CONDITIONALLY READY**; the three release gates stand. The
+T10/P0 and T4/P1 fixes are now regression-locked in CI-runnable tests instead
+of manual live probes only. `superadmin@` demo credentials remain a rotation
+gate.
+
+## L. Governance specification hardening & regression review (2026-10-16)
+
+Addendum — no earlier finding is rewritten. The governance hierarchy remains
+**PROPOSED, NOT APPROVED, NOT IMPLEMENTED**; correcting documentation does not
+move the pilot-readiness verdict. Full detail:
+[GOVERNANCE-REGRESSION-REVIEW-2026-10-16.md](GOVERNANCE-REGRESSION-REVIEW-2026-10-16.md)
+and the revised [GOVERNANCE-HIERARCHY-SPEC.md](GOVERNANCE-HIERARCHY-SPEC.md) (v2).
+
+### L.1 Corrections to K.1 (verified this review)
+`institutions.county` / `sub_county` exist as **free-text `VARCHAR(255)`** — no
+FK, no CHECK, no enum ([V1__baseline_schema.sql](../backend/src/main/resources/db/migration/V1__baseline_schema.sql)
+L123–124; demo seed writes `'Central'`/`'Nairobi'`). **There is no geography
+reference table** (no `counties`/`sub_counties`). So the accurate defect is
+**no authorization consumes geography and no canonical geography exists** —
+not merely "no scope filtering".
+
+### L.2 K.4 name correction
+The draft alias **`ED_OFFICIAL` is obsolete**; the canonical name is
+**`EDUCATION_OFFICIAL`**. It is **not** in the `UserRole` enum. Neither role was
+added.
+
+### L.3 Provisioning & audit claims corrected (K.4 / audit body)
+- ADMIN accounts are **not creatable via any API** (registration always
+  `STUDENT`; `StaffManagementService` assigns only TEACHER/SCHOOL_ADMIN and
+  rejects ADMIN). ADMIN exists **only via seeds** (V2 demo seed / showcase /
+  attendance-finance), and only when seeding is enabled (prod sets it off):
+  **no production admin-provisioning workflow and no approval workflow exist.**
+- Audit logging is **PARTIAL, not "fully audit-logged"**: `audit_logs` exists
+  (V1 L162) and some staff/billing/curriculum/device/exam/tutor paths write to
+  it, but writes are `@Async` with failures swallowed, a scheduled job **purges
+  records older than 90 days** (not immutable), and **privileged reads are not
+  audited** (no audit call on `/api/analytics/admin`, `/overview`, or
+  `/api/admin/audit`). See spec §8.2.
+
+### L.4 Controls re-verified in source (this review — no change to verdict)
+T10/P0 suspension (session 401 + refresh 401), T4/P1 institution-scoped
+analytics, ADMIN-only `/overview`, and the structured 401/403 boundary are all
+**VERIFIED** in source and exercised by `GovernanceRegressionTest`. The
+`/super-admin` client guard is **defence in depth**; the backend stays
+authoritative. Details and exact commands: the regression-review document.
+
+### L.5 Pilot-readiness impact
+**Unchanged: CONDITIONALLY READY.** The three release gates stand
+(Daraja credentials + callback signature; demo-credential rotation; signed
+governance hierarchy before build). Documentation was corrected; nothing was
+implemented, so no gate moves.
+
 ## I. Next actions
 1. P0: Procure Daraja (production) credentials — owner: Harry/ops; AC:
    stkPush 200 + signed callback in prod.

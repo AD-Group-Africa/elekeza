@@ -29,7 +29,10 @@ class TeacherController(
     private val passwordEncoder: PasswordEncoder,
     private val notificationService: NotificationService,
 ) {
-    data class StudentDto(val id: String, val name: String, val email: String, val sneType: String)
+    // Numeric ID is the established API contract (frontend types it as number
+    // and posts studentIds: number[]); exposing it as a String was a Sprint 3
+    // regression against the domain model.
+    data class StudentDto(val id: Long, val name: String, val email: String, val sneType: String)
     data class CreateStudentRequest(val email: String, val fullName: String, val password: String, val sneType: String)
     data class AssignContentRequest(val contentId: Long, val studentIds: List<Long>)
     data class LinkGuardianRequest(val studentId: Long, val guardianEmail: String, val relationship: String = "PARENT")
@@ -42,7 +45,7 @@ class TeacherController(
         // support — hardcoded "NONE" hid Elekeza's core differentiation story.
         val sneByUser = learnerProfileRepo.findByUserIdIn(students.map { it.id })
             .associate { it.userId to (it.sneType?.name ?: "NONE") }
-        val dtos = students.map { s -> StudentDto(s.id.toString(), s.name, s.email, sneByUser[s.id] ?: "NONE") }
+        val dtos = students.map { s -> StudentDto(s.id, s.name, s.email, sneByUser[s.id] ?: "NONE") }
         return ResponseEntity.ok(dtos)
     }
 
@@ -56,7 +59,7 @@ class TeacherController(
             role = UserRole.STUDENT,
             institutionId = institutionId
         ))
-        return ResponseEntity.ok(StudentDto(student.id.toString(), student.name, student.email, "NONE"))
+        return ResponseEntity.ok(StudentDto(student.id, student.name, student.email, "NONE"))
     }
 
     @PostMapping("/content/assign")
