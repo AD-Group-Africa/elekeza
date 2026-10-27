@@ -86,10 +86,3 @@ Profile, settings, notifications and the coming-soon pages are open to every sig
 - **AI service accepting requests when its secret is unset:** fixed (fail-closed).
 - **Password reset:** implemented end to end (token endpoint + reset screen).
 
-## Recommended next steps
-
-1. Review and push `Iyann` (`git push -u origin Iyann`, never a plain `git push`), then open a PR into the agreed branch.
-2. Pilot environment: production profile with Postgres, the AI service with a real key, and email for password resets. Keep M-Pesa in mock until Daraja credentials and the callback URL are ready.
-3. Wire frontend error monitoring before real users arrive.
-4. Migrate the learner lesson and quiz screens to semantic tokens first (most used, most SNE-sensitive), then teacher and guardian screens.
-5. Decide which backend-only features the pilot needs on screen (likely deadlines, guardian exam results and personalised lesson variants).
