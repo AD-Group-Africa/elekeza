@@ -84,6 +84,12 @@ jobs:
           cache-dependency-path: frontend/package-lock.json
       - run: npm ci
       - run: npx playwright install --with-deps chromium
+      - uses: gradle/actions/setup-gradle@v3
+      - name: Build backend boot JAR
+        # playwright starts its web servers before globalSetup runs, so the
+        # jar the backend server launches must exist first
+        working-directory: backend
+        run: ./gradlew bootJar --console=plain
       - name: Run E2E suite (journeys + exam + offline + a11y + route crawl)
         run: npx playwright test
         env:
@@ -106,6 +112,14 @@ jobs:
 
   ai-elewa:
     runs-on: ubuntu-latest
+    # dummy provider env for every step: config.py fails fast at import
+    # without it, and pytest imports config too (not just the boot step).
+    # no real provider calls occur in the non-live suite.
+    env:
+      AI_PROVIDER: groq
+      AI_API_KEY: ci-dummy-not-a-real-key
+      INTERNAL_SECRET: elekeza-test-internal-key-not-a-secret
+      LANGFUSE_HOST: ""
     defaults:
       run:
         working-directory: ai-elewa
