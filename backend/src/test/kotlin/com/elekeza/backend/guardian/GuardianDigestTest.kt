@@ -34,6 +34,9 @@ class GuardianDigestTest : ApiTestSupport() {
     @Autowired lateinit var enrollmentRepo: ClassEnrollmentRepository
     @Autowired lateinit var guardianLinkRepo: GuardianLinkRepository
     @Autowired lateinit var assignmentRepo: AssignmentRepository
+    @Autowired lateinit var attendanceSessionRepo: com.elekeza.backend.attendance.AttendanceSessionRepository
+    @Autowired lateinit var attendanceRecordRepo: com.elekeza.backend.attendance.AttendanceRecordRepository
+    @Autowired lateinit var learnerRepo: com.elekeza.backend.auth.UserRepository
 
     private lateinit var inst: Institution
     private lateinit var clazz: SchoolClass
@@ -101,5 +104,53 @@ class GuardianDigestTest : ApiTestSupport() {
         val learner = login(wardEmail, "pass123")
         val res = get("/api/guardian/wards/${ward.id}/digest", learner)
         assertEquals(403, res.status)
+    }
+
+    @Test
+    @Order(4)
+    fun `digest attendance rate matches the attendance endpoint policy (EXCUSED excluded)`() {
+        // Seed marks inside the digest's 60-day window: 2 PRESENT, 1 ABSENT, 1 EXCUSED.
+        val session = attendanceSessionRepo.save(
+            com.elekeza.backend.attendance.AttendanceSession(classId = clazz.id, sessionDate = LocalDate.now().minusDays(1), recordedBy = ward.id)
+        )
+        fun rec(status: com.elekeza.backend.attendance.AttendanceStatus) =
+            attendanceRecordRepo.save(
+                com.elekeza.backend.attendance.AttendanceRecord(sessionId = session.id, learnerId = ward.id, status = status, recordedBy = ward.id)
+            )
+        rec(com.elekeza.backend.attendance.AttendanceStatus.PRESENT)
+        rec(com.elekeza.backend.attendance.AttendanceStatus.PRESENT)
+        rec(com.elekeza.backend.attendance.AttendanceStatus.ABSENT)
+        rec(com.elekeza.backend.attendance.AttendanceStatus.EXCUSED)
+
+        // Expected under the shared policy: (2 PRESENT + 0 LATE) / 3 assessed = 66.7%.
+        // The old digest formula divided by ALL 4 records → 75%; this is the
+        // regression this test pins: guardian and attendance numbers now agree.
+        val guardian = login(guardianEmail, "pass123")
+        val digest = get("/api/guardian/wards/${ward.id}/digest", guardian)
+        assertEquals(200, digest.status, digest.bodyText)
+        val attendance = digest.body?.get("attendance")
+        assertNotNull(attendance?.get("periodLabel")?.asText())
+        assertEquals("LAST_60_DAYS", attendance?.get("periodLabel")?.asText())
+        assertEquals(66.7, attendance?.get("rate")?.asDouble() ?: 0.0, 0.001,
+            "EXCUSED must be excluded from the guardian digest rate")
+
+        // Cross-check: the staff-facing learner endpoint states the same number.
+        val teacherEmail = "dg-teacher@test.local"
+        createUserIfAbsent(teacherEmail)
+        val teacherSession = login(teacherEmail, "teacherpass")
+        val learnerHistory = get("/api/attendance/learners/${ward.id}", teacherSession)
+        assertEquals(200, learnerHistory.status, learnerHistory.bodyText)
+        assertEquals(
+            attendance?.get("rate")?.asDouble() ?: 0.0,
+            learnerHistory.body?.get("attendanceRate")?.asDouble() ?: 0.0,
+            0.001,
+            "guardian digest and learner attendance endpoint must agree exactly",
+        )
+    }
+
+    private fun createUserIfAbsent(email: String) {
+        if (learnerRepo.findByEmail(email) == null) {
+            createUser(email, "teacherpass", "Digest Teacher", com.elekeza.backend.auth.UserRole.TEACHER, inst.id)
+        }
     }
 }

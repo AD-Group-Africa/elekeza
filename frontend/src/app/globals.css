@@ -11,12 +11,99 @@
  * Components never need theme logic: they read tokens or use remapped
  * Tailwind classes. New pages should prefer brand-* utilities and btn-*.
  */
-@import "../styles/tokens.css";
-@import "../styles/theme-remaps.css";
+@import '../styles/tokens.css';
+@import '../styles/theme-remaps.css';
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Shared primitives used across pages. These were referenced in markup
+   (btn-primary, btn-outline, input-field, label, card) but never defined,
+   so those forms and buttons rendered unstyled. All values come from tokens,
+   so they follow the active theme. */
+@layer components {
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--ek-radius-lg);
+    padding: 1.25rem;
+    color: var(--text-primary);
+  }
+
+  .label {
+    display: block;
+    margin-bottom: 0.25rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+  }
+
+  .input-field {
+    width: 100%;
+    border-radius: var(--ek-radius-sm);
+    border: 1px solid var(--border-strong);
+    background: var(--bg-card);
+    color: var(--text-primary);
+    padding: 0.625rem 0.875rem;
+  }
+  .input-field::placeholder {
+    color: var(--text-muted);
+  }
+  .input-field:focus {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 1px;
+  }
+
+  .btn-primary,
+  .btn-outline {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border-radius: var(--ek-radius-sm);
+    padding: 0.625rem 1.25rem;
+    font-weight: 600;
+    transition:
+      background-color var(--ek-speed) ease,
+      border-color var(--ek-speed) ease;
+  }
+  .btn-primary {
+    background: var(--accent);
+    color: var(--accent-contrast);
+  }
+  .btn-primary:hover:not(:disabled) {
+    background: var(--accent-hover);
+  }
+  .btn-outline {
+    border: 1px solid var(--border-strong);
+    color: var(--text-primary);
+    background: transparent;
+  }
+  .btn-outline:hover:not(:disabled) {
+    background: var(--bg-card-hover);
+  }
+  .btn-primary:focus-visible,
+  .btn-outline:focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
+  }
+
+  .animate-in {
+    animation: ek-fade-in var(--ek-speed) ease-out;
+  }
+}
+
+@keyframes ek-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
 
 body {
   background: var(--bg-gradient);
@@ -32,7 +119,9 @@ body {
   border: 1px solid var(--border-color);
   border-radius: 1rem;
   box-shadow: var(--ek-shadow-2);
-  transition: border-color var(--ek-speed) ease, background-color var(--ek-speed) ease;
+  transition:
+    border-color var(--ek-speed) ease,
+    background-color var(--ek-speed) ease;
 }
 .glass-card:hover {
   border-color: var(--border-strong);
@@ -44,23 +133,33 @@ body {
   border: 1px solid var(--border-color);
   border-radius: 0.75rem;
   padding: 1rem;
-  transition: border-color var(--ek-speed) ease, box-shadow var(--ek-speed) ease;
+  transition:
+    border-color var(--ek-speed) ease,
+    box-shadow var(--ek-speed) ease;
 }
 .metric-card:hover {
   border-color: var(--border-strong);
   box-shadow: var(--ek-shadow-1);
 }
 
-::-webkit-scrollbar { width: 8px; }
-::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
 ::-webkit-scrollbar-thumb {
   background: var(--border-strong);
   border-radius: 4px;
 }
-::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent);
+}
 
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
+  *,
+  *::before,
+  *::after {
     animation-duration: 0.001ms !important;
     transition-duration: 0.001ms !important;
   }
@@ -92,17 +191,23 @@ body.a11y-high-contrast .text-purple-300,
 body.a11y-high-contrast .text-purple-400 {
   color: #ffffff !important;
 }
-body.a11y-high-contrast a { text-decoration: underline; }
+body.a11y-high-contrast a {
+  text-decoration: underline;
+}
 
 /* Large text: scale the base and the most common text carriers. */
-body.a11y-large-text { font-size: 19px; }
+body.a11y-large-text {
+  font-size: 19px;
+}
 body.a11y-large-text p,
 body.a11y-large-text li,
 body.a11y-large-text label,
 body.a11y-large-text button,
 body.a11y-large-text input,
 body.a11y-large-text select,
-body.a11y-large-text textarea { font-size: 1.15em; }
+body.a11y-large-text textarea {
+  font-size: 1.15em;
+}
 
 /* Dyslexia support: letter/word spacing, generous line height, and a
    dyslexia-friendly system stack (no bundled OpenDyslexic webfont). */
@@ -124,9 +229,15 @@ body.a11y-font-family-high-clarity {
 }
 
 /* Font size classes applied by the hook (exactly one is always present). */
-body.a11y-font-sm { font-size: 14px; }
-body.a11y-font-md { font-size: 16px; }
-body.a11y-font-lg { font-size: 19px; }
+body.a11y-font-sm {
+  font-size: 14px;
+}
+body.a11y-font-md {
+  font-size: 16px;
+}
+body.a11y-font-lg {
+  font-size: 19px;
+}
 
 /* Reduced motion mirrors the OS-level prefers-reduced-motion rule above. */
 body.a11y-reduced-motion *,

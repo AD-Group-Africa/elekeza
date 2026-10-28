@@ -79,11 +79,18 @@ enum class PaymentMethod { MPESA, CASH, BANK }
 enum class PaymentStatus { PENDING, COMPLETED, FAILED }
 
 @Entity
-@Table(name = "payments", indexes = [
-    Index(name = "idx_payment_institution", columnList = "institution_id"),
-    Index(name = "idx_payment_learner", columnList = "learner_id"),
-    Index(name = "idx_payment_checkout", columnList = "checkout_request_id")
-])
+@Table(
+    name = "payments",
+    indexes = [
+        Index(name = "idx_payment_institution", columnList = "institution_id"),
+        Index(name = "idx_payment_learner", columnList = "learner_id"),
+        Index(name = "idx_payment_checkout", columnList = "checkout_request_id")
+    ],
+    // The database-level half of the payment idempotency guarantee: one
+    // provider checkout id can back at most ONE financial credit. NULLs are
+    // allowed and not constrained (manual payments carry no provider id).
+    uniqueConstraints = [UniqueConstraint(name = "ux_payment_checkout_request_id", columnNames = ["checkout_request_id"])]
+)
 data class Payment(
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long = 0,

@@ -51,7 +51,7 @@ keeps that hierarchy and clarifies labels.)
 
 ## 4. Navigation
 
-**Desktop (≥1024px): side navigation** via `SidebarLayout` — learner: Home, Learning, Progress,
+**Desktop (≥1024px): side navigation** via `AppShell` (menus in `src/config/navigation.ts`) — learner: Home, Learning, Progress,
 Messages, Support, Settings. School administration: Dashboard, Learners, Classes, Teachers,
 Learning, Guardians, Reports, Communication, Settings, Audit (as implemented per role).
 

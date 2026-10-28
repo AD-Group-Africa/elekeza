@@ -16,7 +16,6 @@ import path from 'path'
 
 const OUT = path.join(__dirname, '..', '..', '..', 'artifacts', 'exhibition-qa')
 const FULL = path.join(OUT, 'full-page')
-const MOBILE = path.join(OUT, 'mobile')
 
 const consoleErrors: string[] = []
 

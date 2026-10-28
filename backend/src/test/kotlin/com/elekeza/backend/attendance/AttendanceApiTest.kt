@@ -179,4 +179,36 @@ class AttendanceApiTest : ApiTestSupport() {
         assertEquals(200, res.status)
         assertNotNull(res.body?.get("counts"))
     }
+
+    @Test
+    @Order(9)
+    fun `attendance rate excludes EXCUSED and exposes the reporting period`() {
+        val teacher = login(teacherA, "pass123")
+        val date = LocalDate.now().plusDays(3)
+        // learnerA2: earlier PRESENT (after the order-1 update) + this EXCUSED.
+        // With the EXCUSED-excluded policy the rate is 100%, not 50%.
+        val body = """{"records":[{"learnerId":${learnerA2.id},"status":"EXCUSED"}]}"""
+        val saved = postJson("/api/attendance/classes/${classA.id}/sessions?date=$date", body, teacher)
+        assertEquals(200, saved.status)
+
+        val history = get("/api/attendance/learners/${learnerA2.id}", teacher)
+        assertEquals(200, history.status, history.bodyText)
+        assertEquals(100.0, history.body?.get("attendanceRate")?.asDouble() ?: -1.0, 0.001,
+            "EXCUSED must be excluded from both numerator and denominator")
+        assertNotNull(history.body?.get("periodFrom")?.asText())
+        assertNotNull(history.body?.get("periodTo")?.asText())
+        assertEquals("ALL_TIME", history.body?.get("periodLabel")?.asText())
+    }
+
+    @Test
+    @Order(10)
+    fun `learner with no assessed marks gets a null rate, not an invented 100 percent`() {
+        val guardian = login(guardianB, "pass123")
+        val res = get("/api/attendance/learners/${learnerB1.id}", guardian)
+        assertEquals(200, res.status)
+        assertEquals(0, res.body?.get("sessionsMarked")?.asLong())
+        assertTrue(res.body?.get("attendanceRate")?.isNull == true,
+            "no assessed records must yield an absent rate, never a fake 100%")
+        assertEquals("NO_RECORDS", res.body?.get("periodLabel")?.asText())
+    }
 }
