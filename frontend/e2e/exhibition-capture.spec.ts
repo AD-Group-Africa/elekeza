@@ -94,17 +94,33 @@ test.describe('exhibition capture', () => {
     await login(page, GUARDIAN.email, GUARDIAN.password)
     await page.goto('/guardian/communication')
     await shot(page, '16-guardian-communication')
-    // Send a fictional demo message if the composer exists
-    const composer = page.locator('textarea, input[type="text"]').first()
-    if (await composer.count()) {
-      await composer.fill('Exhibition demo: how is Juma progressing this week?')
-      await page.keyboard.press('Enter').catch(() => {})
-      await page.getByRole('button', { name: /send/i }).first().click().catch(() => {})
-      await page.waitForTimeout(1500)
-      await shot(page, '17-guardian-message-sent')
-    }
+
+    // Precondition: the guardian's ACTIVE link resolved a school with at
+    // least one teacher. GET /api/guardian/teachers answers 400 when it
+    // cannot, which disables both controls — assert that instead of
+    // skipping, or the round-trip below would silently test nothing.
+    const teacherSelect = page.getByLabel(/send to teacher/i)
+    await expect(teacherSelect).toBeEnabled({ timeout: 30_000 })
+    await expect(teacherSelect.locator('option')).toHaveCount(1)
+
+    // Unique body so the assertion can never match a leftover message.
+    const body = `Exhibition demo: how is Juma progressing this week? ${Date.now()}`
+    const composer = page.getByPlaceholder(/type a message to the teacher/i)
+    await composer.fill(body)
+    // A plain <input> has no Enter handler; the button is the real send path.
+    const send = page.getByRole('button', { name: 'Send message' })
+    await expect(send).toBeEnabled()
+    await send.click()
+
+    // Persistence (sender leg): the page re-reads /api/guardian/messages and
+    // renders the stored message with its sender attribution.
+    await expect(page.getByText(body)).toBeVisible({ timeout: 30_000 })
+    await shot(page, '17-guardian-message-sent')
+
+    // Recipient retrieval: the teacher's inbox contains the same body.
     await login(page, TEACHER.email, TEACHER.password)
     await page.goto('/teacher/communication')
+    await expect(page.getByText(body)).toBeVisible({ timeout: 30_000 })
     await shot(page, '18-teacher-communication')
   })
 

@@ -139,9 +139,13 @@ export default function GuardianCommunication() {
             placeholder="Type a message to the teacher…"
             className="flex-1 px-4 py-3 bg-white/10 border border-purple-300/30 rounded-lg text-white placeholder-purple-200/50 focus:outline-none focus:ring-2 focus:ring-purple-500"
           />
+          {/* Icon-only control: without a label it has no accessible name
+              (the lucide <svg> is aria-hidden), which leaves screen readers
+              and role-based selectors with nothing to target. */}
           <button
             onClick={handleSend}
             disabled={sending || !newMsg.trim() || !selectedTeacher}
+            aria-label={sending ? 'Sending message' : 'Send message'}
             className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-2 rounded-lg disabled:opacity-50"
           >
             {sending ? 'Sending…' : <Send size={18} />}
