@@ -16,6 +16,7 @@ import { getErrorStatus } from '@/lib/api';
 import { cn } from '@/lib/cn';
 import { Celebration, LearningCompanion, type CelebrationData } from '@/features/learner';
 import { learnerApi, learnerKeys } from '@/features/learner/api';
+import { celebrationFor } from '../celebration';
 import { optionLetter, optionsOf, quizApi, quizKeys, useLessonQuiz, type QuizFeedback } from '../api';
 import { useOfflineSync } from '../useOfflineSync';
 
@@ -32,30 +33,6 @@ interface AnswerState {
 /** Wall-clock time for answer-latency measurement (event handlers only). */
 const now = () => Date.now();
 const AUTO_ADVANCE_MS = 700;
-
-function celebrationFor(
-  score: number,
-  points: number,
-  level: number,
-  levelName: string,
-  achievements: string[],
-): CelebrationData {
-  // XP matches the backend economy (GamificationController: 10 points per completed quiz, 50 per level).
-  const prevLevel = Math.floor((points - 10) / 50) + 1;
-  return {
-    score,
-    stars: score >= 90 ? 5 : score >= 75 ? 4 : score >= 60 ? 3 : score >= 40 ? 2 : 1,
-    xpEarned: 10,
-    newAchievements: achievements.slice(-2),
-    levelUp: level > prevLevel ? { level, levelName } : null,
-    companionMessage:
-      score >= 90
-        ? 'Wow! You really know this. Shall we try another adventure?'
-        : score >= 60
-          ? 'Strong work! Every try makes you stronger.'
-          : 'Well done for finishing — that is how learning grows!',
-  };
-}
 
 export default function QuizScreen() {
   const { lessonId } = useParams<{ lessonId: string }>();
@@ -151,6 +128,10 @@ export default function QuizScreen() {
     }
     setSubmitting(true);
     setSubmitError('');
+    // Snapshot for the celebration diff (cached; never blocks submitting).
+    const before = await queryClient
+      .fetchQuery({ queryKey: learnerKeys.gamification, queryFn: learnerApi.gamification })
+      .catch(() => undefined);
     try {
       const res = await quizApi.complete(
         quiz.quizId,
@@ -166,7 +147,7 @@ export default function QuizScreen() {
           queryKey: learnerKeys.gamification,
           queryFn: learnerApi.gamification,
         });
-        setCelebration(celebrationFor(res.score, g.points, g.level, g.levelName, g.achievements || []));
+        setCelebration(celebrationFor(res.score, g, before));
       } catch {
         /* celebration is enhancement, not requirement */
       }

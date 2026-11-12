@@ -4,6 +4,7 @@ import com.elekeza.backend.auth.User
 import com.elekeza.backend.auth.UserRepository
 import com.elekeza.backend.auth.UserRole
 import com.elekeza.backend.content.ContentRepository
+import com.elekeza.backend.learner.LearningStreak
 import com.elekeza.backend.learner.LearnerProfileRepository
 import com.elekeza.backend.learner.LessonProgressRepository
 import com.elekeza.backend.quiz.QuizAnswerRepository
@@ -158,12 +159,9 @@ class AnalyticsController(
         val pending = progress.filter { !it.completed }
         val avgScore = if (completed.isNotEmpty()) completed.mapNotNull { it.quizScore }.average() else 0.0
 
-        var streak = 0
-        val sortedDates = completed.mapNotNull { it.completedAt }.sortedDescending()
-        for (i in sortedDates.indices) {
-            if (i == 0) { streak = 1; continue }
-            if (sortedDates[i-1].toLocalDate().minusDays(1) == sortedDates[i].toLocalDate()) streak++ else break
-        }
+        val streak = LearningStreak.current(
+            completed.mapNotNull { it.completedAt?.toLocalDate() }
+        )
 
         val weeklyActivity = (6 downTo 0).map { daysAgo ->
             val date = LocalDateTime.now().minusDays(daysAgo.toLong())

@@ -24,6 +24,7 @@ import {
   type Gamification,
   type ProgressDashboard,
 } from '../api';
+import { BadgeGallery } from '../components/BadgeGallery';
 import { LevelProgress } from '../components/LevelProgress';
 import { MASTERY_ICON, MASTERY_LABEL, MASTERY_TONE_CLASS, masteryStateOf } from '../masteryDisplay';
 import { formatDate } from '@/lib/format';
@@ -48,7 +49,7 @@ function buildReport(progress: ProgressDashboard | undefined, game: Gamification
     `Stars: ${game?.stars ?? 0} of 5`,
     `Level: ${game?.level ?? 0} (${game?.levelName ?? ''})`,
     `Points: ${game?.points ?? 0}`,
-    `Learning Streak: ${streak} days`,
+    `Learning Streak: ${streak} ${streak === 1 ? 'day' : 'days'}`,
     `Date: ${new Date().toLocaleDateString()}`,
   ].join('\n');
 }
@@ -125,7 +126,7 @@ export default function ProgressScreen() {
         <StatCard
           icon={<Award size={24} className="text-yellow-400" />}
           label="Learning streak"
-          value={`${streak} days`}
+          value={`${streak} ${streak === 1 ? 'day' : 'days'}`}
         />
       </div>
 
@@ -161,22 +162,26 @@ export default function ProgressScreen() {
         </Card>
       )}
 
-      {game.data && game.data.achievements.length > 0 && (
+      {game.data && (game.data.badges?.length || game.data.achievements.length > 0) && (
         <Card
           title={
             <span className="flex items-center gap-2">
-              <Award size={20} className="text-yellow-400" aria-hidden="true" /> Achievements
+              <Award size={20} className="text-yellow-400" aria-hidden="true" /> Badges
             </span>
           }
         >
-          <div className="flex flex-wrap gap-3">
-            {game.data.achievements.map((label) => (
-              <span key={label} className="flex items-center gap-1 rounded-full bg-white/5 px-3 py-1">
-                <span aria-hidden="true">🏅</span>
-                <span className="text-xs text-purple-200">{label}</span>
-              </span>
-            ))}
-          </div>
+          {game.data.badges?.length ? (
+            <BadgeGallery badges={game.data.badges} />
+          ) : (
+            <div className="flex flex-wrap gap-3">
+              {game.data.achievements.map((label) => (
+                <span key={label} className="flex items-center gap-1 rounded-full bg-white/5 px-3 py-1">
+                  <span aria-hidden="true">🏅</span>
+                  <span className="text-xs text-purple-200">{label}</span>
+                </span>
+              ))}
+            </div>
+          )}
         </Card>
       )}
 

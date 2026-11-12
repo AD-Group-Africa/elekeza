@@ -28,7 +28,22 @@ export interface Gamification {
   points: number;
   nextLevelPoints: number;
   stars: number;
+  /** Names of earned badges. */
   achievements: string[];
+  /** Consecutive learning days (absent on older backends). */
+  streak?: number;
+  /** Full badge catalogue, earned first (absent on older backends). */
+  badges?: GamificationBadge[];
+}
+
+export interface GamificationBadge {
+  id: string;
+  name: string;
+  description: string;
+  icon: string;
+  earned: boolean;
+  progress: number;
+  goal: number;
 }
 
 /** GET /api/analytics/student */
