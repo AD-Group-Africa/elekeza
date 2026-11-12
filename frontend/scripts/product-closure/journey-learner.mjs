@@ -133,13 +133,8 @@ try {
   }
   J.step('navigated to final section');
 
-  // Start practice → open quiz
-  const startPractice = p.getByRole('button', { name: 'Start practice' });
-  if (await startPractice.isVisible().catch(() => false)) {
-    await startPractice.click();
-    await p.waitForTimeout(500);
-  }
-  const openQuiz = p.getByRole('link', { name: /Open practice quiz/ });
+  // Open the practice quiz
+  const openQuiz = p.getByRole('link', { name: /Finish lesson and earn XP/ });
   await openQuiz.waitFor({ timeout: 20000 });
   await J.shot('lesson-practice-ready');
   await openQuiz.click();

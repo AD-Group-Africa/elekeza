@@ -82,6 +82,11 @@ jobs:
           node-version: 20
           cache: npm
           cache-dependency-path: frontend/package-lock.json
+      - uses: gradle/actions/setup-gradle@v3
+      - name: Build backend boot JAR (Playwright starts it)
+        # Jobs run on separate runners, so the backend job's JAR is not here.
+        working-directory: backend
+        run: ./gradlew bootJar --console=plain
       - run: npm ci
       - run: npx playwright install --with-deps chromium
       - name: Run E2E suite (journeys + exam + offline + a11y + route crawl)
@@ -109,6 +114,14 @@ jobs:
     defaults:
       run:
         working-directory: ai-elewa
+    env:
+      # Dummy provider env for every step: config.py fails fast at import
+      # without these (uvicorn boot AND pytest collection). No real provider
+      # calls occur in the non-live suite.
+      AI_PROVIDER: groq
+      AI_API_KEY: ci-dummy-not-a-real-key
+      INTERNAL_SECRET: elekeza-test-internal-key-not-a-secret
+      LANGFUSE_HOST: ""
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -129,13 +142,6 @@ jobs:
             sleep 1
           done
           curl -sf http://localhost:8000/health > /dev/null || (cat uvicorn.log && exit 1)
-        env:
-          # Dummy provider env: config.py fails fast at import without these.
-          # No real provider calls occur in the non-live suite.
-          AI_PROVIDER: groq
-          AI_API_KEY: ci-dummy-not-a-real-key
-          INTERNAL_SECRET: elekeza-test-internal-key-not-a-secret
-          LANGFUSE_HOST: ""
       - name: Run AI unit + contract + live-server tests (credential-free)
         # test_full_pipeline.py is marked `live_full`: it asserts against the
         # real AI provider and needs genuine AI_API_KEY credentials, so CI

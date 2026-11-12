@@ -5,23 +5,27 @@ import nextTs from "eslint-config-next/typescript";
 const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
-  // Override default ignores of eslint-config-next.
+  // Never lint generated output.
   globalIgnores([
-    // Default ignores of eslint-config-next:
     ".next/**",
-    // Generated Playwright e2e build output — 1139 of the 1156
-    // lint errors came from here. Never lint generated bundles.
-    ".next-e2e/**",
+    // Any alternate Next build dir (NEXT_DIST_DIR), e.g. .next-e2e for Playwright.
+    ".next-*/**",
+    ".netlify/**",
     "out/**",
     "build/**",
     "android/**",
     "public/sw.js",
     "public/workbox-*.js",
+    "public/fallback-*.js",
     "generate-icons.cjs",
     "next-env.d.ts",
-    // Local Netlify build output — never lint generated bundles.
-    ".netlify/**",
   ]),
+  {
+    // Dev-only capture/verification scripts drive Playwright with loosely
+    // typed page objects; strict typing there adds noise, not safety.
+    files: ["scripts/**"],
+    rules: { "@typescript-eslint/no-explicit-any": "off" },
+  },
 ]);
 
 export default eslintConfig;

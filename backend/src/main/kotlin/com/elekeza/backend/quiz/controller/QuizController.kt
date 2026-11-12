@@ -32,10 +32,10 @@ class QuizController(
     private val contentRepo: ContentRepository,
     private val learnerProfileRepo: LearnerProfileRepository,
     private val aiClient: AiClient,
-    private val aiQuizParser: AiQuizParser,
     private val notificationService: com.elekeza.backend.notification.NotificationService,
     private val contentAccessGuard: ContentAccessGuard,
     private val engagementService: com.elekeza.backend.analytics.EngagementService,
+    private val quizProvisioner: QuizProvisioner,
 ) {
     // Keep GET for the existing lesson page and accept POST for API clients.
     @RequestMapping("/{lessonId}/start", method = [RequestMethod.GET, RequestMethod.POST])
@@ -55,31 +55,8 @@ class QuizController(
             ))
         }
 
-        var quiz = quizRepo.findByContentId(lessonId)
-        if (quiz == null) {
-            quiz = quizRepo.save(Quiz(contentId = lessonId, userId = user.id))
-            val parsed = aiQuizParser.parse(content.simplifiedText)
-            if (parsed != null) {
-                // Real AI questions — never substitute placeholders when the
-                // stored quiz section exists but is broken/empty.
-                questionRepo.saveAll(parsed.map { p ->
-                    QuizQuestion(
-                        quizId = quiz.id,
-                        question = p.question,
-                        optionA = p.optionA,
-                        optionB = p.optionB,
-                        optionC = p.optionC,
-                        optionD = p.optionD,
-                        correctOption = p.correctOption,
-                        explanation = p.explanation
-                    )
-                })
-            } else {
-                // No stored AI quiz at all — placeholder fallback.
-                questionRepo.save(QuizQuestion(quizId = quiz.id, question = "What is the main idea of this lesson?", optionA = "Option A", optionB = "Option B", optionC = "Option C", optionD = "Option D", correctOption = "A", explanation = "Review the lesson content"))
-                questionRepo.save(QuizQuestion(quizId = quiz.id, question = "What is a key concept from this lesson?", optionA = "Option A", optionB = "Option B", optionC = "Option C", optionD = "Option D", correctOption = "B", explanation = "Check the lesson for details"))
-            }
-        }
+        // One quiz per lesson, safe when several learners start it at once.
+        val quiz = quizProvisioner.quizFor(content, user.id)
         val questions = questionRepo.findByQuizId(quiz.id)
         if (questions.isEmpty()) throw ResponseStatusException(HttpStatus.NOT_FOUND, "No questions")
 

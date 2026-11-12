@@ -26,6 +26,26 @@ the generated remap layer keeps legacy pages correct while pages are touched.
 **Known outlier:** attendance page uses light gray/emerald utilities — reconcile to tokens during
 this closure (it was already contrast-fixed: `text-gray-900` + emerald-700 button).
 
+### 1.1 Readability rules (visibility pass, 2026-11-12)
+
+A measured contrast audit (axe `color-contrast`, every role-reachable page × dark/light/calm =
+177 page-theme combinations, gradients flattened so axe can measure them) plus a visual review
+produced these binding rules. Implementation lives in `frontend/src/styles/theme-remaps.css`
+and `frontend/src/app/globals.css`.
+
+| Rule | Why |
+|---|---|
+| **Dark theme: mint-green headings, lilac-white body.** `h1–h3` keep `--ek-moss-300`; paragraphs, labels and menu items use `--text-primary` / `--text-secondary`. | Legacy purple text classes aliased the retired moss palette, so most copy was green on purple and inconsistent with newer screens. Keeps the purple + green identity while long text (lessons) stays easy to read. |
+| **Form fields are always white with dark text** (all themes). Anything drawn *on* a field (password eye, search icon) uses `text-gray-500/600`, never a theme text class. | Pale theme colours (e.g. mint) fall to ~1.9:1 on white. |
+| **Never fade a translucent token again.** Border classes like `border-purple-300/20` map to the full `--border-color` / `--border-strong`. | `--border-color` is already translucent; mixing it to 20% left chips and dividers ~4% visible. |
+| **Links inside sentences are underlined** (not colour-only). | WCAG 1.4.1 `link-in-text-block`. |
+| **Charts follow theme text.** Recharts axes/labels/tooltips are styled from tokens in `globals.css`; don't hard-code hex in chart props. | `#a78bfa` axes were purple-on-purple in dark and too pale in light. |
+| **White text on hero gradients starts from `--accent-strong`** in light/calm. | Mid-accent start was 4.2–4.4:1 for small text. |
+| **Only one password eye.** The browser's native reveal button (`::-ms-reveal`) is hidden; `PasswordInput` provides the toggle. | Edge showed two eyes. |
+
+Not changed on purpose: Elekeza Assist still overlaps content near the bottom-left (placement is
+binding, §5); the purple/blue logo has low contrast on the dark sidebar (needs a light logo asset).
+
 ## 2. Role-specific experiences (rule: “this is my space”)
 
 | Role | Home | Primary actions |
@@ -40,6 +60,31 @@ Learner screens are audited against: typography, button size, navigation depth, 
 contrast, spacing, **number of actions per screen**, language, audio support, feedback, errors,
 progress indicators.
 
+### 2.1 Learner gamification (contract)
+
+Gamification rewards the learner's **own** progress ("I did it"). There are no leaderboards and
+no comparison with other learners, and nothing is ever taken away. Everything is computed on the
+fly by `GET /api/gamification/student` (`GamificationController`) from data the platform already
+records. There are no extra tables.
+
+| Element | Rule | Where the learner sees it |
+|---|---|---|
+| **XP / points** | 10 per completed quiz + 2 per completed lesson | Home level card ("38 XP · 12 points to Level 2") |
+| **Levels** | Every 50 points; Seed → Sprout → Explorer → Adventurer → Pathfinder → Trailblazer → Star Chaser → Scholar → Champion → Legend (top level shows "Top level reached!") | Home level card, Progress page |
+| **Stars** | From average quiz score: ≥90 → 5, ≥75 → 4, ≥60 → 3, ≥40 → 2, any quiz → 1 | Home, Progress, quiz celebration |
+| **Streak** | Consecutive days with a completed lesson (`LearningStreak`). Several completions on one day count once; the streak stays alive until a whole day is missed. Shown only when > 0, never shamed when broken. | Home "🔥 3 day streak" chip, Progress |
+| **Badges** | 8 badges (First Steps, On Fire, Quiz Explorer, Lesson Star, Sharpshooter, Unstoppable, Quiz Champion, Scholar). The API returns the whole catalogue with `earned`, `progress`, `goal`. | Progress → Badges: earned badges first; locked ones show 🔒, how to earn them, and "2 of 5" progress |
+| **Celebration** | After a quiz, XP, level-up and *new* badges are the difference between the learner's state before and after the submit (`features/quiz/celebration.ts`). | Full-screen celebration dialog |
+
+API shape (`achievements` is kept for older clients; `streak` and `badges` were added 2026-11-12):
+
+```json
+{ "level": 1, "levelName": "Seed", "points": 38, "nextLevelPoints": 12, "stars": 4,
+  "achievements": ["First Steps"], "streak": 2,
+  "badges": [{ "id": "first-steps", "name": "First Steps", "description": "Finish your first quiz",
+               "icon": "🌱", "earned": true, "progress": 1, "goal": 1 }, "…"] }
+```
+
 ## 3. Guardian “Today” home (implemented contract)
 
 Order of answers on the guardian dashboard: **what is my child learning → what did they complete →
@@ -51,7 +96,7 @@ keeps that hierarchy and clarifies labels.)
 
 ## 4. Navigation
 
-**Desktop (≥1024px): side navigation** via `SidebarLayout` — learner: Home, Learning, Progress,
+**Desktop (≥1024px): side navigation** via `AppShell` (menus in `src/config/navigation.ts`) — learner: Home, Learning, Progress,
 Messages, Support, Settings. School administration: Dashboard, Learners, Classes, Teachers,
 Learning, Guardians, Reports, Communication, Settings, Audit (as implemented per role).
 

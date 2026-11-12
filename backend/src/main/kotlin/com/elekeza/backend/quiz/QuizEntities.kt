@@ -72,7 +72,8 @@ data class QuizAnswer(
 
 @Repository
 interface QuizRepository : JpaRepository<Quiz, Long> {
-    fun findByContentId(contentId: Long): Quiz?
+    /** The lesson's quiz. First by id, so rows duplicated by an old race still resolve. */
+    fun findFirstByContentIdOrderByIdAsc(contentId: Long): Quiz?
     fun findByContentIdAndUserId(contentId: Long, userId: Long): Quiz?
     fun findByContentIdIn(contentIds: Collection<Long>): List<Quiz>
 }

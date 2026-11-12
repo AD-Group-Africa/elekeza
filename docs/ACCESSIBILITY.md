@@ -39,8 +39,8 @@ so future work unifies rather than duplicates.
 - **Perceivable:** `lang="en"`; metadata titles; role="status"/"alert"/aria-live on load/save/error/
   offline across learner surfaces; readable type scale; high-contrast preference; non-colour-only
   meaning (icons + text everywhere); calm/large-type modes.
-- **Operable:** skip link ("Skip to main content" → `main#main-content`) in `SidebarLayout` and
-  `DashboardLayout`; `aria-current="page"` on nav links; global `*:focus-visible` ring (token-driven
+- **Operable:** skip link ("Skip to main content" → `main#main-content`) in the shared `AppShell`
+  (every signed-in page); `aria-current="page"` on nav links; global `*:focus-visible` ring (token-driven
   per theme); reduced-motion honoured globally (`prefers-reduced-motion`) incl. companion/
   celebration components; no drag-only/gesture-only interactions; large touch targets (learner
   primary actions ≥ ~40–92px); exam timing server-authoritative and never a lesson gate.
