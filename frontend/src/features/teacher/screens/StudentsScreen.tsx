@@ -16,6 +16,7 @@ import {
   TextInput,
 } from '@/components/ui';
 import { getErrorMessage } from '@/lib/api';
+import { PasswordInput } from '@/features/auth/components/PasswordInput';
 import { teacherApi, teacherKeys, useStudents, type NewStudent } from '../api';
 import { StudentSupportPanel } from '../components/StudentSupportPanel';
 import { LearnerRecord } from '@/features/learners/components/LearnerRecord';
@@ -97,9 +98,8 @@ export default function StudentsScreen() {
               label="Temporary password"
               hint="Share it with the learner; they can change it later."
             >
-              <TextInput
+              <PasswordInput
                 id="new-student-password"
-                type="password"
                 autoComplete="new-password"
                 value={form.password}
                 onChange={(e) => setForm({ ...form, password: e.target.value })}
@@ -131,7 +131,7 @@ export default function StudentsScreen() {
 
       <Card>
         <div className="relative mb-4">
-          <Search size={20} className="absolute left-3 top-1/2 -translate-y-1/2 text-purple-300" aria-hidden="true" />
+          <Search size={20} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" aria-hidden="true" />
           <TextInput
             type="search"
             aria-label="Search students"

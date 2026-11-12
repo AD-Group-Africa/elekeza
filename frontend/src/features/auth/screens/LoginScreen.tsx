@@ -78,7 +78,7 @@ function LoginForm() {
       </form>
       <p className="mt-6 text-center text-sm text-purple-200/70">
         Don&apos;t have an account?{' '}
-        <Link href="/register" className="text-purple-300 hover:underline">
+        <Link href="/register" className="font-semibold text-purple-200 underline underline-offset-2 hover:text-white">
           Register
         </Link>
       </p>

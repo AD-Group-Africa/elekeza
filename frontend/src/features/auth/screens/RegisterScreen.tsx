@@ -117,13 +117,13 @@ export default function RegisterScreen() {
       </form>
       <p className="mt-6 text-center text-sm text-purple-200/70">
         Already have an account?{' '}
-        <Link href="/login" className="text-purple-300 hover:underline">
+        <Link href="/login" className="font-semibold text-purple-200 underline underline-offset-2 hover:text-white">
           Login
         </Link>
       </p>
       <p className="mt-2 text-center text-sm text-purple-200/70">
         Registering a school?{' '}
-        <Link href="/school/onboarding" className="text-purple-300 hover:underline">
+        <Link href="/school/onboarding" className="font-semibold text-purple-200 underline underline-offset-2 hover:text-white">
           Start here
         </Link>
       </p>

@@ -13,7 +13,7 @@ export function PasswordInput(props: Omit<InputHTMLAttributes<HTMLInputElement>,
       <button
         type="button"
         onClick={() => setVisible((v) => !v)}
-        className="absolute right-1 top-1/2 -translate-y-1/2 p-2 text-purple-300 hover:text-white"
+        className="absolute right-1 top-1/2 -translate-y-1/2 rounded-md p-2 text-gray-600 hover:text-gray-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-focus"
         aria-label={visible ? 'Hide password' : 'Show password'}
       >
         {visible ? <EyeOff size={20} aria-hidden="true" /> : <Eye size={20} aria-hidden="true" />}

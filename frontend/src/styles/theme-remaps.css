@@ -98,7 +98,7 @@ html .border-amber-400 {
   border-color: var(--border-color);
 }
 html .border-amber-400\/40 {
-  border-color: color-mix(in srgb, var(--border-color) 40%, transparent);
+  border-color: var(--border-strong);
 }
 html .border-purple-200 {
   border-color: var(--border-color);
@@ -107,16 +107,16 @@ html .border-purple-300 {
   border-color: var(--border-color);
 }
 html .border-purple-300\/10 {
-  border-color: color-mix(in srgb, var(--border-color) 10%, transparent);
+  border-color: var(--border-color);
 }
 html .border-purple-300\/20 {
-  border-color: color-mix(in srgb, var(--border-color) 20%, transparent);
+  border-color: var(--border-color);
 }
 html .border-purple-300\/30 {
-  border-color: color-mix(in srgb, var(--border-color) 30%, transparent);
+  border-color: var(--border-strong);
 }
 html .border-purple-300\/5 {
-  border-color: color-mix(in srgb, var(--border-color) 5%, transparent);
+  border-color: var(--border-color);
 }
 html .border-purple-400 {
   border-color: var(--border-color);
@@ -125,13 +125,13 @@ html .border-purple-500 {
   border-color: var(--border-strong);
 }
 html .border-purple-500\/10 {
-  border-color: color-mix(in srgb, var(--border-strong) 10%, transparent);
+  border-color: var(--border-color);
 }
 html .border-purple-500\/20 {
-  border-color: color-mix(in srgb, var(--border-strong) 20%, transparent);
+  border-color: var(--border-strong);
 }
 html .border-purple-500\/30 {
-  border-color: color-mix(in srgb, var(--border-strong) 30%, transparent);
+  border-color: var(--border-strong);
 }
 html .border-rose-300 {
   border-color: var(--border-color);
@@ -533,6 +533,30 @@ html:is([data-theme='light'], [data-theme='calm']) :is(.to-indigo-950, .to-indig
   --tw-gradient-to: var(--bg-secondary) var(--tw-gradient-to-position);
 }
 
+/* ================= DARK THEME TEXT (default purple) =================
+ * The legacy purple text classes used to alias the retired moss palette, so
+ * most dark-theme copy rendered mint green on purple while newer screens used
+ * the theme's lilac-white. Body copy now uses the purple theme's own text
+ * tokens; mint green is kept for headings so the purple + green identity
+ * stays. Must come BEFORE the solid-fill rule below (same specificity), so
+ * text on buttons and banners still resolves to white.
+ */
+html[data-theme='dark']
+  :is(.text-purple-50, .text-purple-100, .text-purple-200, .text-fuchsia-100, .text-fuchsia-200, .text-purple-200\/80) {
+  color: var(--text-primary);
+}
+html[data-theme='dark'] :is(.text-purple-300, .text-purple-300\/80) {
+  color: var(--text-secondary);
+}
+html[data-theme='dark']
+  :is(.text-purple-200\/50, .text-purple-200\/70, .text-purple-300\/60, .text-purple-300\/70) {
+  color: var(--text-muted);
+}
+html[data-theme='dark']
+  :where(h1, h2, h3):is(.text-purple-50, .text-purple-100, .text-purple-200, .text-fuchsia-100, .text-fuchsia-200, .text-fg) {
+  color: var(--ek-moss-300);
+}
+
 /* Keep white text on solid, colourful fills (buttons, avatars, banners), on
  * the element itself or inside it, in every theme. Listed by exact class so translucent tints
  * such as bg-purple-600/40 are not included: those sit on paper and use dark
@@ -587,6 +611,15 @@ html
   )
   :is(.text-white, .text-white\/70, .text-purple-100, .text-purple-200, .text-fuchsia-100, .text-fuchsia-200) {
   color: #ffffff;
+}
+
+/* Hero banners (e.g. learner "Continue learning"): on paper themes the gradient
+ * starts at the mid accent, where small white text fell below 4.5:1. Start
+ * from the deeper accent instead. */
+html:is([data-theme='light'], [data-theme='calm'])
+  :is(.from-fuchsia-600, .from-fuchsia-500, .hover\:from-fuchsia-500:hover) {
+  --tw-gradient-from: var(--accent-strong) var(--tw-gradient-from-position);
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
 }
 
 /* Selected / tinted states: softer accent tint on paper so text stays readable */

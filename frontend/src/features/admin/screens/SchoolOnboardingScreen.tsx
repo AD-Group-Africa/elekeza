@@ -11,6 +11,7 @@ import { useRouter } from 'next/navigation';
 import { useMutation } from '@tanstack/react-query';
 import { Alert, Button, Card, Field, Select, TextInput } from '@/components/ui';
 import { getErrorMessage } from '@/lib/api';
+import { PasswordInput } from '@/features/auth/components/PasswordInput';
 import { cn } from '@/lib/cn';
 import { adminApi } from '../api';
 
@@ -232,9 +233,8 @@ export default function SchoolOnboardingScreen() {
                   />
                 </Field>
                 <Field id="admin-password" label="Password * (min 8 chars)">
-                  <TextInput
+                  <PasswordInput
                     id="admin-password"
-                    type="password"
                     autoComplete="new-password"
                     value={form.adminPassword}
                     onChange={(e) => update('adminPassword', e.target.value)}
