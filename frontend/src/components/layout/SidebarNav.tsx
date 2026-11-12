@@ -2,11 +2,36 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
+import { useLinkStatus } from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LogOut, Menu, X } from 'lucide-react';
+import { LoaderCircle, LogOut, Menu, X } from 'lucide-react';
 import { COMMON_NAV, NAV_BY_ROLE, type NavItem } from '@/config/navigation';
 import { isRole, roleHome } from '@/lib/roles';
 import { cn } from '@/lib/cn';
+
+function NavLinkContent({ item, collapsed }: { item: NavItem; collapsed: boolean }) {
+  const { pending } = useLinkStatus();
+
+  return (
+    <>
+      {pending ? (
+        <LoaderCircle size={20} aria-hidden="true" className="shrink-0 animate-spin" />
+      ) : (
+        <item.icon size={20} aria-hidden={true} />
+      )}
+      {collapsed ? (
+        <span className="sr-only">{item.label}</span>
+      ) : (
+        <span className="text-sm font-medium">{item.label}</span>
+      )}
+      {pending && (
+        <span className="sr-only" role="status">
+          Opening {item.label}…
+        </span>
+      )}
+    </>
+  );
+}
 
 function NavLink({ item, collapsed, onNavigate }: { item: NavItem; collapsed: boolean; onNavigate: () => void }) {
   const pathname = usePathname();
@@ -22,12 +47,7 @@ function NavLink({ item, collapsed, onNavigate }: { item: NavItem; collapsed: bo
         active ? 'bg-purple-600/40 text-white' : 'text-purple-200 hover:bg-white/10',
       )}
     >
-      <item.icon size={20} aria-hidden={true} />
-      {collapsed ? (
-        <span className="sr-only">{item.label}</span>
-      ) : (
-        <span className="text-sm font-medium">{item.label}</span>
-      )}
+      <NavLinkContent item={item} collapsed={collapsed} />
     </Link>
   );
 }
