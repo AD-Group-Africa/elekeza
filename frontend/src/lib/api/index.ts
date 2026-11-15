@@ -1,3 +1,9 @@
 export { apiClient } from './client';
-export { getErrorMessage, getErrorStatus, isNetworkError } from './errors';
+export {
+  CONNECTION_ERROR_MESSAGE,
+  getErrorMessage,
+  getErrorStatus,
+  isConnectionFailure,
+  isNetworkError,
+} from './errors';
 export { refreshSessionOnce } from './sessionRefresh';

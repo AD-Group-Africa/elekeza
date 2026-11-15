@@ -47,6 +47,6 @@ mpesa:
   consumer-key: ${MPESA_CONSUMER_KEY:}
   consumer-secret: ${MPESA_CONSUMER_SECRET:}
   passkey: ${MPESA_PASSKEY:}
-  shortcode: ${MPESA_SHORTCODE:174379}
+  shortcode: ${MPESA_SHORTCODE:}
   callback-url: ${MPESA_CALLBACK_URL:}
-  environment: ${MPESA_ENVIRONMENT:production}
+  environment: ${MPESA_ENVIRONMENT:}

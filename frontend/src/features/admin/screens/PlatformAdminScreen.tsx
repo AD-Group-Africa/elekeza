@@ -5,7 +5,8 @@
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Bell, Building2, GraduationCap, Users } from 'lucide-react';
-import { Alert, Badge, Button, Card, LoadingState, PageHeader, Select, Switch, Tabs } from '@/components/ui';
+import { Alert, Badge, Button, Card, EmptyState, LoadingState, PageHeader, Select, Switch, Tabs } from '@/components/ui';
+import { useAuth } from '@/features/auth';
 import { notificationKeys, notificationsApi } from '@/features/notifications/api';
 import { formatDateTime } from '@/lib/format';
 import { adminApi, adminKeys } from '../api';
@@ -271,6 +272,24 @@ function Waitlist() {
 
 export default function PlatformAdminScreen() {
   const [tab, setTab] = useState<Tab>('overview');
+  // Client-side role guard (sprint 3): the backend enforces ADMIN on every
+  // request; returning early keeps every tab's requests from firing for
+  // other roles.
+  const { user, loading: authLoading } = useAuth();
+  if (authLoading) return <LoadingState />;
+  if (user?.role !== 'ADMIN') {
+    return (
+      <EmptyState
+        title="Platform Administration"
+        description="You are not authorized to view this page."
+        action={
+          <a href="/admin" className="underline">
+            Return to your dashboard
+          </a>
+        }
+      />
+    );
+  }
   return (
     <div className="space-y-6">
       <PageHeader title="Platform Administration" description="Platform-wide data, configuration and health." />

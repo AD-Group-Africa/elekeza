@@ -156,10 +156,10 @@ class AttendanceService(
         val classById = sessionById.values.associate { it.classId to (classRepo.findById(it.classId).orElse(null)?.name ?: "Class") }
 
         val counts = records.groupingBy { it.status.name }.eachCount()
-        // Rate counts PRESENT+LATE as attended; EXCUSED is neither penalized nor rewarded.
-        val assessed = (counts["PRESENT"] ?: 0) + (counts["ABSENT"] ?: 0) + (counts["LATE"] ?: 0)
-        val attended = (counts["PRESENT"] ?: 0) + (counts["LATE"] ?: 0)
-        val rate = if (assessed > 0) attended * 100.0 / assessed else 100.0
+        // Rate comes from the shared AttendancePolicy: PRESENT+LATE over assessed
+        // marks, EXCUSED excluded, null when nothing was assessed (no invented 100%).
+        val rate = AttendancePolicy.rate(records.map { it.status })
+        val periodDates = records.mapNotNull { r -> sessionById[r.sessionId]?.sessionDate }
 
         return LearnerAttendanceDto(
             learnerId = learner.id,
@@ -173,7 +173,10 @@ class AttendanceService(
                 "LATE" to (counts["LATE"] ?: 0).toLong(),
                 "EXCUSED" to (counts["EXCUSED"] ?: 0).toLong()
             ),
-            attendanceRate = Math.round(rate * 10) / 10.0,
+            attendanceRate = rate,
+            periodFrom = periodDates.minOrNull(),
+            periodTo = periodDates.maxOrNull(),
+            periodLabel = if (records.isEmpty()) "NO_RECORDS" else "ALL_TIME",
             records = records.mapNotNull { r ->
                 val s = sessionById[r.sessionId] ?: return@mapNotNull null
                 LearnerAttendanceEntryDto(s.sessionDate, r.status.name, r.note, classById[s.classId] ?: "Class")
@@ -182,7 +185,7 @@ class AttendanceService(
     }
 
     /** Institution-wide summary for admins (counts per status over a date range). */
-    fun institutionSummary(user: com.elekeza.backend.auth.User, from: LocalDate, to: LocalDate): Map<String, Any> {
+    fun institutionSummary(user: com.elekeza.backend.auth.User, from: LocalDate, to: LocalDate): Map<String, Any?> {
         if (user.role !in setOf(com.elekeza.backend.auth.UserRole.SCHOOL_ADMIN, com.elekeza.backend.auth.UserRole.ADMIN)) {
             throw ResponseStatusException(HttpStatus.FORBIDDEN, "Not authorized")
         }
@@ -194,11 +197,12 @@ class AttendanceService(
         val sessions = sessionRepo.findByClassIdInAndSessionDateBetween(classIds, from, to)
         val records = recordRepo.findBySessionIdIn(sessions.map { it.id })
         val counts = records.groupingBy { it.status.name }.eachCount()
-        val assessed = (counts["PRESENT"] ?: 0) + (counts["ABSENT"] ?: 0) + (counts["LATE"] ?: 0)
-        val attended = (counts["PRESENT"] ?: 0) + (counts["LATE"] ?: 0)
+        // Same shared policy as the learner & guardian endpoints, so the admin
+        // number can never diverge from what guardians see for the same marks.
         return mapOf(
             "from" to from.toString(),
             "to" to to.toString(),
+            "periodLabel" to "CUSTOM_RANGE",
             "sessions" to sessions.size.toLong(),
             "records" to records.size.toLong(),
             "counts" to mapOf(
@@ -207,7 +211,7 @@ class AttendanceService(
                 "LATE" to (counts["LATE"] ?: 0).toLong(),
                 "EXCUSED" to (counts["EXCUSED"] ?: 0).toLong()
             ),
-            "attendanceRate" to if (assessed > 0) Math.round(attended * 1000.0 / assessed) / 10.0 else 100.0
+            "attendanceRate" to AttendancePolicy.rate(records.map { it.status })
         )
     }
 

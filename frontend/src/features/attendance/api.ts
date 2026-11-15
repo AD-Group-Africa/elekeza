@@ -39,7 +39,11 @@ export interface LearnerAttendance {
   className: string | null;
   sessionsMarked: number;
   counts: Record<string, number>;
-  attendanceRate: number;
+  /** null = nothing assessed yet (sprint 3 backend contract). */
+  attendanceRate: number | null;
+  periodFrom: string | null;
+  periodTo: string | null;
+  periodLabel: string;
   records: Array<{ date: string; status: string; note: string | null; className: string }>;
 }
 

@@ -40,7 +40,8 @@ class FinanceService(
     private val institutionRepo: InstitutionRepository,
     private val enrollmentRepo: ClassEnrollmentRepository,
     private val classRepo: SchoolClassRepository,
-    private val mpesaGateway: MpesaGateway
+    private val mpesaGateway: MpesaGateway,
+    private val auditLogService: com.elekeza.backend.common.AuditLogService
 ) {
 
     // ── Periods / items / structures ────────────────────────────────────────
@@ -348,8 +349,17 @@ class FinanceService(
         val result = mpesaGateway.stkPush(phone, req.amount, "ELEKEZA-FEES-${learner.id}", "School fees — ${learner.name}")
         val checkoutId = result["checkoutRequestId"] as? String
         if (checkoutId.isNullOrBlank()) {
+            auditLogService.log(
+                action = "MPESA_INIT_REJECTED", category = "PAYMENT", userId = actor.id,
+                detail = "learnerId=${learner.id} amountKES=${req.amount} outcome=provider-unavailable",
+                success = false,
+            )
             throw ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "M-Pesa is not configured or rejected the request")
         }
+        auditLogService.log(
+            action = "MPESA_INIT", category = "PAYMENT", userId = actor.id,
+            detail = "learnerId=${learner.id} amountKES=${req.amount} checkoutRequestId=$checkoutId mocked=${mpesaGateway.isMock}",
+        )
         return mapOf(
             "checkoutRequestId" to checkoutId,
             "status" to "PENDING",
@@ -390,6 +400,13 @@ class FinanceService(
         ))
         val allocations = allocateAutomatically(payment)
         refreshChargeStatuses(allocations.map { it.chargeId }.toSet())
+        // Lifecycle audit (payment-security sprint 2, Phase 4): financial credit
+        // applied. Correlation ids only — no phone numbers, no payload bodies.
+        auditLogService.log(
+            action = "MPESA_CREDIT_APPLIED", category = "PAYMENT",
+            detail = "checkoutRequestId=$checkoutRequestId paymentId=${payment.id} learnerId=$learnerId amountKES=$amount " +
+                (receiptNumber?.let { "receiptNumber=$it" } ?: "receiptNumber-propagated-later"),
+        )
         return toPaymentDto(payment, allocations)
     }
 

@@ -29,6 +29,7 @@ class DevicesAndBillingApiTest : ApiTestSupport() {
         val builder = when (method) {
             "POST" -> MockMvcRequestBuilders.post(url)
             "PATCH" -> MockMvcRequestBuilders.patch(url)
+            "DELETE" -> MockMvcRequestBuilders.delete(url)
             else -> MockMvcRequestBuilders.get(url)
         }.cookie(session)
         val pair = if (method == "GET") null else csrf(session)
@@ -86,6 +87,50 @@ class DevicesAndBillingApiTest : ApiTestSupport() {
             MockMvcRequestBuilders.get("/api/devices/mine").cookie(login(learner.email, "learnerpass1"))
         ).andReturn()
         assertThat(afterRevocation.response.contentAsString).contains(""""device":null""")
+    }
+
+    @Test
+    fun `device unassign clears the open assignment and label edits persist`() {
+        val (session, _) = adminSession()
+        val tenantId = 1L
+
+        val registered = write(
+            session, "POST", "/api/devices",
+            """{"deviceCode":"EK-DV-U-${System.nanoTime()}","label":"Cart A"}"""
+        )
+        assertThat(registered.response.status).isEqualTo(201)
+        val deviceId = com.fasterxml.jackson.databind.json.JsonMapper()
+            .readTree(registered.response.contentAsString)["id"].asLong()
+
+        val learner = createUser("dev-unassign-${System.nanoTime()}@example.com", "learnerpass1", "Unassign Learner", UserRole.STUDENT, tenantId)
+        write(session, "PATCH", "/api/devices/$deviceId/status?status=ACTIVE")
+        val assigned = write(session, "POST", "/api/devices/$deviceId/assign/${learner.id}")
+        assertThat(assigned.response.status).isEqualTo(200)
+
+        // Edit the label (Sprint 3 gap) and confirm it persists.
+        val relabelled = write(session, "PATCH", "/api/devices/$deviceId", """{"label":"Cart A - North wing"}""")
+        assertThat(relabelled.response.status).isEqualTo(200)
+        assertThat(com.fasterxml.jackson.databind.json.JsonMapper()
+            .readTree(relabelled.response.contentAsString)["label"].asText()).isEqualTo("Cart A - North wing")
+
+        // Unassign (Sprint 3 gap): the open assignment closes, learner loses the device.
+        val unassigned = write(session, "DELETE", "/api/devices/$deviceId/assignment")
+        assertThat(unassigned.response.status).isEqualTo(200)
+        assertThat(com.fasterxml.jackson.databind.json.JsonMapper()
+            .readTree(unassigned.response.contentAsString)["assignedLearnerId"].isNull).isTrue()
+
+        val mine = mockMvc.perform(
+            MockMvcRequestBuilders.get("/api/devices/mine").cookie(login(learner.email, "learnerpass1"))
+        ).andReturn()
+        assertThat(mine.response.contentAsString).contains(""""device":null""")
+
+        // Unassign is idempotent when nothing is open.
+        val again = write(session, "DELETE", "/api/devices/$deviceId/assignment")
+        assertThat(again.response.status).isEqualTo(200)
+
+        // Over-long labels are rejected, not truncated.
+        val tooLong = write(session, "PATCH", "/api/devices/$deviceId", """{"label":"${"x".repeat(201)}"}""")
+        assertThat(tooLong.response.status).isEqualTo(400)
     }
 
     @Test

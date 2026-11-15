@@ -115,13 +115,13 @@ export default function RegisterScreen() {
           {busy ? 'Creating account…' : 'Register'}
         </Button>
       </form>
-      <p className="mt-6 text-center text-sm text-purple-200/70">
+      <p className="mt-6 text-center text-sm text-fg-muted">
         Already have an account?{' '}
         <Link href="/login" className="font-semibold text-purple-200 underline underline-offset-2 hover:text-white">
           Login
         </Link>
       </p>
-      <p className="mt-2 text-center text-sm text-purple-200/70">
+      <p className="mt-2 text-center text-sm text-fg-muted">
         Registering a school?{' '}
         <Link href="/school/onboarding" className="font-semibold text-purple-200 underline underline-offset-2 hover:text-white">
           Start here
