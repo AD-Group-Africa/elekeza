@@ -170,10 +170,12 @@ class ContentController(
         contentRepository.findAll()
             .filter { user.role.name == "ADMIN" || it.userId == user.id }
             .sortedByDescending { it.createdAt }
-            .map { c -> mapOf(
+            .map { c -> mapOf<String, Any>(
                 "id" to c.id,
                 "title" to (c.title ?: "Untitled"),
-                "status" to c.status.name
+                "status" to c.status.name,
+                // Curriculum objective this lesson is mapped to (0 = not mapped).
+                "objectiveId" to (c.objectiveId ?: 0L)
             )}
 
     // ── GET /api/content/lessons/{id} ───────────────────────────────────────

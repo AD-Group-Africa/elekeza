@@ -179,7 +179,7 @@ class TutorService(
     private data class Quad<A, B, C, D>(val first: A, val second: B, val third: C, val fourth: D)
 
     private fun masteryIntro(user: User, lessonId: Long?): String? {
-        val quiz = quizRepo.findByContentId(lessonId ?: return null) ?: return null
+        val quiz = quizRepo.findFirstByContentIdOrderByIdAsc(lessonId ?: return null) ?: return null
         val scores = attemptRepo.findByQuizIdAndUserId(quiz.id, user.id)
             .filter { it.completed && it.score != null }
             .sortedBy { it.createdAt }

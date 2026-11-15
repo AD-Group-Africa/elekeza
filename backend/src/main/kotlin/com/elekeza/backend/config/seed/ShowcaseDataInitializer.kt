@@ -226,7 +226,7 @@ class ShowcaseDataInitializer(
                         quizScore = score.toDouble(), completed = true,
                         completedAt = completedAt, createdAt = completedAt.minusDays(1)
                     ))
-                    quizRepo.findByContentId(contentId)?.let { quiz ->
+                    quizRepo.findFirstByContentIdOrderByIdAsc(contentId)?.let { quiz ->
                         attemptRepo.save(QuizAttempt(
                             quizId = quiz.id, userId = learner.id,
                             score = score / 100.0, totalQuestions = questionRepo.findByQuizId(quiz.id).size,
@@ -318,7 +318,7 @@ class ShowcaseDataInitializer(
     }
 
     private fun seedQuiz(contentId: Long, ownerId: Long, questions: List<QuizQuestionSpec>) {
-        if (quizRepo.findByContentId(contentId) != null) return
+        if (quizRepo.findFirstByContentIdOrderByIdAsc(contentId) != null) return
         val quiz = quizRepo.save(Quiz(contentId = contentId, userId = ownerId))
         questions.forEach { q ->
             questionRepo.save(QuizQuestion(

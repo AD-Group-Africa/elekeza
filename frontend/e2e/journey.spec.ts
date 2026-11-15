@@ -86,10 +86,9 @@ test('learner journey: home → lesson → read → practice quiz → score → 
   }
 
   // Practice quiz offer appears on the final section
-  const startPractice = page.getByRole('button', { name: 'Start practice' })
-  await expect(startPractice).toBeVisible({ timeout: 15_000 })
-  await startPractice.click()
-  await page.getByRole('link', { name: /Open practice quiz/i }).click()
+  const practice = page.getByRole('link', { name: /Finish lesson and earn XP/i })
+  await expect(practice).toBeVisible({ timeout: 15_000 })
+  await practice.click()
   await expect(page).toHaveURL(/\/quiz\//)
 
   // Answer every question (server-scored). Bounded loop: answer the current

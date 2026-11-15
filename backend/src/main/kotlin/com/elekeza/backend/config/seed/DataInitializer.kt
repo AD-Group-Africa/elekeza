@@ -111,7 +111,7 @@ class DataInitializer(
         }
 
         // Demo quiz for the water-cycle lesson (keyed to its actual id).
-        if (quizRepo.findByContentId(demoContentId) == null) {
+        if (quizRepo.findFirstByContentIdOrderByIdAsc(demoContentId) == null) {
             val quiz = quizRepo.save(Quiz(contentId = demoContentId, userId = teacher.id))
             questionRepo.save(QuizQuestion(quizId = quiz.id, question = "What is the first step in the water cycle?", optionA = "Evaporation", optionB = "Condensation", optionC = "Precipitation", optionD = "Collection", correctOption = "A", explanation = "The sun heats water."))
             questionRepo.save(QuizQuestion(quizId = quiz.id, question = "What forms when vapor cools?", optionA = "Ice", optionB = "Clouds", optionC = "Rain", optionD = "Snow", correctOption = "B", explanation = "Vapor turns into tiny water drops."))
