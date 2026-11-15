@@ -130,6 +130,18 @@ export function resolveTheme(s: Pick<AccessibilitySettings, 'calmMode' | 'lightT
 }
 
 /**
+ * the settings that produce `theme` (the inverse of resolveTheme), or null for
+ * an unknown value. calm leaves lightTheme alone so turning calm off later
+ * returns the user to the mode they had underneath.
+ */
+export function themeSettings(theme: unknown): Partial<Pick<AccessibilitySettings, 'calmMode' | 'lightTheme'>> | null {
+  if (theme === 'calm') return { calmMode: true };
+  if (theme === 'light') return { calmMode: false, lightTheme: true };
+  if (theme === 'dark') return { calmMode: false, lightTheme: false };
+  return null;
+}
+
+/**
  * Reads stored settings, upgrading keys written by older versions of the
  * settings page (`readAloud`, `dyslexiaFont`) so nobody loses a preference.
  */

@@ -11,17 +11,12 @@
  * Regenerate: bump when new legacy colors appear (grep inventory).
  * ========================================================================== */
 
-/* ---- legacy-shade aliases: map purple scale positions to tokens ---- */
+/* ---- legacy-shade aliases ----
+ * the purple-scale aliases (--p50 ... --p900) are defined per mode in
+ * tokens.css so they follow the active role and stay readable in light and
+ * calm. only the warm (ember) aliases live here.
+ */
 :root {
-  --p300: var(--ek-moss-300);
-  --p200: var(--ek-moss-200);
-  --p100: var(--ek-moss-100);
-  --p400: var(--ek-moss-400);
-  --p500: var(--ek-moss-500);
-  --p600: var(--ek-moss-600);
-  --p700: var(--ek-moss-700);
-  --p900: var(--ek-moss-900);
-  --p50: var(--ek-moss-050);
   --a300: var(--ek-ember-300);
   --a400: var(--ek-ember-400);
   --a500: var(--ek-ember-500);
@@ -283,7 +278,7 @@ html .from-blue-600 {
   --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
 }
 html .from-blue-900 {
-  --tw-gradient-from: var(--ek-blue-900) var(--tw-gradient-from-position);
+  --tw-gradient-from: var(--bg-secondary) var(--tw-gradient-from-position);
   --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
 }
 html .to-blue-600 {
@@ -375,25 +370,27 @@ html .border-green-400 {
  * friendly, age-appropriate. Learner journeys, activities, progress,
  * gamification and encouragement.
  */
+/* these read the mode-aware --p* aliases so the learner purple becomes the
+ * active role colour and stays readable on light and calm surfaces. */
 html .from-purple-500 {
-  --tw-gradient-from: var(--ek-purple-600) var(--tw-gradient-from-position);
+  --tw-gradient-from: var(--p600) var(--tw-gradient-from-position);
   --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
 }
 html .from-purple-700 {
-  --tw-gradient-from: var(--ek-purple-700) var(--tw-gradient-from-position);
+  --tw-gradient-from: var(--p700) var(--tw-gradient-from-position);
   --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
 }
 html .to-purple-500 {
-  --tw-gradient-to: var(--ek-purple-500) var(--tw-gradient-to-position);
+  --tw-gradient-to: var(--p500) var(--tw-gradient-to-position);
 }
 html .to-purple-050 {
-  --tw-gradient-to: var(--ek-purple-050) var(--tw-gradient-to-position);
+  --tw-gradient-to: var(--p50) var(--tw-gradient-to-position);
 }
 html .text-purple-400 {
-  color: var(--ek-purple-400);
+  color: var(--p300);
 }
 html .text-purple-500 {
-  color: var(--ek-purple-500);
+  color: var(--accent-strong);
 }
 html .text-lavender-300 {
   color: var(--ek-lavender-300);
@@ -405,10 +402,10 @@ html .text-lilac-100 {
   color: var(--ek-lilac-100);
 }
 html .bg-purple-500 {
-  background-color: var(--ek-purple-500);
+  background-color: var(--p600);
 }
 html .bg-purple-100 {
-  background-color: var(--ek-purple-100);
+  background-color: var(--accent-soft);
 }
 html .bg-lavender-300 {
   background-color: var(--ek-lavender-300);
@@ -420,126 +417,101 @@ html .border-purple-400 {
   border-color: var(--border-color);
 }
 
-/* ================= LIGHT SURFACES (light + calm themes) =================
- * Most screens were written for the dark theme: pale text classes
- * (text-purple-100..400, text-white), white glass panels (bg-white/5) and
- * pale status colours (text-emerald-200). On white paper those are close to
- * invisible, so on the light and calm themes they map to the readable
- * semantic tokens instead. New code should use the semantic classes
- * (text-fg, text-fg-muted, bg-surface, border-line) and needs none of this.
+/* ================= backdrop gradients =================
+ * a few screens paint their own dark page backdrop (indigo / violet / blue
+ * 900-950 gradients). they now follow the theme's page colours so the same
+ * screen is dark, cream or calm with the rest of the app.
  */
-html:is([data-theme='light'], [data-theme='calm']) {
-  --p50: var(--bg-secondary);
-  --p600: var(--accent);
-  --p700: var(--accent-strong);
-}
-
-/* Text: pale tints -> theme text colours */
-html:is([data-theme='light'], [data-theme='calm'])
-  :is(.text-white, .text-purple-50, .text-purple-100, .text-purple-200, .text-fuchsia-100, .text-fuchsia-200) {
-  color: var(--text-primary);
-}
-html:is([data-theme='light'], [data-theme='calm'])
-  :is(
-    .text-purple-300,
-    .text-purple-400,
-    .text-white\/70,
-    .text-purple-200\/50,
-    .text-purple-200\/70,
-    .text-purple-200\/80,
-    .text-purple-300\/60,
-    .text-purple-300\/70,
-    .text-purple-300\/80
-  ) {
-  color: var(--text-secondary);
-}
-html:is([data-theme='light'], [data-theme='calm']) .text-white\/40 {
-  color: var(--text-muted);
-}
-html:is([data-theme='light'], [data-theme='calm'])
-  :is(.hover\:text-white:hover, .hover\:text-purple-200:hover, .group:hover .group-hover\:text-white) {
-  color: var(--accent-strong);
-}
-
-/* Status text: pale (made for dark) -> the theme's readable status colours */
-html:is([data-theme='light'], [data-theme='calm'])
-  :is(
-    .text-emerald-100,
-    .text-emerald-200,
-    .text-emerald-300,
-    .text-green-200,
-    .text-green-300,
-    .text-green-400,
-    .text-green-500,
-    .text-green-600
-  ) {
-  color: var(--ek-ok);
-}
-html:is([data-theme='light'], [data-theme='calm'])
-  :is(.text-red-100, .text-red-200, .text-red-300, .text-red-400, .text-rose-200) {
-  color: var(--ek-danger);
-}
-html:is([data-theme='light'], [data-theme='calm'])
-  :is(.text-amber-100, .text-amber-200, .text-amber-300, .text-amber-500, .text-yellow-400, .text-orange-400) {
-  color: var(--ek-warn);
-}
-html:is([data-theme='light'], [data-theme='calm'])
-  :is(.text-sky-100, .text-sky-200, .text-blue-200, .text-blue-300, .text-blue-400, .text-teal-600) {
-  color: var(--ek-info);
-}
-
-/* White glass panels and borders -> faint accent tint and theme borders */
-html:is([data-theme='light'], [data-theme='calm']) :is(.bg-white\/5, .hover\:bg-white\/5:hover) {
-  background-color: color-mix(in srgb, var(--accent) 5%, transparent);
-}
-html:is([data-theme='light'], [data-theme='calm']) :is(.bg-white\/10, .hover\:bg-white\/10:hover) {
-  background-color: color-mix(in srgb, var(--accent) 8%, transparent);
-}
-html:is([data-theme='light'], [data-theme='calm']) :is(.bg-white\/15, .hover\:bg-white\/15:hover) {
-  background-color: color-mix(in srgb, var(--accent) 11%, transparent);
-}
-html:is([data-theme='light'], [data-theme='calm']) :is(.bg-white\/20, .hover\:bg-white\/20:hover) {
-  background-color: color-mix(in srgb, var(--accent) 14%, transparent);
-}
-html:is([data-theme='light'], [data-theme='calm']) :is(.border-white\/5, .border-white\/10, .border-white\/20) {
-  border-color: var(--border-color);
-}
-html:is([data-theme='light'], [data-theme='calm']) .divide-white\/10 > :not([hidden]) ~ :not([hidden]) {
-  border-color: var(--border-color);
-}
-html:is([data-theme='light'], [data-theme='calm']) .bg-emerald-900\/30 {
-  background-color: color-mix(in srgb, var(--ek-ok) 10%, transparent);
-}
-html:is([data-theme='light'], [data-theme='calm']) .bg-rose-900\/30 {
-  background-color: color-mix(in srgb, var(--ek-danger) 10%, transparent);
-}
-html:is([data-theme='light'], [data-theme='calm']) .bg-amber-900\/30 {
-  background-color: color-mix(in srgb, var(--ek-warn) 10%, transparent);
-}
-
-/* Dark page/hero gradients -> paper */
-html:is([data-theme='light'], [data-theme='calm'])
-  :is(.from-indigo-950, .from-indigo-900, .from-violet-900, .from-blue-900) {
-  --tw-gradient-from: var(--bg-secondary) var(--tw-gradient-from-position);
+html :is(.via-purple-950, .via-purple-900) {
   --tw-gradient-to: transparent var(--tw-gradient-to-position);
-  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
+  --tw-gradient-stops: var(--tw-gradient-from), var(--bg-primary) var(--tw-gradient-via-position), var(--tw-gradient-to);
 }
-html:is([data-theme='light'], [data-theme='calm']) :is(.via-purple-900, .via-purple-950) {
-  --tw-gradient-to: transparent var(--tw-gradient-to-position);
-  --tw-gradient-stops:
-    var(--tw-gradient-from), var(--bg-primary) var(--tw-gradient-via-position), var(--tw-gradient-to);
-}
-html:is([data-theme='light'], [data-theme='calm']) :is(.to-indigo-950, .to-indigo-900, .to-gray-900) {
+html :is(.to-indigo-950, .to-indigo-900, .to-gray-900) {
   --tw-gradient-to: var(--bg-secondary) var(--tw-gradient-to-position);
 }
 
-/* ================= DARK THEME TEXT (default purple) =================
- * The legacy purple text classes used to alias the retired moss palette, so
- * most dark-theme copy rendered mint green on purple while newer screens used
- * the theme's lilac-white. Body copy now uses the purple theme's own text
- * tokens; mint green is kept for headings so the purple + green identity
- * stays. Must come BEFORE the solid-fill rule below (same specificity), so
- * text on buttons and banners still resolves to white.
+/* ================= light and calm compatibility layer =================
+ * many screens were written for dark surfaces and use white or pale text
+ * directly (text-white, bg-white/10, text-green-400, text-red-300 ...). on
+ * cream or calm surfaces those disappear. inside light and calm modes these
+ * rules swap them for readable tokens, except on filled backgrounds (buttons,
+ * bright accent gradients, solid status fills) where white text is correct.
+ * the filled list is repeated in each rule because css has no selector
+ * variables; keep the copies in sync.
+ * screens migrated to semantic tokens (text-fg, bg-surface ...) no longer
+ * need this layer, so it can shrink as the migration continues.
+ */
+html:is([data-theme='light'], [data-theme='calm'])
+  .text-white:not(
+    :is(.bg-accent, .btn-primary, .bg-purple-500, .bg-purple-600, .bg-purple-700, .bg-red-500, .bg-green-500, .bg-green-600, .bg-emerald-500, .bg-emerald-600, [class*='from-fuchsia-'], [class*='from-purple-5'], [class*='from-purple-6'], [class*='from-violet-5'], [class*='from-violet-6'], [class*='from-blue-5'], [class*='from-blue-6'], [class*='from-green-6'], [class*='from-emerald-']),
+    :is(.bg-accent, .btn-primary, .bg-purple-500, .bg-purple-600, .bg-purple-700, .bg-red-500, .bg-green-500, .bg-green-600, .bg-emerald-500, .bg-emerald-600, [class*='from-fuchsia-'], [class*='from-purple-5'], [class*='from-purple-6'], [class*='from-violet-5'], [class*='from-violet-6'], [class*='from-blue-5'], [class*='from-blue-6'], [class*='from-green-6'], [class*='from-emerald-']) *
+  ) {
+  color: var(--text-primary);
+}
+html:is([data-theme='light'], [data-theme='calm']) .hover\:text-white:hover {
+  color: var(--text-primary);
+}
+html:is([data-theme='light'], [data-theme='calm'])
+  .text-white\/70:not(:is([class*='from-fuchsia-'], [class*='from-purple-5'], [class*='from-purple-6'], [class*='from-violet-5'], [class*='from-violet-6'], [class*='from-blue-5'], [class*='from-blue-6']) *) {
+  color: var(--text-secondary);
+}
+html:is([data-theme='light'], [data-theme='calm'])
+  .text-white\/40:not(:is([class*='from-fuchsia-'], [class*='from-purple-5'], [class*='from-purple-6'], [class*='from-violet-5'], [class*='from-violet-6'], [class*='from-blue-5'], [class*='from-blue-6']) *) {
+  color: var(--text-muted);
+}
+
+/* translucent white tints become translucent ink so tracks and chips stay visible */
+html:is([data-theme='light'], [data-theme='calm'])
+  :is(.bg-white\/5, .hover\:bg-white\/5:hover):not(:is([class*='from-fuchsia-'], [class*='from-purple-5'], [class*='from-purple-6'], [class*='from-violet-5'], [class*='from-violet-6'], [class*='from-blue-5'], [class*='from-blue-6']) *) {
+  background-color: color-mix(in srgb, var(--text-primary) 4%, transparent);
+}
+html:is([data-theme='light'], [data-theme='calm'])
+  :is(.bg-white\/10, .hover\:bg-white\/10:hover):not(:is([class*='from-fuchsia-'], [class*='from-purple-5'], [class*='from-purple-6'], [class*='from-violet-5'], [class*='from-violet-6'], [class*='from-blue-5'], [class*='from-blue-6']) *) {
+  background-color: color-mix(in srgb, var(--text-primary) 7%, transparent);
+}
+html:is([data-theme='light'], [data-theme='calm'])
+  :is(.bg-white\/15, .hover\:bg-white\/15:hover, .bg-white\/20, .hover\:bg-white\/20:hover):not(
+    :is([class*='from-fuchsia-'], [class*='from-purple-5'], [class*='from-purple-6'], [class*='from-violet-5'], [class*='from-violet-6'], [class*='from-blue-5'], [class*='from-blue-6']) *
+  ) {
+  background-color: color-mix(in srgb, var(--text-primary) 10%, transparent);
+}
+html:is([data-theme='light'], [data-theme='calm']) :is(.border-white\/10, .border-white\/20) {
+  border-color: var(--border-color);
+}
+
+/* bright accent gradients keep white content (icons, unclassed text) in every mode */
+html:is([data-theme='light'], [data-theme='calm'])
+  :is([class*='from-fuchsia-'], [class*='from-purple-5'], [class*='from-purple-6'], [class*='from-violet-5'], [class*='from-violet-6'], [class*='from-blue-5'], [class*='from-blue-6']) {
+  color: #ffffff;
+}
+
+/* pale text inside bright accent gradients stays pale in every mode */
+html:is([data-theme='light'], [data-theme='calm'])
+  :is([class*='from-fuchsia-'], [class*='from-purple-5'], [class*='from-purple-6'], [class*='from-violet-5'], [class*='from-violet-6'], [class*='from-blue-5'], [class*='from-blue-6'])
+  :is(.text-fuchsia-100, .text-fuchsia-200, .text-purple-100, .text-purple-200, .text-purple-300) {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+/* pale status text becomes the mode's readable status colour */
+html:is([data-theme='light'], [data-theme='calm'])
+  :is(.text-green-200, .text-green-300, .text-green-400, .text-green-500, .text-emerald-100, .text-emerald-200) {
+  color: var(--ek-ok);
+}
+html:is([data-theme='light'], [data-theme='calm']) :is(.text-blue-200, .text-blue-300, .text-blue-400, .text-sky-100) {
+  color: var(--ek-info);
+}
+html:is([data-theme='light'], [data-theme='calm']) :is(.text-red-100, .text-red-200, .text-red-300, .text-red-400) {
+  color: var(--ek-danger);
+}
+html:is([data-theme='light'], [data-theme='calm']) :is(.text-yellow-400, .text-amber-100) {
+  color: var(--ek-warn);
+
+/* ================= dark mode body text =================
+ * legacy pale purple text classes resolve to the role accent (--p300), so on
+ * dark surfaces most body copy rendered in the accent colour. body copy uses
+ * the mode's text tokens instead; headings keep the role accent so each
+ * role's colour identity stays (teacher: moss green, learner: purple ...).
+ * from the 2026-11-12 readability pass (docs/UX_AND_DESIGN_SYSTEM.md 1.1).
  */
 html[data-theme='dark']
   :is(.text-purple-50, .text-purple-100, .text-purple-200, .text-fuchsia-100, .text-fuchsia-200, .text-purple-200\/80) {
@@ -554,91 +526,19 @@ html[data-theme='dark']
 }
 html[data-theme='dark']
   :where(h1, h2, h3):is(.text-purple-50, .text-purple-100, .text-purple-200, .text-fuchsia-100, .text-fuchsia-200, .text-fg) {
-  color: var(--ek-moss-300);
+  color: var(--p300);
+}
 }
 
-/* Keep white text on solid, colourful fills (buttons, avatars, banners), on
- * the element itself or inside it, in every theme. Listed by exact class so translucent tints
- * such as bg-purple-600/40 are not included: those sit on paper and use dark
- * text. */
-html
-  :is(
-    [class~='bg-purple-500'],
-    [class~='bg-purple-600'],
-    [class~='bg-purple-700'],
-    [class~='bg-red-500'],
-    [class~='bg-red-600/80'],
-    [class~='bg-red-700'],
-    [class~='bg-emerald-500'],
-    [class~='bg-emerald-600'],
-    [class~='bg-emerald-700'],
-    [class~='bg-green-500'],
-    [class~='bg-green-600'],
-    [class~='bg-accent'],
-    [class*='bg-[var(--ek-moss-6'],
-    [class*='from-fuchsia-'],
-    [class*='from-purple-5'],
-    [class*='from-purple-6'],
-    [class*='from-blue-5'],
-    [class*='from-blue-6'],
-    [class*='from-teal-'],
-    [class*='from-green-6'],
-    [class*='from-green-7']
-  ):is(.text-white, .text-white\/70, .text-purple-100, .text-purple-200, .text-fuchsia-100, .text-fuchsia-200),
-html
-  :is(
-    [class~='bg-purple-500'],
-    [class~='bg-purple-600'],
-    [class~='bg-purple-700'],
-    [class~='bg-red-500'],
-    [class~='bg-red-600/80'],
-    [class~='bg-red-700'],
-    [class~='bg-emerald-500'],
-    [class~='bg-emerald-600'],
-    [class~='bg-emerald-700'],
-    [class~='bg-green-500'],
-    [class~='bg-green-600'],
-    [class~='bg-accent'],
-    [class*='bg-[var(--ek-moss-6'],
-    [class*='from-fuchsia-'],
-    [class*='from-purple-5'],
-    [class*='from-purple-6'],
-    [class*='from-blue-5'],
-    [class*='from-blue-6'],
-    [class*='from-teal-'],
-    [class*='from-green-6'],
-    [class*='from-green-7']
-  )
-  :is(.text-white, .text-white\/70, .text-purple-100, .text-purple-200, .text-fuchsia-100, .text-fuchsia-200) {
+/* solid status buttons (Button danger / success) keep white text in light
+ * and calm: the compatibility layer above recolours .text-white except on
+ * the fills it lists, and these two were missing (dark text on red, 2.7:1). */
+html:is([data-theme='light'], [data-theme='calm']) :is(.bg-red-700, .bg-red-600, .bg-emerald-700, .bg-emerald-600).text-white {
   color: #ffffff;
 }
 
-/* Hero banners (e.g. learner "Continue learning"): on paper themes the gradient
- * starts at the mid accent, where small white text fell below 4.5:1. Start
- * from the deeper accent instead. */
-html:is([data-theme='light'], [data-theme='calm'])
-  :is(.from-fuchsia-600, .from-fuchsia-500, .hover\:from-fuchsia-500:hover) {
-  --tw-gradient-from: var(--accent-strong) var(--tw-gradient-from-position);
-  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
-}
-
-/* Selected / tinted states: softer accent tint on paper so text stays readable */
-html:is([data-theme='light'], [data-theme='calm']) .bg-purple-600\/30 {
-  background-color: color-mix(in srgb, var(--accent) 12%, transparent);
-}
-html:is([data-theme='light'], [data-theme='calm']) .bg-purple-600\/40 {
-  background-color: color-mix(in srgb, var(--accent) 16%, transparent);
-}
-html:is([data-theme='light'], [data-theme='calm']) :is(.bg-purple-600\/50, .bg-purple-600\/60) {
-  background-color: color-mix(in srgb, var(--accent) 20%, transparent);
-}
-
-/* Dark theme: a few small-text tints sit below a 4.5:1 contrast on the dark
- * purple background; lift them to the theme's secondary text colour. */
-html[data-theme='dark']
-  :is(.text-purple-400, .text-purple-500, .text-purple-200\/50, .text-purple-300\/60, .text-purple-300\/70) {
-  color: var(--text-secondary);
-}
-html[data-theme='dark'] .text-accent-strong {
-  color: var(--ek-purple-300);
+/* success badges (Badge tone="success": emerald text on a 15% emerald tint)
+ * need a deeper green than --ek-ok on paper to reach 4.5:1 at text-xs. */
+html:is([data-theme='light'], [data-theme='calm']) .bg-emerald-500\/15.text-emerald-200 {
+  color: color-mix(in srgb, var(--ek-ok) 70%, #000000);
 }

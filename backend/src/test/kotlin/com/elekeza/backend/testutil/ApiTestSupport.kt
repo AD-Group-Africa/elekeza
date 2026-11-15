@@ -111,8 +111,9 @@ abstract class ApiTestSupport {
         return HttpOutcome(mockMvc.perform(builder).andReturn())
     }
 
-    protected fun multipartPost(url: String, file: MockMultipartFile, session: Cookie?): HttpOutcome {
-        val builder: MockHttpServletRequestBuilder = MockMvcRequestBuilders.multipart(url).file(file)
+    protected fun multipartPost(url: String, file: MockMultipartFile, session: Cookie?, fields: Map<String, String> = emptyMap()): HttpOutcome {
+        var builder: MockHttpServletRequestBuilder = MockMvcRequestBuilders.multipart(url).file(file)
+        fields.forEach { (name, value) -> builder = builder.param(name, value) }
         val withAuth = attachSession(builder, session, withCsrf = true)
         return HttpOutcome(mockMvc.perform(withAuth).andReturn())
     }

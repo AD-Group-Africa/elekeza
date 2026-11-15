@@ -45,7 +45,7 @@ export function LevelProgress({ game, size = 'md' }: { game: Gamification; size?
           </span>
           <span className="flex items-center gap-3">
             {streak > 0 && (
-              <span className="rounded-full bg-amber-500/20 px-2.5 py-0.5 text-xs font-semibold text-purple-100">
+              <span className="rounded-full border border-line-strong bg-surface px-2.5 py-0.5 text-xs font-semibold text-fg">
                 <span aria-hidden="true">🔥 </span>
                 {streakText(streak)}
               </span>

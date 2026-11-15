@@ -81,7 +81,7 @@ input[type='password']::-ms-clear {
     color: var(--accent-contrast);
   }
   .btn-primary:hover:not(:disabled) {
-    background: var(--accent-strong);
+    background: var(--accent-hover);
   }
   .btn-outline {
     border: 1px solid var(--border-strong);

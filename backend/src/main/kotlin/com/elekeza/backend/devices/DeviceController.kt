@@ -110,6 +110,39 @@ class DeviceService(
         return device.toView(actor.id)
     }
 
+    /**
+     * Unassign the device's open assignment (Sprint 3: previously impossible —
+     * assigning replaced an open assignment but nothing could clear it without
+     * targeting a different learner). Follows the data model: close the open
+     * assignment by stamping returnedAt; the device stays as-is.
+     */
+    fun unassign(actor: User, deviceId: Long): DeviceView {
+        val device = deviceRepo.findById(deviceId).orElse(null)
+            ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Device not found")
+        requireTenant(actor, device.institutionId)
+        val open = assignmentRepo.findByDeviceIdAndReturnedAtIsNull(device.id)
+            ?: return device.toView(null) // nothing to unassign — idempotent
+        open.returnedAt = Instant.now()
+        assignmentRepo.save(open)
+        audit(actor, "DEVICE_UNASSIGNED", "device=${device.deviceCode} learner=${open.learnerId}")
+        return device.toView(null)
+    }
+
+    /** Edit a device's label (Sprint 3 gap: labels were set once at registration and never editable). */
+    fun updateLabel(actor: User, deviceId: Long, label: String?): DeviceView {
+        val device = deviceRepo.findById(deviceId).orElse(null)
+            ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Device not found")
+        requireTenant(actor, device.institutionId)
+        if (label != null && label.length > 200) {
+            throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Label too long (max 200 characters)")
+        }
+        device.label = label?.trim()?.takeIf { it.isNotBlank() }
+        device.updatedAt = Instant.now()
+        val saved = deviceRepo.save(device)
+        audit(actor, "DEVICE_LABEL_EDITED", "device=${saved.deviceCode}")
+        return saved.toView(assignmentRepo.findByDeviceIdAndReturnedAtIsNull(saved.id)?.learnerId)
+    }
+
     private fun requireTenant(actor: User, institutionId: Long) {
         if (actor.role != UserRole.ADMIN && actor.institutionId != institutionId) {
             throw ResponseStatusException(HttpStatus.NOT_FOUND, "Device not found")
@@ -150,6 +183,21 @@ class DeviceController(private val deviceService: DeviceService) {
     @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'ADMIN')")
     fun assign(@AuthenticationPrincipal actor: User, @PathVariable deviceId: Long, @PathVariable learnerId: Long) =
         ResponseEntity.ok(deviceService.assign(actor, deviceId, learnerId))
+
+    /** Unassign the device's open assignment (SCHOOL_ADMIN/ADMIN). */
+    @DeleteMapping("/{deviceId}/assignment")
+    @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'ADMIN')")
+    fun unassign(@AuthenticationPrincipal actor: User, @PathVariable deviceId: Long) =
+        ResponseEntity.ok(deviceService.unassign(actor, deviceId))
+
+    /** Edit a device label (SCHOOL_ADMIN/ADMIN). */
+    @PatchMapping("/{deviceId}")
+    @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'ADMIN')")
+    fun updateLabel(
+        @AuthenticationPrincipal actor: User,
+        @PathVariable deviceId: Long,
+        @RequestBody body: Map<String, String?>,
+    ) = ResponseEntity.ok(deviceService.updateLabel(actor, deviceId, body["label"]))
 
     /** The signed-in learner's own device (offline-sync identity). */
     @GetMapping("/mine")

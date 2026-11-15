@@ -1,12 +1,14 @@
 'use client';
 
 import { useEffect, useState, type ReactNode } from 'react';
-import { useRouter } from 'next/navigation';
-import { Menu } from 'lucide-react';
+import { usePathname, useRouter } from 'next/navigation';
+import { Lock, Menu } from 'lucide-react';
 import { useAuth } from '@/features/auth';
 import NotificationBell from '@/features/notifications/components/NotificationBell';
 import ElekezaAssist from '@/components/layout/ElekezaAssist';
-import { LoadingState } from '@/components/ui';
+import { ButtonLink, EmptyState, LoadingState } from '@/components/ui';
+import { canAccessRoute } from '@/config/routes';
+import { roleHome, roleLabel } from '@/lib/roles';
 import { MobileBottomNav } from './MobileBottomNav';
 import { SidebarNav } from './SidebarNav';
 
@@ -20,6 +22,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const { user, loading, logout } = useAuth();
   const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
     if (!loading && !user) router.replace('/login');
@@ -92,7 +95,18 @@ export default function AppShell({ children }: { children: ReactNode }) {
         <div className="mb-2 flex justify-end">
           <NotificationBell />
         </div>
-        {children}
+        {canAccessRoute(role, pathname) ? (
+          children
+        ) : (
+          // the screen is not rendered at all, so it fires no requests the server would refuse
+          <EmptyState
+            className="mx-auto mt-8 max-w-lg"
+            icon={<Lock size={40} />}
+            title="This page isn't part of your account"
+            description={`You're signed in as ${roleLabel(role)}. Your own pages are in the menu.`}
+            action={<ButtonLink href={roleHome(role)}>Go to my dashboard</ButtonLink>}
+          />
+        )}
       </main>
 
       <MobileBottomNav role={role} onOpenMenu={() => setMobileOpen(true)} />

@@ -36,7 +36,9 @@ export function BadgeGallery({ badges }: { badges: GamificationBadge[] }) {
                 </p>
                 <p className="text-xs text-purple-300">{badge.description}</p>
                 {badge.earned ? (
-                  <p className="mt-1 text-xs font-semibold text-emerald-300">Earned!</p>
+                  <p className="mt-1 text-xs font-semibold text-fg">
+                    <span aria-hidden="true">✓ </span>Earned!
+                  </p>
                 ) : (
                   <div className="mt-2">
                     <div className="h-1.5 w-full overflow-hidden rounded-full bg-white/15">

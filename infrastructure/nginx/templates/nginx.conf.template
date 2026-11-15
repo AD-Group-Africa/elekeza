@@ -51,6 +51,24 @@ http {
         add_header Referrer-Policy "strict-origin-when-cross-origin" always;
 
         # API → Spring Boot (120s timeout for AI document processing)
+        # ----------------------------------------------------------------
+        # M-PESA CALLBACK EDGE (payment-security sprint 2, Phase 3):
+        # Before pointing a LIVE Daraja deployment at this host, enable the
+        # source-IP allowlist below and fill CONFIRMED IPs from Safaricom's
+        # authorised documentation / support channel — never values copied
+        # from third-party articles (they go stale and are unauthoritative).
+        # This is a network filter, NOT payload authentication; the backend
+        # still independently verifies every callback via STK Push Query
+        # before any financial credit.
+        # location = /api/payments/callback {
+        #     # allow 203.0.113.x;    # <-- CONFIRMED callback IP (placeholder)
+        #     # deny  all;
+        #     proxy_pass         http://backend;
+        #     proxy_set_header   Host              $host;
+        #     proxy_set_header   X-Real-IP         $remote_addr;
+        #     proxy_set_header   X-Forwarded-Proto $scheme;
+        #     proxy_read_timeout 30s;
+        # }
         location /api/ {
             proxy_pass         http://backend;
             proxy_http_version 1.1;

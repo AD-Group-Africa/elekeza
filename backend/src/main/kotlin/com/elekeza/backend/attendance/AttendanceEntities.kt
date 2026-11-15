@@ -139,9 +139,34 @@ data class LearnerAttendanceDto(
     val className: String?,
     val sessionsMarked: Long,
     val counts: Map<String, Long>,
-    val attendanceRate: Double,     // PRESENT+LATE over sessions with any mark (EXCUSED excluded)
+    val attendanceRate: Double?,    // PRESENT+LATE over assessed marks, EXCUSED excluded; null when nothing was assessed
+    val periodFrom: LocalDate?,     // explicit reporting-period bounds so the UI can label “rate over what”
+    val periodTo: LocalDate?,
+    val periodLabel: String,
     val records: List<LearnerAttendanceEntryDto>
 )
+
+/**
+ * The single attendance policy definition. Every percentage exposed by any
+ * endpoint (learner history, institution summary, guardian digest) MUST be
+ * computed through [rate] so the numbers agree by construction:
+ *
+ *   - attended  = PRESENT + LATE   (established behaviour: LATE still shows up)
+ *   - assessed  = PRESENT + ABSENT + LATE
+ *   - EXCUSED   is excluded from both sides (never penalised, never rewarded)
+ *   - no assessed marks → null (an invented 100% for nobody is misleading)
+ */
+object AttendancePolicy {
+    fun rate(statuses: Collection<AttendanceStatus>): Double? {
+        val counts = statuses.groupingBy { it }.eachCount()
+        val assessed = (counts[AttendanceStatus.PRESENT] ?: 0) +
+            (counts[AttendanceStatus.ABSENT] ?: 0) +
+            (counts[AttendanceStatus.LATE] ?: 0)
+        if (assessed == 0) return null
+        val attended = (counts[AttendanceStatus.PRESENT] ?: 0) + (counts[AttendanceStatus.LATE] ?: 0)
+        return Math.round(attended * 1000.0 / assessed) / 10.0
+    }
+}
 
 data class LearnerAttendanceEntryDto(
     val date: LocalDate,
