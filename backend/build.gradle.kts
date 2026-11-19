@@ -19,6 +19,17 @@ repositories {
 	mavenCentral()
 }
 
+// Database driver and migration tooling are pinned deliberately, because Spring
+// Boot 3.2.4's BOM manages older versions (42.6.2 / 9.22.3) that are not
+// certified against PostgreSQL 16. See
+// docs/audit/ELEKEZA_JDBC_FLYWAY_UPGRADE.md for the verification behind these.
+extra["postgresql.version"] = "42.7.14"
+// Flyway 12+ removed FluentConfiguration.cleanOnValidationError, which Spring
+// Boot 3.2.4's FlywayAutoConfiguration calls unconditionally, so 11.x is the
+// newest line this Boot version can drive. See the audit report.
+val flywayVersion = "11.20.3"
+extra["flyway.version"] = flywayVersion
+
 dependencies {
 	// Spring Boot starters
 	implementation("org.springframework.boot:spring-boot-starter-web")
@@ -64,7 +75,11 @@ dependencies {
 
 	// Database migrations (Flyway) — required in production so the schema is
 	// built from db/migration instead of Hibernate ddl-auto.
+	// Flyway 10+ split per-database support into modules: flyway-core alone no
+	// longer recognises PostgreSQL, so the PostgreSQL module must ship with it
+	// on exactly the same version.
 	implementation("org.flywaydb:flyway-core")
+	implementation("org.flywaydb:flyway-database-postgresql:$flywayVersion")
 
 	// Test
 	testImplementation("org.springframework.boot:spring-boot-starter-test")

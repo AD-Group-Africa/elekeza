@@ -31,4 +31,14 @@ data class PasswordResetToken(
 interface PasswordResetTokenRepository : org.springframework.data.jpa.repository.JpaRepository<PasswordResetToken, Long> {
     fun findByTokenHash(tokenHash: String): PasswordResetToken?
     fun deleteByUserId(userId: Long)
+
+    // Retention (V21): an expired reset token can never be redeemed, so it is
+    // swept rather than kept "just in case".
+    fun countByExpiresAtBefore(cutoff: OffsetDateTime): Long
+
+    @org.springframework.data.jpa.repository.Modifying
+    @org.springframework.data.jpa.repository.Query("DELETE FROM PasswordResetToken t WHERE t.expiresAt < :cutoff")
+    fun deleteByExpiresAtBefore(
+        @org.springframework.data.repository.query.Param("cutoff") cutoff: OffsetDateTime
+    ): Int
 }

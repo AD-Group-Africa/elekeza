@@ -27,13 +27,11 @@ class JwtUtil(
             .expiration(Date(System.currentTimeMillis() + accessExpirationMs))
             .signWith(key).compact()
 
-    fun generateRefreshToken(subject: String): String =
-        Jwts.builder()
-            .subject(subject)
-            .claim("type", "refresh")
-            .issuedAt(Date())
-            .expiration(Date(System.currentTimeMillis() + refreshExpirationMs))
-            .signWith(key).compact()
+    // Wave 0 (SEC-P2-03): `generateRefreshToken` was removed. Refresh tokens are
+    // opaque UUIDs stored hashed in `refresh_tokens` (see AuthController), not
+    // JWTs. A JWT refresh generator that nothing calls is a trap: JwtAuthFilter
+    // accepts any valid JWT as an access token, so minting one with a 7-day
+    // lifetime would hand out a long-lived credential.
 
     /** Legacy single-token generator used by OAuth2SuccessHandler */
     fun generateToken(email: String, role: String): String =
@@ -48,7 +46,14 @@ class JwtUtil(
         )
     }.getOrNull()
 
-    fun validateToken(token: String): Boolean = runCatching { getClaims(token); true }.getOrDefault(false)
+    /**
+     * Valid for authentication only when the token really is an access token.
+     * The `type` claim is checked explicitly: a JWT carrying `type=refresh`
+     * must never satisfy the access filter (Wave 0, SEC-P2-03).
+     */
+    fun validateToken(token: String): Boolean = runCatching {
+        getClaims(token)["type"] == "access"
+    }.getOrDefault(false)
     fun getEmail(token: String): String = getClaims(token).let { it["email"] as? String ?: it.subject }
     fun getRole(token: String): String  = getClaims(token)["role"] as? String ?: "STUDENT"
 

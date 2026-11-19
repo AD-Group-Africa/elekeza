@@ -55,4 +55,13 @@ interface EngagementEventRepository : org.springframework.data.jpa.repository.Jp
     fun findByInstitutionIdAndCreatedAtAfter(institutionId: Long, after: Instant): List<EngagementEvent>
     fun countByInstitutionIdAndEventTypeAndCreatedAtAfter(institutionId: Long, eventType: String, after: Instant): Long
     fun findByUserIdAndCreatedAtAfter(userId: Long, after: Instant): List<EngagementEvent>
+
+    // Retention (V21): telemetry exists to evidence a pilot, not to be kept forever.
+    fun countByCreatedAtBefore(cutoff: Instant): Long
+
+    @org.springframework.data.jpa.repository.Modifying
+    @org.springframework.data.jpa.repository.Query("DELETE FROM EngagementEvent e WHERE e.createdAt < :cutoff")
+    fun deleteByCreatedAtBefore(
+        @org.springframework.data.repository.query.Param("cutoff") cutoff: Instant
+    ): Int
 }

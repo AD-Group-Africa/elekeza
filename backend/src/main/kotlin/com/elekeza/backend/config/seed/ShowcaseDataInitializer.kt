@@ -120,8 +120,11 @@ class ShowcaseDataInitializer(
         val relationships = listOf("PARENT", "OLDER_SIBLING", "CAREGIVER", "PARENT", "PARENT", "PARENT", "PARENT", "PARENT", "PARENT", "PARENT", "PARENT", "PARENT", "PARENT", "PARENT", "PARENT")
         guardians.forEachIndexed { i, g ->
             // Juma (learner index 0) already has 3 links from DataInitializer.
-            val wardIndexes = when (i) {
-                0, 1, 2 -> emptyList()
+            val wardIndexes: List<Int> = when (i) {
+                0, 1, 2 -> {
+                    val base = (i * 3) % learners.size
+                    listOf((base + learners.size - 1) % learners.size)
+                }
                 else -> {
                     val base = (i * 3) % learners.size
                     listOf(base, (base + 1) % learners.size).distinct()

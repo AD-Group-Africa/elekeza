@@ -133,6 +133,87 @@ class DevicesAndBillingApiTest : ApiTestSupport() {
         assertThat(tooLong.response.status).isEqualTo(400)
     }
 
+    /**
+     * Authorization matrix for the Sprint-3 unassign/label endpoints:
+     * unauthenticated → 401, wrong role → 403, foreign tenant → 404,
+     * missing device → 404, ADMIN (global) allowed, blank label clears.
+     */
+    @Test
+    fun `device unassign and label endpoints enforce auth, roles and tenancy`() {
+        val (session, _) = adminSession()
+        val registered = write(
+            session, "POST", "/api/devices",
+            """{"deviceCode":"EK-DV-AM-${System.nanoTime()}","label":"Matrix"}"""
+        )
+        assertThat(registered.response.status).isEqualTo(201)
+        val deviceId = com.fasterxml.jackson.databind.json.JsonMapper()
+            .readTree(registered.response.contentAsString)["id"].asLong()
+        write(session, "PATCH", "/api/devices/$deviceId/status?status=ACTIVE")
+
+        // Unauthenticated: 401 JSON entry point (SecurityConfig). A bare write
+        // request is stopped by the CSRF filter first (403), so a valid test
+        // token is supplied to reach the authentication layer. The token is
+        // fetched anonymously through the same cookie/header dance as every
+        // other request in this file: the SecurityMockMvcRequestPostProcessors
+        // csrf() postprocessor must NOT be used here — it mutates the shared
+        // CsrfFilter's tokenRepository via WebTestUtils.setCsrfTokenRepository
+        // (swapping in a session-based TestCsrfTokenRepository), which would
+        // make every subsequent cookie-dance request in this context fail
+        // CSRF validation with a misleading 403 ACCESS_DENIED.
+        val anonPair = csrf(null)
+        val anonDel = mockMvc.perform(
+            MockMvcRequestBuilders.delete("/api/devices/$deviceId/assignment")
+                .cookie(anonPair.cookie).header("X-XSRF-TOKEN", anonPair.token)
+        ).andReturn()
+        assertThat(anonDel.response.status).isEqualTo(401)
+        assertThat(anonDel.response.contentAsString).contains("AUTH_REQUIRED")
+        val anonPairPatch = csrf(null)
+        val anonPatch = mockMvc.perform(
+            MockMvcRequestBuilders.patch("/api/devices/$deviceId")
+                .cookie(anonPairPatch.cookie).header("X-XSRF-TOKEN", anonPairPatch.token)
+                .contentType("application/json").content("""{"label":"x"}""")
+        ).andReturn()
+        assertThat(anonPatch.response.status).isEqualTo(401)
+
+        // Wrong roles are 403 even inside the device's own institution.
+        val teacher = createUser("dev-tea-${System.nanoTime()}@example.com", "pass123", "Dev Teacher", UserRole.TEACHER, 1)
+        val teacherS = login(teacher.email, "pass123")
+        assertThat(write(teacherS, "DELETE", "/api/devices/$deviceId/assignment").response.status).isEqualTo(403)
+        assertThat(write(teacherS, "PATCH", "/api/devices/$deviceId", """{"label":"x"}""").response.status).isEqualTo(403)
+        val guardian = createUser("dev-gua-${System.nanoTime()}@example.com", "pass123", "Dev Guardian", UserRole.GUARDIAN, 1)
+        val guardianS = login(guardian.email, "pass123")
+        assertThat(write(guardianS, "DELETE", "/api/devices/$deviceId/assignment").response.status).isEqualTo(403)
+
+        // Foreign SCHOOL_ADMIN cannot even discover the device (404, not 403).
+        val adminB = "dev-am-b-${System.nanoTime()}@example.com"
+        createUser(adminB, "adminpass1", "B Admin", UserRole.SCHOOL_ADMIN, 2)
+        val sessionB = login(adminB, "adminpass1")
+        val foreignDelete = write(sessionB, "DELETE", "/api/devices/$deviceId/assignment")
+        assertThat(foreignDelete.response.status)
+            .describedAs("foreign DELETE body=${foreignDelete.response.contentAsString}")
+            .isEqualTo(404)
+        assertThat(write(sessionB, "PATCH", "/api/devices/$deviceId", """{"label":"evil"}""").response.status).isEqualTo(404)
+
+        // Missing device is 404 for an authorized tenant admin.
+        val missingDelete = write(session, "DELETE", "/api/devices/99999999/assignment")
+        assertThat(missingDelete.response.status)
+            .describedAs("missing-device DELETE body=${missingDelete.response.contentAsString}")
+            .isEqualTo(404)
+        assertThat(write(session, "PATCH", "/api/devices/99999999", """{"label":"x"}""").response.status).isEqualTo(404)
+
+        // Global ADMIN (no institution) may operate the device.
+        val adminEmail = "dev-global-${System.nanoTime()}@example.com"
+        createUser(adminEmail, "adminpass1", "Global Admin", UserRole.ADMIN, null)
+        val globalS = login(adminEmail, "adminpass1")
+        // A blank/whitespace label clears the label (documented convention).
+        val cleared = write(globalS, "PATCH", "/api/devices/$deviceId", """{"label":"   "}""")
+        assertThat(cleared.response.status).isEqualTo(200)
+        assertThat(com.fasterxml.jackson.databind.json.JsonMapper()
+            .readTree(cleared.response.contentAsString)["label"].isNull).isTrue()
+        // No open assignment exists here, so unassign stays idempotent 200.
+        assertThat(write(globalS, "DELETE", "/api/devices/$deviceId/assignment").response.status).isEqualTo(200)
+    }
+
     @Test
     fun `cross-tenant device access is 404`() {
         val (sessionA, _) = adminSession()

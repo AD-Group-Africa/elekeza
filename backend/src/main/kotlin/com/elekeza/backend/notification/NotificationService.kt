@@ -7,6 +7,7 @@ import com.elekeza.backend.learner.GuardianRepository
 import jakarta.persistence.*
 import org.slf4j.LoggerFactory
 import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.Param
 import org.springframework.http.ResponseEntity
@@ -67,6 +68,14 @@ interface NotificationRepository : JpaRepository<Notification, Long> {
 
     @Query("SELECT COUNT(n) FROM Notification n WHERE n.userId = :uid AND n.read = false")
     fun countUnread(@Param("uid") userId: Long): Long
+
+    // Retention (V21): notifications are operational messages, not records.
+    @Query("SELECT COUNT(n) FROM Notification n WHERE n.createdAt < :cutoff")
+    fun countByCreatedAtBefore(@Param("cutoff") cutoff: Instant): Long
+
+    @Modifying
+    @Query("DELETE FROM Notification n WHERE n.createdAt < :cutoff")
+    fun deleteByCreatedAtBefore(@Param("cutoff") cutoff: Instant): Int
 }
 
 // ── DTOs ──────────────────────────────────────────────────────────────────────

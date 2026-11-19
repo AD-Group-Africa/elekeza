@@ -7,6 +7,11 @@ spring:
     enabled: true
     baseline-on-migrate: true
     validate-on-migrate: true
+    # Wave 0 (SEC-P0-03): the base profile now defaults demo seeding to OFF.
+    # This profile exists only to run the suite, so the demo fixtures stay ON
+    # here and nowhere else. DemoSeedGuard permits it for the test profile.
+    placeholders:
+      demoSeedEnabled: "${DEMO_SEED_ENABLED:TRUE}"
 
   # Test-specific settings
   jpa:

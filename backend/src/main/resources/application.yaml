@@ -25,10 +25,16 @@ spring:
     locations: classpath:db/migration
     baseline-on-migrate: true
     validate-on-migrate: true
-    # Demo seed gate (V2__seed_demo.sql). ON by default so local dev, backend
-    # tests and the E2E suite keep their demo accounts. prod/docker set it OFF.
+    # Demo seed gate (V2__seed_demo.sql). Wave 0 (SEC-P0-03): this is now
+    # fail-safe — OFF unless explicitly requested. The demo dataset contains a
+    # platform ADMIN and a SCHOOL_ADMIN whose bcrypt hashes and passwords live
+    # in version control, so an accidental ON is an open administrator account.
+    # Enable it only via DEMO_SEED_ENABLED=TRUE on a dev/test/demo host; see
+    # DemoSeedGuard, which refuses to start when it is ON outside dev/test.
+    # The dev profile runs with Flyway disabled and seeds through
+    # DataInitializer/AttendanceFinanceSeed (@Profile("dev")) instead.
     placeholders:
-      demoSeedEnabled: "TRUE"
+      demoSeedEnabled: "${DEMO_SEED_ENABLED:FALSE}"
 
   mail:
     host: ${MAIL_HOST:smtp.gmail.com}

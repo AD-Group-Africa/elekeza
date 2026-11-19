@@ -50,7 +50,7 @@ app:
     # 3100 is the Playwright E2E frontend port (see frontend/playwright.config.ts);
     # browsers send Origin on cross-port XHR, and CORS rejections look like
     # opaque 403s that masquerade as "Invalid email or password".
-    allowed-origins: http://localhost:3000,http://localhost:3100,http://localhost:3005
+    allowed-origins: http://localhost:3000,http://localhost:3100,http://localhost:3005,http://192.168.1.25:3100
   secure-cookies: false
   # Dev/E2E only: the automated suite performs many logins from one IP in
   # quick succession, which the production limiter (5/60s) treats as an

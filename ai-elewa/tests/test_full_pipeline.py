@@ -28,7 +28,9 @@ pytestmark = pytest.mark.live_full
 # only applies when the operator has not configured a real INTERNAL_SECRET.
 INTERNAL_KEY = os.environ.get("INTERNAL_SECRET", "elekeza-test-internal-key-not-a-secret")
 
-BASE_URL = "http://localhost:8000"
+# up to the test environment to point BASE_URL elsewhere (e.g. port 8001 when
+# another service occupies the default port on the local machine).
+BASE_URL = os.environ.get("AI_TEST_BASE_URL", "http://localhost:8000")
 AUTH_HEADER = {"X-Internal-Key": INTERNAL_KEY}
 JSON_HEADER = {**AUTH_HEADER, "Content-Type": "application/json"}
 
