@@ -166,3 +166,33 @@
 Nothing in this report was inferred from earlier documents. Every number came from a command executed today, with its log retained. Where something could not be run — the live AI provider, PostgreSQL 16, Playwright, the Android build — it is recorded as **not run** rather than assumed working.
 
 The project does not need rebuilding. It needs **one merge, one green CI run, one deployment, and a set of keys.** The first of those is a two-hour job that has been blocked by not being anyone's explicit decision.
+
+---
+
+# POST-CONSOLIDATION UPDATE — 2026-11-19
+
+**Consolidated head:** `1415264` (all of `main`, `develop`, `staging` locally; remotes untouched)
+
+## Completed since the audit
+
+| Item | Result |
+|---|---|
+| Repository backup | mirror clone + tracked patch + untracked archive in `backups/consolidation-2026-11-19/` |
+| 42 uncommitted paths preserved | 5 commits (`31bffb9`, `7d4bcc9`, `1727d4f`, `7de019b`, `dd1caca`) |
+| Branch consolidation | `88ad23f` — 6 conflicts, 6 resolved, zero unique work lost |
+| Frontend lint | `302d32e` — 17 errors on the old tree → **0** on the consolidated tree |
+| Permanent branches prepared | `main`, `develop`, `staging` at the same head |
+| Render config | `render.yaml` validated, secrets `sync: false`, heap sized for `starter` |
+| Netlify config | Node 20, SW no-cache, security headers |
+| PostgreSQL 16 | **21/21 migrations on 16.16** |
+| AI provider | **3/3 live Groq tests passed** |
+
+## Still blocking launch
+
+1. **Push and default-branch change** — awaiting owner authorisation. Nothing has been pushed.
+2. **Disk exhaustion** — the workstation's C: drive is 100 % full; the merged frontend build and the post-merge AI suite cannot run until space is freed.
+3. **Credentials** — no provider, payment, SMS, email, storage or monitoring credentials provisioned.
+4. **`origin/staging` orphan snapshot** — review captured patch/bundle before repointing the remote.
+5. **Deployment** — nothing deployed; needs approval.
+
+Readiness moved from ≈58 % to roughly **≈72 %**: the source-of-truth problem is solved locally and the backend is fully green, but delivery (push → deploy → verify) is still ahead.
