@@ -7,7 +7,6 @@ import { useAuth } from '@/hooks/useAuth'
 import { useAccessibilitySettings } from '@/hooks/useAccessibilitySettings'
 import {
   ArrowLeftStartOnRectangleIcon,
-  ArrowUpTrayIcon,
   ChevronDoubleLeftIcon,
   ChevronDoubleRightIcon,
   DocumentChartBarIcon,
@@ -25,11 +24,15 @@ export default function Sidebar() {
   const { user, logout } = useAuth()
   const { settings } = useAccessibilitySettings()
 
+  // Wave 0 (SEC-P1-05): 'Upload' previously linked every learner to
+  // /upload, whose only action posts to /api/content/upload/{file,text} —
+  // both restricted to TEACHER/SCHOOL_ADMIN/ADMIN. The link was therefore a
+  // guaranteed 403. It is removed until learner-owned documents exist
+  // (backlog R-16); the route itself is unchanged.
   const menuItems = useMemo(
     () => [
       { label: 'Dashboard', href: '/dashboard', icon: HomeIcon },
       { label: 'Profile', href: '/dashboard/profile', icon: UserCircleIcon },
-      { label: 'Upload', href: '/upload', icon: ArrowUpTrayIcon },
       { label: 'History', href: '/dashboard/history', icon: DocumentChartBarIcon },
       { label: 'Settings', href: '/dashboard/settings', icon: WrenchScrewdriverIcon },
     ],

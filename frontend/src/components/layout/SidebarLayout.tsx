@@ -6,64 +6,14 @@ import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import {
-  LayoutDashboard, Users, BookOpen, ClipboardCheck, Upload, TrendingUp,
-  Calendar, User, Settings, FileText, MessageSquare, Menu, X, BrainCircuit, AlertTriangle, SlidersHorizontal,
-  UserCheck, Wallet, NotebookPen, UserCog
+  LayoutDashboard, BookOpen, TrendingUp, User, FileText, MessageSquare, Menu, X
 } from 'lucide-react';
+import { commonItems, navItemsFor } from '@/components/layout/navConfig';
 import NotificationBell from '@/components/layout/NotificationBell';
 import ElekezaAssist from '@/components/assist/ElekezaAssist';
 
-const teacherItems = [
-  { href: '/teacher', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/teacher/students', label: 'Students', icon: Users },
-  { href: '/teacher/lessons', label: 'Lessons', icon: BookOpen },
-  { href: '/teacher/assignments', label: 'Assignments', icon: ClipboardCheck },
-  { href: '/teacher/content', label: 'Content', icon: Upload },
-  { href: '/teacher-assignments', label: 'Classwork', icon: NotebookPen },
-  { href: '/teacher/exams', label: 'Exams', icon: FileText },
-  { href: '/teacher/quiz-results', label: 'Quiz Results', icon: ClipboardCheck },
-  { href: '/teacher/support', label: 'Support Signals', icon: AlertTriangle },
-  { href: '/teacher/progress', label: 'Progress', icon: TrendingUp },
-  { href: '/teacher/plans', label: 'Lesson Plans', icon: BookOpen },
-  { href: '/teacher/timetable', label: 'Timetable', icon: Calendar },
-  { href: '/teacher/communication', label: 'Communication', icon: MessageSquare },
-  { href: '/teacher/schedule', label: 'Schedule', icon: Calendar },
-  { href: '/attendance', label: 'Attendance', icon: UserCheck },
-];
-
-const studentItems = [
-  { href: '/student-ai-tutor', label: 'AI Tutor', icon: BrainCircuit },
-  { href: '/student-home', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/student-lessons', label: 'My Lessons', icon: BookOpen },
-  { href: '/assignments', label: 'Assignments', icon: NotebookPen },
-  { href: '/student-quizzes', label: 'Quizzes', icon: ClipboardCheck },
-  { href: '/student-exams', label: 'Exams', icon: FileText },
-  { href: '/progress', label: 'Progress', icon: TrendingUp },
-  { href: '/learner/preferences', label: 'How I Learn', icon: SlidersHorizontal },
-];
-
-const guardianItems = [
-  { href: '/guardian', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/guardian/wards', label: 'My Child', icon: User },
-  { href: '/guardian/fees', label: 'Fees', icon: Wallet },
-  { href: '/guardian/reports', label: 'Reports', icon: FileText },
-  { href: '/guardian/schedule', label: 'Schedule', icon: Calendar },
-  { href: '/guardian/communication', label: 'Communication', icon: MessageSquare },
-];
-
-const adminItems = [
-  { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/admin/staff', label: 'Staff Accounts', icon: UserCog },
-  { href: '/finance', label: 'Finance', icon: Wallet },
-  { href: '/attendance', label: 'Attendance', icon: UserCheck },
-  { href: '/school/onboarding', label: 'Schools', icon: Users },
-  { href: '/super-admin', label: 'Platform', icon: TrendingUp },
-];
-
-const commonItems = [
-  { href: '/dashboard/profile', label: 'Profile', icon: User },
-  { href: '/dashboard/settings', label: 'Settings', icon: Settings },
-];
+// Navigation is defined in `navConfig` (role → items) so that the mapping is
+// unit-testable without booting the router. Wave 0 / UX-P1-01.
 
 // Mobile bottom navigation sets (Home | Learn | Progress | Help | Profile).
 type BottomItem = { label: string; href?: string; icon: React.ComponentType<{ size?: number | string }>; event?: boolean; overlay?: boolean; ariaLabel?: string };
@@ -102,16 +52,9 @@ export default function SidebarLayout({ children }: { children: React.ReactNode 
 
   const role = user?.role || 'STUDENT';
 
-  const navItems = (() => {
-    switch (role) {
-      case 'TEACHER': return teacherItems;
-      case 'STUDENT': return studentItems;
-      case 'GUARDIAN': return guardianItems;
-      case 'SCHOOL_ADMIN': return adminItems.filter(item => item.href !== '/super-admin');
-      case 'ADMIN': return adminItems; // ADMIN sees same sidebar but can access super-admin
-      default: return [];
-    }
-  })();
+  // Role-correct navigation. SCHOOL_ADMIN never receives the platform surface;
+  // an unrecognised role receives nothing rather than another role's menu.
+  const navItems = navItemsFor(user?.role);
 
   const sidebar = (
     <div className="flex flex-col h-full backdrop-blur-md border-r p-4" style={{ background: "var(--bg-card)", borderColor: "var(--border-color)" }}>

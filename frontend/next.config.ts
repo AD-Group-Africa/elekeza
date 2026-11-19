@@ -17,6 +17,7 @@ const nextConfig = {
   // Hide the Next.js dev-tools badge (the floating "N" bottom-left). It is
   // developer-only chrome that leaks into E2E screenshots and manual demos.
   devIndicators: false as const,
+  allowedDevOrigins: ['192.168.1.25'],
   rewrites: async () => [
     { source: '/api/:path*', destination: `${API_BASE}/api/:path*` }
   ],
@@ -62,5 +63,6 @@ export default withPWA({
     }
   ]
 })(nextConfig);
+
 
 

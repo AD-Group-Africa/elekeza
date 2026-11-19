@@ -31,7 +31,8 @@ export default function GuardianSchedule() {
         <div className="glass-card p-6 text-center">
           <Calendar size={48} className="text-purple-400 mx-auto mb-4" />
           <p className="text-purple-200">No upcoming activities.</p>
-          <a href="/guardian/wards" className="mt-3 inline-block bg-purple-600 text-white px-4 py-2 rounded-lg">View your wards' classes</a>
+          {/* Wave 0: "wards" is administrative vocabulary no parent uses. */}
+          <a href="/guardian/wards" className="mt-3 inline-block bg-purple-600 text-white px-4 py-2 rounded-lg">View your child's progress</a>
         </div>
       ) : (
         <div className="space-y-3">
