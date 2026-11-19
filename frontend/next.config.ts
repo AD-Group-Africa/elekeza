@@ -17,9 +17,19 @@ const nextConfig = {
   // Hide the Next.js dev-tools badge (the floating "N" bottom-left). It is
   // developer-only chrome that leaks into E2E screenshots and manual demos.
   devIndicators: false as const,
+  // LAN origin used for device testing during development only.
   allowedDevOrigins: ['192.168.1.25'],
   rewrites: async () => [
     { source: '/api/:path*', destination: `${API_BASE}/api/:path*` }
+  ],
+  // Retired pages: keep old links and bookmarks working.
+  redirects: async () => [
+    { source: '/dashboard', destination: '/', permanent: false },
+    { source: '/dashboard/history', destination: '/progress', permanent: false },
+    { source: '/document/:id', destination: '/lesson/:id', permanent: false },
+    { source: '/upload', destination: '/teacher/content', permanent: false },
+    { source: '/guardian/settings', destination: '/dashboard/settings', permanent: false },
+    { source: '/not-found', destination: '/', permanent: false },
   ],
   // Allow images from any https source (school logos etc)
   images: {
@@ -63,6 +73,4 @@ export default withPWA({
     }
   ]
 })(nextConfig);
-
-
 

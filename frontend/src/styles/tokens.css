@@ -1,58 +1,59 @@
 /* ============================================================================
- * ELEKEZA DESIGN TOKENS — three coordinated themes on one primitive layer
+ * elekeza design tokens: role palette x mode
  * ============================================================================
- * Architecture: every Tailwind purple/violet/indigo/orange/amber utility used
- * in this codebase resolves to a CSS variable. Themes (dark default = teacher
- * analytics blue, light, calm) override the variables only.
+ * two independent attributes on <html> drive every colour in the app:
  *
- * Layers:
- *   1. :root            — semantic primitives (brand, surface, text, status)
- *   2. [data-theme]     — three coordinated palettes on the same primitives
- *   3. utility remaps   — Tailwind color classes -> var() (globals.css imports
- *                         this; do not edit Tailwind utilities directly)
+ *   data-role   the colour family, set from the signed-in user's role
+ *               learner   bright purple   (STUDENT)
+ *               teacher   moss green      (TEACHER)
+ *               guardian  fresh green     (GUARDIAN)
+ *               admin     light blue      (SCHOOL_ADMIN, ADMIN)
+ *               no attribute falls back to learner purple (public pages).
  *
- * Shared primitives (unchanged from the moss identity where they exist):
- *   --ek-moss-*         forest moss 950..050 (deep, warm, trustworthy)
- *   --ek-ember-*        the one warm orange accent (emphasis/actions/selected
- *                       states only — never warnings, never large fills)
- *   --ek-ok / --ek-warn / --ek-danger / --ek-info   status (checked per-surface)
- *   --ek-radius-*       0.5 / 0.75 / 1rem
- *   --ek-shadow-1/2     soft elevation, warm tint
- *   --ek-speed          160ms motion
+ *   data-theme  the mode, chosen by the user in settings
+ *               dark      default, deep role-tinted surfaces
+ *               light     warm cream surfaces, never harsh white
+ *               calm      low stimulation for SNE learners: flat, muted,
+ *                         softer contrast (body text still >= 4.5:1),
+ *                         slightly larger type
  *
- * Three themed palettes (all on the same primitives):
+ * layers:
+ *   1. :root ramps        every named ramp is always defined, so any var()
+ *                         resolves in every mode (an undefined ramp is what
+ *                         made the light-mode login button disappear)
+ *   2. [data-role]        points the generic --hue-* ramp at one family
+ *   3. [data-theme]       derives the semantic tokens (surfaces, text,
+ *                         accent, borders) and the legacy --p* aliases
+ *                         from --hue-*, so 4 roles x 3 modes need only
+ *                         4 + 3 blocks
  *
- *   PURPLE (learner)    #7C3AED / #6D28D9  — expressive, friendly, age-
- *                       appropriate. Use for learning journeys, progress,
- *                       encouragement, gamification.
- *   GREEN (guardian)    #1F5132 / #2D6A4F  — calm, trustworthy, practical.
- *                       Forest green primary; warm cream surfaces; restrained
- *                       sweet-orange accents for emphasis only.
- *   BLUE (teacher)      #1D4ED8 / #0F766E  — professional, information-rich,
- *                       easy to scan. Blue/deep-teal primary; white/neutral
- *                       surfaces; restrained orange accents.
- *
- * Theme duty:
- *   - default [data-theme] (no attribute)  -> BLUE: teacher analytics,
- *     institutional dashboards, reports.
- *   - [data-theme="dark"] (default)        -> BLUE with deep navy base.
- *   - [data-theme="light"]                 -> BLUE on paper surfaces.
- *   - [data-theme="calm"]                  -> BLUE low-stimulation.
- *   - Learner screens override with [data-theme="purple"] / [data-theme="light"]
- *     blocks (see per-theme overrides below) — they are coordinated, not
- *     separate applications; the same primitives drive every role.
- *   - Guardian screens override with [data-theme="green"] / [data-theme="light"]
- *     blocks.
- *
- * Rules: gradients are accents, never the visual language. No neon, no
- * glassmorphism, no crypto-green. Status is never colour alone: every
- * tone carries an icon, an aria-*, or a label. Focus rings use the theme's
- * accent with a 2px solid offset so they remain visible on any background.
- * Reduced motion is respected globally (globals.css).
+ * components should use the semantic tokens (tailwind: bg-canvas, bg-surface,
+ * text-fg, text-fg-muted, border-line, bg-accent ...). legacy palette classes
+ * keep working through theme-remaps.css, which reads the --p* aliases below.
+ * status is never colour alone: every tone carries an icon, label or aria-*.
  * ========================================================================== */
 
 :root {
-  /* ---- Shared brand primitives (unchanged) ---- */
+  /* ---- learner: bright purple ---- */
+  --ek-purple-050: #f5f3ff;
+  --ek-purple-100: #ede9fe;
+  --ek-purple-200: #ddd6fe;
+  --ek-purple-300: #c4b5fd;
+  --ek-purple-400: #a78bfa;
+  --ek-purple-500: #8b5cf6;
+  --ek-purple-600: #7c3aed;
+  --ek-purple-700: #6d28d9;
+  --ek-purple-800: #5b21b6;
+  --ek-purple-900: #4c1d95;
+  --ek-purple-950: #2e1065;
+
+  --ek-lavender-300: #e0d8f5;
+  --ek-lavender-200: #ddd0f0;
+  --ek-lavender-100: #ece3f9;
+  --ek-lilac-200: #dad2ec;
+  --ek-lilac-100: #ece6f5;
+
+  /* ---- teacher: moss green ---- */
   --ek-moss-950: #0d1a12;
   --ek-moss-900: #12241a;
   --ek-moss-800: #1a3326;
@@ -65,209 +66,20 @@
   --ek-moss-100: #e3f2e9;
   --ek-moss-050: #f2f9f5;
 
-  /* ---- Shared warm accent (unchanged) ---- */
-  --ek-ember-600: #c96f3b;
-  --ek-ember-500: #e8935a;
-  --ek-ember-400: #f0b183;
-  --ek-ember-300: #f7cfae;
-  --ek-ember-100: #fceee1;
+  /* ---- guardian: fresh leaf green ---- */
+  --ek-fresh-050: #f0fdf4;
+  --ek-fresh-100: #dcfce7;
+  --ek-fresh-200: #bbf7d0;
+  --ek-fresh-300: #86efac;
+  --ek-fresh-400: #4ade80;
+  --ek-fresh-500: #22c55e;
+  --ek-fresh-600: #16a34a;
+  --ek-fresh-700: #15803d;
+  --ek-fresh-800: #166534;
+  --ek-fresh-900: #14532d;
+  --ek-fresh-950: #052e16;
 
-  /* ---- Shared status (checked per-surface) ---- */
-  --ek-ok: #4caf7d;
-  --ek-warn: #d9a441;
-  --ek-danger: #d96b5a;
-  --ek-info: #5b93c9;
-
-  /* ---- Shared radii / elevation / motion ---- */
-  --ek-radius-sm: 0.5rem;
-  --ek-radius-md: 0.75rem;
-  --ek-radius-lg: 1rem;
-  --ek-radius-xl: 1.25rem;
-  --ek-shadow-1: 0 1px 3px rgba(6, 16, 11, 0.35);
-  --ek-shadow-2: 0 4px 24px rgba(6, 16, 11, 0.35);
-  --ek-shadow-3: 0 12px 40px rgba(6, 16, 11, 0.4);
-  --ek-speed: 160ms;
-}
-
-/* ================= BLUE (default / teacher analytics) =================
- * Primary: blue + deep teal. Surfaces: white + neutral. Accent: restrained
- * orange. Professional, information-rich, easy to scan. Matches the pupil
- * code style: --ek-blue-* = #1D4ED8, --ek-teal-* = #0F766E.
- */
-[data-theme="blue"] {
-  --ek-blue-950: #0a1f3d;
-  --ek-blue-900: #11305c;
-  --ek-blue-800: #16457a;
-  --ek-blue-700: #1d5bd0;
-  --ek-blue-600: #2578e0;
-  --ek-blue-500: #3b8ef0;
-  --ek-blue-400: #6ba7f0;
-  --ek-blue-300: #9ec3f2;
-  --ek-blue-200: #cfe0f5;
-  --ek-blue-100: #e4f0fb;
-  --ek-blue-050: #f6fbff;
-
-  --ek-teal-700: #0d6b6b;
-  --ek-teal-600: #0f766e;
-  --ek-teal-500: #118a8a;
-  --ek-teal-400: #1e9a9a;
-  --ek-teal-300: #4fb3b3;
-  --ek-teal-200: #a9d6d6;
-  --ek-teal-100: #d7ebe8;
-
-  --bg-gradient: linear-gradient(160deg, var(--ek-blue-950) 0%, var(--ek-blue-900) 55%, #0f2c52 100%);
-  --bg-primary: var(--ek-blue-950);
-  --bg-secondary: var(--ek-blue-900);
-  --bg-card: rgba(255, 255, 255, 0.05);
-  --bg-card-hover: rgba(255, 255, 255, 0.10);
-  --border-color: rgba(158, 195, 242, 0.18);
-  --border-strong: rgba(158, 195, 242, 0.42);
-
-  --text-primary: #e8f1fb;
-  --text-secondary: #b6cdef;
-  --text-muted: #7e9ed6;
-
-  --accent: var(--ek-blue-600);
-  --accent-strong: var(--ek-blue-400);
-  --accent-soft: rgba(59, 142, 240, 0.14);
-  --accent-contrast: #ffffff;
-
-  --warm-accent: var(--ek-ember-500);
-  --warm-accent-soft: rgba(232, 147, 90, 0.15);
-
-  --focus-ring: var(--ek-blue-400);
-
-  /* status on dark surfaces */
-  --ek-ok: #63c795;
-  --ek-warn: #e5b95e;
-  --ek-danger: #e88a7a;
-  --ek-info: #7db3e0;
-}
-
-/* ================= LIGHT — paper (blue) ================= */
-[data-theme="light"] {
-  --bg-gradient: linear-gradient(160deg, var(--ek-blue-050) 0%, #ffffff 60%, var(--ek-blue-100) 100%);
-  --bg-primary: #ffffff;
-  --bg-secondary: var(--ek-blue-050);
-  --bg-card: rgba(255, 255, 255, 0.92);
-  --bg-card-hover: #ffffff;
-  --border-color: rgba(29, 78, 216, 0.14);
-  --border-strong: rgba(29, 78, 216, 0.30);
-
-  --text-primary: #17325b;
-  --text-secondary: #3c5a8a;
-  --text-muted: #647fb0;
-
-  --accent: var(--ek-blue-700);
-  --accent-strong: var(--ek-blue-800);
-  --accent-soft: rgba(29, 78, 216, 0.09);
-  --accent-contrast: #ffffff;
-
-  --warm-accent: var(--ek-ember-600);
-  --warm-accent-soft: rgba(201, 111, 59, 0.12);
-
-  --focus-ring: var(--ek-blue-600);
-
-  --ek-ok: #2e7d4f;
-  --ek-warn: #9a6b13;
-  --ek-danger: #b0432f;
-  --ek-info: #2f6699;
-}
-
-/* ================= CALM — low stimulation (blue) ================= */
-[data-theme="calm"] {
-  --bg-gradient: linear-gradient(180deg, #e4edfa 0%, #dde9f5 100%);
-  --bg-primary: #e4edfa;
-  --bg-secondary: #d6e2f3;
-  --bg-card: #f2f6fb;
-  --bg-card-hover: #ffffff;
-  --border-color: rgba(71, 122, 174, 0.22);
-  --border-strong: rgba(71, 122, 174, 0.42);
-
-  --text-primary: #1d3557;
-  --text-secondary: #3f5f85;
-  --text-muted: #6583a3;
-
-  --accent: #2b6cb0;
-  --accent-strong: #2c5f8a;
-  --accent-soft: rgba(43, 108, 176, 0.10);
-  --accent-contrast: #ffffff;
-
-  --warm-accent: #b06a3e;
-  --warm-accent-soft: rgba(176, 106, 62, 0.12);
-
-  --focus-ring: #2c5f8a;
-
-  --ek-ok: #2e6b47;
-  --ek-warn: #8a6410;
-  --ek-danger: #a03d2c;
-  --ek-info: #33608c;
-
-  font-size: 106%;
-}
-
-/* ================= PURPLE (learner) =================
- * Primary: purple/violet #7C3AED. Supporting: lavender/lilac surfaces
- * (--ek-purple-050/100), white content. Expressive, friendly, age-
- * appropriate. Learner journeys, activities, progress, gamification.
- */
-/* Scope the purple-default tokens to the two dark/variations that use them.
- * (:root here would re-assert dark tokens AFTER [data-theme="light"] in source
- * order and defeat light mode at equal specificity — the 2026-10-12 cascade fix.) */
-[data-theme="dark"],
-[data-theme="purple"] {
-  --ek-purple-950: #1e1536;
-  --ek-purple-900: #2a1950;
-  --ek-purple-800: #3d216b;
-  --ek-purple-700: #522ba0;
-  --ek-purple-600: #6d28d9;
-  --ek-purple-500: #7c3aed;
-  --ek-purple-400: #9361e0;
-  --ek-purple-300: #b68af0;
-  --ek-purple-200: #d9b0f5;
-  --ek-purple-100: #e7c6fb;
-  --ek-purple-050: #f7f0ff;
-
-  --ek-lavender-300: #e0d8f5;
-  --ek-lavender-200: #ddd0f0;
-  --ek-lavender-100: #ece3f9;
-  --ek-lilac-200: #dad2ec;
-  --ek-lilac-100: #ece6f5;
-
-  --bg-gradient: linear-gradient(160deg, var(--ek-purple-950) 0%, var(--ek-purple-900) 55%, #3a1f5a 100%);
-  --bg-primary: var(--ek-purple-950);
-  --bg-secondary: var(--ek-purple-900);
-  --bg-card: rgba(255, 255, 255, 0.05);
-  --bg-card-hover: rgba(255, 255, 255, 0.10);
-  --border-color: rgba(217, 176, 245, 0.18);
-  --border-strong: rgba(217, 176, 245, 0.42);
-
-  --text-primary: #f2edff;
-  --text-secondary: #c3b7e8;
-  --text-muted: #9279c7;
-
-  --accent: var(--ek-purple-600);
-  --accent-strong: var(--ek-purple-400);
-  --accent-soft: rgba(124, 58, 237, 0.16);
-  --accent-contrast: #ffffff;
-
-  --warm-accent: var(--ek-ember-500);
-  --warm-accent-soft: rgba(232, 147, 90, 0.15);
-
-  --focus-ring: var(--ek-purple-300);
-
-  --ek-ok: #63c795;
-  --ek-warn: #e5b95e;
-  --ek-danger: #e88a7a;
-  --ek-info: #7db3e0;
-}
-
-/* ================= GREEN (guardian) =================
- * Primary: forest green #1F5132. Surfaces: warm cream (#f4f0e6) and white.
- * Restrained sweet-orange accents (#e8935a) for emphasis only. Calm,
- * trustworthy, practical. Guardian journeys, fees, receipts, school admin.
- */
-[data-theme="green"] {
+  /* ---- forest green and warm cream (used by remapped utility classes) ---- */
   --ek-green-950: #12241a;
   --ek-green-900: #1a3326;
   --ek-green-800: #245039;
@@ -292,154 +104,275 @@
   --ek-cream-100: #f5efe4;
   --ek-cream-050: #faf6ee;
 
-  --bg-gradient: linear-gradient(160deg, var(--ek-green-950) 0%, var(--ek-green-900) 55%, #1f4a2a 100%);
-  --bg-primary: var(--ek-green-950);
-  --bg-secondary: var(--ek-green-900);
-  --bg-card: rgba(244, 240, 230, 0.055);
-  --bg-card-hover: rgba(244, 240, 230, 0.10);
-  --border-color: rgba(206, 187, 170, 0.18);
-  --border-strong: rgba(206, 187, 170, 0.42);
+  /* ---- admin: light blue ---- */
+  --ek-sky-050: #f0f9ff;
+  --ek-sky-100: #e0f2fe;
+  --ek-sky-200: #bae6fd;
+  --ek-sky-300: #7dd3fc;
+  --ek-sky-400: #38bdf8;
+  --ek-sky-500: #0ea5e9;
+  --ek-sky-600: #0284c7;
+  --ek-sky-700: #0369a1;
+  --ek-sky-800: #075985;
+  --ek-sky-900: #0c4a6e;
+  --ek-sky-950: #082f49;
 
-  --text-primary: #f3efe4;
-  --text-secondary: #b9aca0;
-  --text-muted: #8a8071;
+  /* ---- supporting ramps used by remapped utility classes ---- */
+  --ek-blue-950: #0a1f3d;
+  --ek-blue-900: #11305c;
+  --ek-blue-800: #16457a;
+  --ek-blue-700: #1d5bd0;
+  --ek-blue-600: #2578e0;
+  --ek-blue-500: #3b8ef0;
+  --ek-blue-400: #6ba7f0;
+  --ek-blue-300: #9ec3f2;
+  --ek-blue-200: #cfe0f5;
+  --ek-blue-100: #e4f0fb;
+  --ek-blue-050: #f6fbff;
 
-  --accent: var(--ek-green-600);
-  --accent-strong: var(--ek-green-400);
-  --accent-soft: rgba(45, 90, 70, 0.14);
+  --ek-teal-700: #0d6b6b;
+  --ek-teal-600: #0f766e;
+  --ek-teal-500: #118a8a;
+  --ek-teal-400: #1e9a9a;
+  --ek-teal-300: #4fb3b3;
+  --ek-teal-200: #a9d6d6;
+  --ek-teal-100: #d7ebe8;
+
+  /* ---- warm accent: emphasis only, never warnings or large fills ---- */
+  --ek-ember-600: #c96f3b;
+  --ek-ember-500: #e8935a;
+  --ek-ember-400: #f0b183;
+  --ek-ember-300: #f7cfae;
+  --ek-ember-100: #fceee1;
+
+  /* ---- shape, elevation, motion ---- */
+  --ek-radius-sm: 0.5rem;
+  --ek-radius-md: 0.75rem;
+  --ek-radius-lg: 1rem;
+  --ek-radius-xl: 1.25rem;
+  --ek-shadow-1: 0 1px 3px rgba(6, 16, 11, 0.35);
+  --ek-shadow-2: 0 4px 24px rgba(6, 16, 11, 0.35);
+  --ek-shadow-3: 0 12px 40px rgba(6, 16, 11, 0.4);
+  --ek-speed: 160ms;
+}
+
+/* ================= role palettes =================
+ * --hue-fill is the filled accent (buttons, active nav). each one keeps
+ * white text at >= 4.5:1, which is why admin fills with sky-700 rather
+ * than the lighter sky-500.
+ */
+:root,
+[data-role='learner'] {
+  --hue-050: var(--ek-purple-050);
+  --hue-100: var(--ek-purple-100);
+  --hue-200: var(--ek-purple-200);
+  --hue-300: var(--ek-purple-300);
+  --hue-400: var(--ek-purple-400);
+  --hue-500: var(--ek-purple-500);
+  --hue-600: var(--ek-purple-600);
+  --hue-700: var(--ek-purple-700);
+  --hue-800: var(--ek-purple-800);
+  --hue-900: var(--ek-purple-900);
+  --hue-950: var(--ek-purple-950);
+  --hue-fill: var(--ek-purple-600);
+  --hue-fill-hover: var(--ek-purple-700);
+}
+
+[data-role='teacher'] {
+  --hue-050: var(--ek-moss-050);
+  --hue-100: var(--ek-moss-100);
+  --hue-200: var(--ek-moss-200);
+  --hue-300: var(--ek-moss-300);
+  --hue-400: var(--ek-moss-400);
+  --hue-500: var(--ek-moss-500);
+  --hue-600: var(--ek-moss-600);
+  --hue-700: var(--ek-moss-700);
+  --hue-800: var(--ek-moss-800);
+  --hue-900: var(--ek-moss-900);
+  --hue-950: var(--ek-moss-950);
+  --hue-fill: var(--ek-moss-600);
+  --hue-fill-hover: var(--ek-moss-700);
+}
+
+[data-role='guardian'] {
+  --hue-050: var(--ek-fresh-050);
+  --hue-100: var(--ek-fresh-100);
+  --hue-200: var(--ek-fresh-200);
+  --hue-300: var(--ek-fresh-300);
+  --hue-400: var(--ek-fresh-400);
+  --hue-500: var(--ek-fresh-500);
+  --hue-600: var(--ek-fresh-600);
+  --hue-700: var(--ek-fresh-700);
+  --hue-800: var(--ek-fresh-800);
+  --hue-900: var(--ek-fresh-900);
+  --hue-950: var(--ek-fresh-950);
+  --hue-fill: var(--ek-fresh-700);
+  --hue-fill-hover: var(--ek-fresh-800);
+}
+
+[data-role='admin'] {
+  --hue-050: var(--ek-sky-050);
+  --hue-100: var(--ek-sky-100);
+  --hue-200: var(--ek-sky-200);
+  --hue-300: var(--ek-sky-300);
+  --hue-400: var(--ek-sky-400);
+  --hue-500: var(--ek-sky-500);
+  --hue-600: var(--ek-sky-600);
+  --hue-700: var(--ek-sky-700);
+  --hue-800: var(--ek-sky-800);
+  --hue-900: var(--ek-sky-900);
+  --hue-950: var(--ek-sky-950);
+  --hue-fill: var(--ek-sky-700);
+  --hue-fill-hover: var(--ek-sky-800);
+}
+
+/* ================= dark (default) =================
+ * deep role-tinted surfaces with light text.
+ */
+:root,
+[data-theme='dark'] {
+  --bg-primary: var(--hue-950);
+  --bg-secondary: var(--hue-900);
+  --bg-gradient: linear-gradient(
+    160deg,
+    var(--hue-950) 0%,
+    color-mix(in srgb, var(--hue-900) 70%, var(--hue-950)) 100%
+  );
+  --bg-card: rgba(255, 255, 255, 0.06);
+  --bg-card-hover: rgba(255, 255, 255, 0.1);
+  --border-color: color-mix(in srgb, var(--hue-300) 22%, transparent);
+  --border-strong: color-mix(in srgb, var(--hue-300) 45%, transparent);
+
+  --text-primary: var(--hue-050);
+  --text-secondary: var(--hue-200);
+  --text-muted: var(--hue-300);
+
+  --accent: var(--hue-fill);
+  --accent-hover: var(--hue-fill-hover);
+  --accent-strong: var(--hue-300);
+  --accent-soft: color-mix(in srgb, var(--hue-500) 18%, transparent);
   --accent-contrast: #ffffff;
 
-  --warm-accent: var(--ek-ember-600);
-  --warm-accent-soft: rgba(201, 111, 59, 0.14);
+  --warm-accent: var(--ek-ember-500);
+  --warm-accent-soft: rgba(232, 147, 90, 0.15);
 
-  --focus-ring: var(--ek-green-300);
+  --focus-ring: var(--hue-300);
 
   --ek-ok: #63c795;
   --ek-warn: #e5b95e;
   --ek-danger: #e88a7a;
   --ek-info: #7db3e0;
+
+  /* legacy purple-scale aliases read by theme-remaps.css */
+  --p50: var(--accent-soft);
+  --p100: var(--hue-200);
+  --p200: var(--hue-200);
+  --p300: var(--hue-300);
+  --p400: var(--hue-400);
+  --p500: var(--hue-500);
+  --p600: var(--hue-fill);
+  --p700: var(--hue-fill-hover);
+  --p900: var(--hue-900);
 }
 
-/* ================= PURPLE LIGHT ================= */
-[data-theme="purple"][data-theme="light"] {
-  --bg-gradient: linear-gradient(160deg, var(--ek-purple-050) 0%, #ffffff 60%, var(--ek-purple-100) 100%);
-  --bg-primary: #ffffff;
-  --bg-secondary: var(--ek-purple-050);
-  --bg-card: rgba(255, 255, 255, 0.92);
-  --bg-card-hover: #ffffff;
-  --border-color: rgba(124, 58, 237, 0.16);
-  --border-strong: rgba(124, 58, 237, 0.30);
+/* ================= light: warm cream =================
+ * cream page, soft off-white cards, role-tinted dark text.
+ */
+[data-theme='light'] {
+  --bg-primary: #fbf7ee;
+  --bg-secondary: #f4ecdd;
+  --bg-gradient: linear-gradient(
+    160deg,
+    #fdfaf3 0%,
+    #f8f1e4 55%,
+    color-mix(in srgb, var(--hue-100) 55%, #f8f1e4) 100%
+  );
+  --bg-card: #fffdf8;
+  --bg-card-hover: #fffefb;
+  --border-color: color-mix(in srgb, var(--hue-900) 14%, transparent);
+  --border-strong: color-mix(in srgb, var(--hue-900) 30%, transparent);
 
-  --text-primary: #241845;
-  --text-secondary: #4a3d78;
-  --text-muted: #6e6197;
+  --text-primary: color-mix(in srgb, var(--hue-950) 55%, #1f1b16);
+  --text-secondary: color-mix(in srgb, var(--hue-900) 55%, #3f3a33);
+  --text-muted: color-mix(in srgb, var(--hue-800) 45%, #5c554b);
 
-  --accent: #6d28d9;
-  --accent-strong: #522ba0;
-  --accent-soft: rgba(124, 58, 237, 0.09);
+  --accent: var(--hue-fill);
+  --accent-hover: var(--hue-fill-hover);
+  --accent-strong: var(--hue-800);
+  --accent-soft: color-mix(in srgb, var(--hue-500) 12%, transparent);
   --accent-contrast: #ffffff;
 
   --warm-accent: var(--ek-ember-600);
   --warm-accent-soft: rgba(201, 111, 59, 0.12);
 
-  --focus-ring: #6d28d9;
+  --focus-ring: var(--hue-700);
 
   --ek-ok: #2e7d4f;
   --ek-warn: #9a6b13;
   --ek-danger: #b0432f;
   --ek-info: #2f6699;
+
+  --ek-shadow-1: 0 1px 3px rgba(60, 45, 20, 0.12);
+  --ek-shadow-2: 0 4px 24px rgba(60, 45, 20, 0.1);
+  --ek-shadow-3: 0 12px 40px rgba(60, 45, 20, 0.14);
+
+  --p50: var(--hue-050);
+  --p100: var(--hue-100);
+  --p200: var(--hue-200);
+  --p300: var(--hue-700);
+  --p400: var(--hue-500);
+  --p500: var(--hue-600);
+  --p600: var(--hue-fill);
+  --p700: var(--hue-fill-hover);
+  --p900: var(--hue-900);
 }
 
-/* ================= PURPLE CALM ================= */
-[data-theme="purple"][data-theme="calm"] {
-  --bg-gradient: linear-gradient(180deg, #ede6f8 0%, #e3dcfc 100%);
-  --bg-primary: #ede6f8;
-  --bg-secondary: #ddd0f0;
-  --bg-card: #f5eefa;
-  --bg-card-hover: #ffffff;
-  --border-color: rgba(124, 58, 237, 0.24);
-  --border-strong: rgba(124, 58, 237, 0.44);
+/* ================= calm: low stimulation =================
+ * flat muted surfaces, desaturated accent, no decorative gradient, softer
+ * shadows and slightly larger type. pairs with body.calm-mode.
+ */
+[data-theme='calm'] {
+  --bg-primary: color-mix(in srgb, var(--hue-100) 30%, #ece8df);
+  --bg-secondary: color-mix(in srgb, var(--hue-200) 25%, #e2ddd2);
+  --bg-gradient: linear-gradient(var(--bg-primary), var(--bg-primary));
+  --bg-card: #f7f5f0;
+  --bg-card-hover: #fbfaf7;
+  --border-color: color-mix(in srgb, var(--hue-900) 18%, transparent);
+  --border-strong: color-mix(in srgb, var(--hue-900) 34%, transparent);
 
-  --text-primary: #2a1e47;
-  --text-secondary: #4e3b6b;
-  --text-muted: #755f99;
+  --text-primary: color-mix(in srgb, var(--hue-950) 35%, #2b2925);
+  --text-secondary: color-mix(in srgb, var(--hue-900) 35%, #45413a);
+  --text-muted: color-mix(in srgb, var(--hue-800) 30%, #5a554c);
 
-  --accent: #6d28d9;
-  --accent-strong: #522ba0;
-  --accent-soft: rgba(124, 58, 237, 0.10);
+  --accent: color-mix(in srgb, var(--hue-fill) 70%, #3f4a52);
+  --accent-hover: color-mix(in srgb, var(--hue-fill-hover) 70%, #343d44);
+  --accent-strong: color-mix(in srgb, var(--hue-800) 70%, #3f4a52);
+  --accent-soft: color-mix(in srgb, var(--hue-500) 9%, transparent);
   --accent-contrast: #ffffff;
 
   --warm-accent: #b06a3e;
   --warm-accent-soft: rgba(176, 106, 62, 0.12);
 
-  --focus-ring: #522ba0;
+  --focus-ring: var(--accent-strong);
 
   --ek-ok: #2e6b47;
   --ek-warn: #8a6410;
   --ek-danger: #a03d2c;
   --ek-info: #33608c;
 
-  font-size: 106%;
-}
+  --ek-shadow-1: 0 1px 2px rgba(40, 35, 25, 0.08);
+  --ek-shadow-2: 0 2px 8px rgba(40, 35, 25, 0.08);
+  --ek-shadow-3: 0 4px 16px rgba(40, 35, 25, 0.1);
 
-/* ================= GREEN LIGHT ================= */
-[data-theme="green"][data-theme="light"] {
-  --bg-gradient: linear-gradient(160deg, var(--ek-cream-050) 0%, #ffffff 60%, var(--ek-green-100) 100%);
-  --bg-primary: #ffffff;
-  --bg-secondary: var(--ek-cream-050);
-  --bg-card: rgba(255, 255, 255, 0.92);
-  --bg-card-hover: #ffffff;
-  --border-color: rgba(31, 81, 50, 0.15);
-  --border-strong: rgba(31, 81, 50, 0.30);
-
-  --text-primary: #242017;
-  --text-secondary: #4a4132;
-  --text-muted: #6e6556;
-
-  --accent: var(--ek-green-700);
-  --accent-strong: var(--ek-green-800);
-  --accent-soft: rgba(31, 81, 50, 0.09);
-  --accent-contrast: #ffffff;
-
-  --warm-accent: var(--ek-ember-600);
-  --warm-accent-soft: rgba(201, 111, 59, 0.12);
-
-  --focus-ring: var(--ek-green-700);
-
-  --ek-ok: #2e7d4f;
-  --ek-warn: #9a6b13;
-  --ek-danger: #b0432f;
-  --ek-info: #2f6699;
-}
-
-/* ================= GREEN CALM ================= */
-[data-theme="green"][data-theme="calm"] {
-  --bg-gradient: linear-gradient(180deg, #ece4d4 0%, #e3daca 100%);
-  --bg-primary: #ece4d4;
-  --bg-secondary: #dccfb8;
-  --bg-card: #f4f0e6;
-  --bg-card-hover: #ffffff;
-  --border-color: rgba(90, 110, 90, 0.22);
-  --border-strong: rgba(90, 110, 90, 0.42);
-
-  --text-primary: #2a261d;
-  --text-secondary: #4a4335;
-  --text-muted: #6f685c;
-
-  --accent: #2d5c3e;
-  --accent-strong: #244b32;
-  --accent-soft: rgba(45, 92, 62, 0.10);
-  --accent-contrast: #ffffff;
-
-  --warm-accent: #b06a3e;
-  --warm-accent-soft: rgba(176, 106, 62, 0.12);
-
-  --focus-ring: #244b32;
-
-  --ek-ok: #2e6b47;
-  --ek-warn: #8a6410;
-  --ek-danger: #a03d2c;
-  --ek-info: #33608c;
+  --p50: color-mix(in srgb, var(--hue-050) 60%, #f7f5f0);
+  --p100: color-mix(in srgb, var(--hue-100) 60%, #f7f5f0);
+  --p200: color-mix(in srgb, var(--hue-200) 60%, #f7f5f0);
+  --p300: var(--accent-strong);
+  --p400: color-mix(in srgb, var(--hue-500) 70%, #6b7280);
+  --p500: color-mix(in srgb, var(--hue-600) 70%, #4b5563);
+  --p600: var(--accent);
+  --p700: var(--accent-hover);
+  --p900: color-mix(in srgb, var(--hue-900) 70%, #374151);
 
   font-size: 106%;
 }
