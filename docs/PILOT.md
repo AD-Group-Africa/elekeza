@@ -73,7 +73,9 @@ learner sees both). Honest pilot notes: M-Pesa mock; assignment submissions text
 
 Guardian consent on file for every learner; child-level data visible only to that learner's
 teachers/guardians (enforced + tested); pilot reports aggregate only; **no model training on pilot
-data**; formal consent tracking + retention workflow are pilot-phase operational requirements.
+data**. Consent capture, account erasure and a scheduled retention sweep are implemented in the
+backend (`/api/privacy/**`, `V21`); a consent screen must still be built and the wording reviewed
+before real learner records exist — see `docs/operations/ELEKEZA_PRIVACY_CONSENT_ERASURE_RETENTION.md`.
 
 ## 8. Honest known limitations at launch
 

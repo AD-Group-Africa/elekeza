@@ -74,3 +74,11 @@ ai-elewa/.venv/
 
 # Local AI config backup
 ai-elewa/config.py.before-qwen.ps1
+
+# Wave 0 (SEC-P2-06) — evidence archives, generated validation output and stray
+# editor backups. All of these were untracked but NOT ignored, so a single
+# `git add .` would have committed compiled .class files, vendored jars, an
+# imported-conversation export (~15 MB) and config backups.
+backend/flyway-validation/
+.cloud-attachments/
+*.bak

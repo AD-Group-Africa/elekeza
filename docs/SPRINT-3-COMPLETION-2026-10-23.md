@@ -15,7 +15,8 @@ Branch: `sprint-3-safe-config` · Scope: the reported Sprint 3 backend regressio
 
 ### A. Guardian calendar school dates (regression + gap)
 - Root cause: guardians had no access to the school calendar; `GET /api/deadlines` was never surfaced to them.
-- Fix: `GuardianScheduleController` now merges upcoming deadlines into `/api/guardian/schedule` under an explicit tenant-safe visibility rule: NATIONAL/REGIONAL are public, institution scope requires an **active** guardian link to a learner of that institution (guardians carry no institution of their own), plus the guardian's personal deadlines.
+- Fix: `GuardianScheduleController` now merges upcoming deadlines into `/api/guardian/schedule` under an explicit tenant-safe visibility rule: NATIONAL is public, institution scope requires an **active** guardian link to a learner of that institution (guardians carry no institution of their own), plus the guardian's personal deadlines.
+  **Superseded 14 Nov 2026 (V20).** The original rule treated REGIONAL as globally public, which exposed every county's dates to every guardian because the model had no region key. Regionals were then temporarily excluded entirely (see `docs/audit/ELEKEZA_REGIONAL_SCHOOL_DATES_REGRESSION_REVIEW.md`). REGIONAL is now **county-scoped**: a `deadlines.county_code` value must match the county of an institution attended by one of the guardian's actively linked wards, and a regional date with no county is visible to nobody. The rule lives in one place — `DeadlineVisibility` — shared by `/api/deadlines` and `/api/guardian/schedule`.
 - File: `backend/.../guardian/GuardianScheduleController.kt`
 - Tests: `backend/.../guardian/GuardianSchoolDatesTest.kt` (new).
 

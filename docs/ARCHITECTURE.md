@@ -118,3 +118,82 @@ Never exercised against a real host yet — external blocker.
 - Exams/marketplace/government/therapist are **Coming Soon placeholders with zero backend surface**.
 - Redis is wired in compose but unused by backend code; rate limiting is in-process (single-instance
   fine for pilot).
+
+---
+
+## 5. Consolidated architecture — verified 2026-11-19
+
+> Appended during the pre-December audit. Sections 1–4 above were verified against
+> `integration/staging-reconciliation` @ `b139b8e`; this section describes the **actual
+> current topology** and supersedes them where they disagree.
+
+### 5.1 Shape (unchanged, and deliberately so)
+
+Modular monolith + one repository + three independently deployable services:
+
+```
+Elekeza/                       (single Git repo — AD-Group-Africa/elekeza)
+├── backend/                   Kotlin 1.9.23 · Spring Boot 3.2.4 · JDK 17 · Flyway V1–V21
+│                             40 controllers · 21 migrations · 397 tests
+├── ai-elewa/                  Python · FastAPI · 4 endpoints · 4 providers · 603 tests
+│                             endpoints/: simplify · quiz · process · tutor
+├── frontend/                  Next.js 16.3.3 (webpack) · React 19.2.3 · PWA · 61 routes
+│                             ├── src/app/(app|public)/...   route groups
+│                             └── android/                   Capacitor 8.4.1 WebView wrapper
+├── infrastructure/            nginx templates + TLS override (self-hosted path, unused on Render)
+├── scripts/                   db-backup.sh · db-restore-drill.sh · staging-gate.sh
+├── docs/                      architecture · integrations · deployment · testing
+└── .github/workflows/ci.yml   4 jobs: backend · frontend · e2e · ai-elewa
+```
+
+### 5.2 Deviation from the proposed `apps/` layout — documented, not accidental
+
+The mandate suggested `apps/{backend,ai-service,frontend}`. **This repository keeps
+`backend/`, `ai-elewa/`, `frontend/` at the root.** Reasons:
+
+1. Every deploy artefact references these paths: `backend/Dockerfile`, `ai-elewa/Dockerfile`,
+   `frontend/Dockerfile`, `render.yaml` (`rootDir`), `frontend/netlify.toml`,
+   `ci.yml` `working-directory`, `frontend/android/` Capacitor paths and `scripts/*.sh`.
+2. Moving them rewrites every path in one shot and would invalidate the Android build,
+   while adding **zero** runtime value before launch.
+3. The goal — one repo, three deployable services — is already satisfied by the current layout.
+
+The mapping is: `apps/backend` → `backend/`, `apps/ai-service` → `ai-elewa/`,
+`apps/frontend` → `frontend/`. `shared/` does not exist because the three services share
+no compiled code, only wire contracts (HTTP + JSON), which is the correct boundary.
+
+### 5.3 Runtime topology
+
+```
+Browser/PWA ─► Netlify (Next.js + @netlify/plugin-nextjs)
+                  │  /api/* rewritten by next.config.ts
+                  ▼
+           Render: elekeza-backend (Spring Boot, Docker, /actuator/health)
+                  ├── PostgreSQL 16 (Flyway V1–V21, ddl-auto=validate)
+                  └── SMS · Email · R2 storage · M-Pesa  (all default to mock)
+                  ▼
+           Render: elekeza-ai (FastAPI, Docker, /health, X-Internal-Key)
+                  ▼
+           AI provider (groq | openai | anthropic | google)
+```
+
+**Trust boundary:** the AI service is never called by the browser. `AI_INTERNAL_SECRET`
+(backend) must equal `INTERNAL_SECRET` (AI). Treat it as a production credential.
+
+### 5.4 Module map (backend)
+
+`analytics` · `attendance` · `auth` · `billing` · `calendar` (incl. `DeadlineVisibility`,
+`CountyKey`) · `common` (provider adapters) · `config/seed` (incl. `DemoSeedGuard`) ·
+`content` · `devices` · `finance` (M-Pesa gateway/listener) · `guardian` · `institution`
+(guardian links) · `learner` (progress, gamification, streaks) · `mastery` · `messaging` ·
+`notification` · `payments` · `privacy` (consent, erasure, retention) · `quiz` · `tutor`.
+
+### 5.5 Verified state at time of writing
+
+| Service | Build | Tests | Notes |
+|---|---|---|---|
+| backend | `bootJar` OK | 397/397 | PostgreSQL 16 path not re-verified (H2 in tests) |
+| ai-elewa | starts, `/health` 200 | 603/603 | real-provider run outstanding |
+| frontend | `next build` OK | 34/34 | **ESLint 17 errors — CI red** |
+
+Full detail: `docs/testing/TEST_RESULTS.md`. Consolidation: `docs/REPOSITORY_CONSOLIDATION_REPORT.md`.

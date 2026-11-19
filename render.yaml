@@ -1,0 +1,131 @@
+# render.yaml — Elekeza backend + AI service (Render Blueprint)
+#
+# Deploy: Render Dashboard → New → Blueprint → select this repository.
+# Secrets are declared with `sync: false`, which means Render prompts for them
+# and stores them encrypted. NO secret values belong in this file.
+#
+# Frontend is deployed separately on Netlify (frontend/netlify.toml).
+# Services are intentionally independent: each has its own Dockerfile, health
+# check and rolling deploy.
+
+services:
+  # ─────────────────────────────────────────────────────────────
+  # Backend — Kotlin / Spring Boot
+  # ─────────────────────────────────────────────────────────────
+  - type: web
+    name: elekeza-backend
+    runtime: docker
+    plan: starter            # 512 MB free tier is not enough for JVM + Hibernate; starter = 2 GB
+    region: frankfurt
+    rootDir: backend
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /actuator/health
+    autoDeploy: false        # deploy deliberately, from an approved branch
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: prod
+      - key: PORT
+        value: 8080
+      # Database — point at the production PostgreSQL instance
+      - key: DB_URL
+        sync: false
+      - key: DB_USER
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      # Migrations own the schema; never let Hibernate alter it
+      - key: SPRING_JPA_HIBERNATE_DDL_AUTO
+        value: validate
+      # Never seed demo/learner data on an internet-facing host
+      - key: DEMO_SEED_ENABLED
+        value: "FALSE"
+      # Auth
+      - key: JWT_SECRET
+        sync: false
+      - key: SECURE_COOKIES
+        value: "true"
+      # AI service wiring (must match the ai-service hostname below)
+      - key: AI_SERVICE_URL
+        value: https://elekeza-ai.onrender.com
+      - key: AI_INTERNAL_SECRET
+        sync: false
+      - key: AI_CLIENT_TYPE
+        value: real
+      - key: AI_TIMEOUT_SECONDS
+        value: "120"
+      # URLs / CORS — must be the exact Netlify origin, no trailing slash
+      - key: FRONTEND_URL
+        sync: false
+      - key: CORS_ALLOWED_ORIGINS
+        sync: false
+      # Providers — default to mock until real credentials are supplied
+      - key: SMS_PROVIDER
+        value: mock
+      - key: EMAIL_PROVIDER
+        value: mock
+      - key: STORAGE_PROVIDER
+        value: mock
+      - key: MPESA_ENVIRONMENT
+        value: sandbox
+      # Optional providers — supply only when the integration is being activated
+      - key: AFRICA_TALKING_API_KEY
+        sync: false
+      - key: AFRICA_TALKING_SENDER_ID
+        sync: false
+      - key: MPESA_CONSUMER_KEY
+        sync: false
+      - key: MPESA_CONSUMER_SECRET
+        sync: false
+      - key: MPESA_PASSKEY
+        sync: false
+      - key: MPESA_SHORTCODE
+        sync: false
+      - key: MPESA_CALLBACK_URL
+        sync: false
+      - key: MAIL_HOST
+        sync: false
+      - key: MAIL_USERNAME
+        sync: false
+      - key: MAIL_PASSWORD
+        sync: false
+      - key: CLOUDFLARE_R2_ACCOUNT_ID
+        sync: false
+      - key: CLOUDFLARE_R2_BUCKET_NAME
+        sync: false
+      - key: CLOUDFLARE_R2_ACCESS_KEY_ID
+        sync: false
+      - key: CLOUDFLARE_R2_SECRET_ACCESS_KEY
+        sync: false
+      - key: R2_ENDPOINT
+        sync: false
+
+  # ─────────────────────────────────────────────────────────────
+  # AI service — Python / FastAPI
+  # ─────────────────────────────────────────────────────────────
+  - type: web
+    name: elekeza-ai
+    runtime: docker
+    # A free instance spins down; a cold start blows the backend's 120 s AI
+    # timeout and the tutor appears broken. Paid, always-on is required.
+    plan: starter
+    region: frankfurt
+    rootDir: ai-elewa
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /health
+    autoDeploy: false
+    envVars:
+      - key: AI_PROVIDER
+        value: groq
+      - key: AI_API_KEY
+        sync: false
+      # MUST equal the backend's AI_INTERNAL_SECRET exactly
+      - key: INTERNAL_SECRET
+        sync: false
+      - key: LANGFUSE_PUBLIC_KEY
+        sync: false
+      - key: LANGFUSE_SECRET_KEY
+        sync: false
+      - key: LANGFUSE_HOST
+        sync: false
+      - key: TESSERACT_CMD
+        value: /usr/bin/tesseract
