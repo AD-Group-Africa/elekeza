@@ -1,175 +1,128 @@
-# TEST RESULTS — 2026-11-19
+# TEST RESULTS — pre- and post-consolidation
 
-**Tree under test:** `sprint-3-safe-config` @ `47d17f5` + 24 modified / 18 untracked paths
-**Machine:** Windows 11, Git Bash · JDK 21.0.9 (Temurin) · Node 24.19.0 / npm 11.14.1 · Python 3.14.4 (venv 3.12) · Docker 29.2.1
+**Machine:** Windows 11, Git Bash · JDK 21.0.9 (Temurin) · Node 24.19.0 / npm 11.14.1 · Python 3.14 (venv) · Docker 29.2.1 · 8 GB RAM
 **Raw logs:** `artifacts/audit-2026-11-19/`
 
-> Every figure below was produced by a command run today. No historical result was carried forward. Where something could not be run, it is marked **NOT RUN** rather than assumed.
+> Every figure is from a command executed in this session. Where a run could not complete, it is marked **BLOCKED** with the cause — never reported as a pass.
 
 ---
 
-## 1. Summary
+## 1. Consolidated head — `302d32e` (the one that matters)
 
-| Suite | Command | Result | Duration | Log |
-|---|---|---|---|---|
-| Backend unit + integration | `cd backend && ./gradlew test --console=plain` | ✅ **397 passed / 0 failed / 0 skipped** (59 classes) | 9 m 07 s | `backend-test.log` |
-| Backend production build | `cd backend && ./gradlew bootJar` | ✅ **BUILD SUCCESSFUL** | 21 s | `backend-bootjar.log` |
-| Frontend typecheck | `npx tsc --noEmit` | ✅ **pass** (exit 0) | — | `frontend-checks.log` |
-| Frontend unit tests | `npx vitest run` | ✅ **34 passed / 34** (6 files) | 17.45 s | `frontend-vitest.log` |
-| Frontend lint | `npx eslint .` | ❌ **17 errors, 24 warnings** (exit 1) | — | `frontend-checks.log` |
-| Frontend production build | `npm run build` | ✅ **exit 0** (Next 16.3.3, PWA `sw.js`) | ~90 s | `frontend-build.log` |
-| AI service tests | `pytest tests -q -m "not live and not live_full"` (uvicorn :8000, `INTERNAL_SECRET` pinned) | ✅ **603 passed / 58 deselected** | 2 m 13 s | `ai-tests-final.log` |
-| AI live-provider suite | `pytest -m live_full` | ⛔ **NOT RUN — no real API key** | — | — |
-| Frontend E2E (Playwright) | `npx playwright test` | ⛔ **NOT RUN this session** | — | — |
-| Android build | `./gradlew assembleRelease` | ⛔ **NOT RUN this session** | — | — |
-| PostgreSQL (real DB) migration run | — | ⛔ **NOT RUN — suite uses H2** | — | — |
+| Suite | Command | Result | Duration |
+|---|---|---|---|
+| Backend tests | `cd backend && ./gradlew test --console=plain` | ✅ **410 passed / 0 failed / 0 skipped** (62 classes) | 11 m 51 s |
+| Backend build | `./gradlew bootJar` | ✅ **BUILD SUCCESSFUL** | 23 s |
+| Frontend typecheck | `npx tsc --noEmit` | ✅ exit 0 | — |
+| Frontend lint | `npx eslint .` | ✅ **exit 0** (0 errors, 0 warnings) | — |
+| Frontend unit | `npx vitest run` | ✅ **84 passed / 84** (12 files) | — |
+| Frontend build | `npm run build` | ⛔ **BLOCKED — disk full (ENOSPC)** | — |
+| AI suite | `pytest tests -m "not live and not live_full"` | ⛔ **BLOCKED — disk full (ENOSPC)** | — |
+| AI live provider | `pytest tests/test_live_smoke.py -m live` | ✅ **3 passed** against real Groq | 12 s |
+| Flyway on PostgreSQL 16.16 | backend boot on clean DB | ✅ **21/21 migrations applied** | 7.5 s |
+| Prod seeding guard | boot with `DEMO_SEED_ENABLED=TRUE`, profile `prod` | ✅ **refused to start (correct)** | — |
 
-**Totals executed: 1,034 automated tests passed (397 + 34 + 603), 0 failed. 1 lint gate failing.**
+### Why two suites are blocked (environment, not code)
+
+The C: drive reached **100 % full (238 GB / 238 GB, 0 bytes free)** mid-session. Effects observed:
+
+- `npm ci` → `ENOSPC: no space left on device, write` (exit 1), after `exit 134` (SIGABRT) on the first attempt.
+- `pytest` → `INTERNALERROR> MemoryError`, aborting at 185 passed / 5 failed.
+- Windows `bash fork: Resource temporarily unavailable`.
+
+The merge brought a **new `frontend/package-lock.json`** (Next 16.3.3 → 16.4.2, 3,982 lines changed), so the existing `node_modules` no longer matched and `npm ci` must rebuild it (~400–500 MB peak). **252 MB** could be freed by deleting the half-installed `node_modules`; that is not enough.
+
+**To close these two gates once disk space exists:**
+
+```bash
+cd frontend && npm ci --legacy-peer-deps && npx tsc --noEmit && npx eslint . && npx vitest run && npm run build
+cd ../ai-elewa && ./venv/Scripts/python.exe -m uvicorn main:app --port 8000 &
+INTERNAL_SECRET=elekeza-test-internal-key-not-a-secret ./venv/Scripts/python.exe -m pytest tests -q -m "not live and not live_full"
+```
+
+> The frontend **did** build successfully on the pre-merge tree (exit 0, 61 routes, PWA `sw.js`) with the older dependency set. The merged lockfile has not been built.
 
 ---
 
-## 2. Backend — `./gradlew test`
+## 2. Pre-consolidation baseline — `47d17f5` + uncommitted work
 
-```
-BUILD SUCCESSFUL in 9m 7s
-5 actionable tasks: 2 executed, 3 up-to-date
-```
-Aggregated from 59 JUnit XML reports in `backend/build/test-results/test/`:
+Recorded before merging, for comparison.
 
-| Metric | Value |
+| Suite | Result |
 |---|---|
-| Test classes | 59 |
-| Tests | **397** |
-| Failures | **0** |
-| Errors | **0** |
-| Skipped | **0** |
+| Backend `./gradlew test` | 397 passed / 0 failed (59 classes), 9 m 07 s |
+| Backend `bootJar` | BUILD SUCCESSFUL, 21 s |
+| Frontend `tsc --noEmit` | pass |
+| Frontend `vitest run` | 34 passed / 34 (6 files) |
+| Frontend `eslint` | ❌ 17 errors, 24 warnings |
+| Frontend `npm run build` | exit 0, 61 routes, PWA `sw.js` |
+| AI `pytest` (server booted, secret pinned) | 603 passed / 58 deselected |
 
-Notable classes exercised in this run include the new work on this branch: `DeadlineAuthorizationTest`, `GuardianDeadlineLinkLifecycleTest`, `DeadlineCountyMigrationTest`, `RegionalCountyVisibilityTest`, `JwtTokenTypeTest`, `GuardianSchoolDatesTest`, plus the pre-existing authorization/tenant-isolation suites.
-
-### What this proves
-- All 21 Flyway migrations apply cleanly in the test profile.
-- Role-based authorization and cross-school isolation behave as asserted.
-- Guardian→learner link lifecycle (create/unlink/deny) is covered.
-
-### What this does **not** prove
-- Behaviour against **PostgreSQL 16** (the suite runs on H2). The Postgres path was not re-verified today.
-- The five-role journeys against a **live server** — no backend process was started this session.
-
-### Backend build
-`bootJar` succeeded; artefact produced under `backend/build/libs/`. The Dockerfile compiles with JDK 17 while this run used JDK 21 — the build is valid on both, but production remains pinned to 17.
+Test counts rose after the merge: **397 → 410** backend (pilot contributed `ClassManagementApiTest`, `GamificationTest`, `QuizStartConcurrencyTest`) and **34 → 84** frontend (pilot's feature-based tests).
 
 ---
 
-## 3. Frontend
+## 3. Lint: 17 errors → 0
 
-### 3.1 Typecheck — PASS
-`npx tsc --noEmit` → exit **0**, no diagnostics.
+The 17 errors measured on `sprint-3-safe-config` were real *for that tree*. After the merge the frontend is pilot's, which had already fixed 16 of them. One remained:
 
-### 3.2 Unit tests — PASS
 ```
-Test Files  6 passed (6)
-     Tests  34 passed (34)
-  Duration  17.45s
+frontend/src/lib/api/client.ts:70
+  error  Definition for rule '@next/next/no-location-assign-relative-destination' was not found
 ```
-Files: `navConfig.test.ts` (9), `LearningCompanion.test.tsx` (4), `Celebration.test.tsx` (9), plus three further suites.
 
-> Note: a first run failed with `ERR_LOAD_URL` because I passed `--reporter=basic`, which Vitest 5 no longer ships. That was a **harness error on my side**, not a product failure; the corrected invocation above is the baseline.
+The rule no longer exists in `eslint-config-next` 16.x, so the bare `eslint-disable-next-line` directive was itself the error. Removed in `302d32e`. `npx eslint .` → exit 0.
 
-### 3.3 Lint — FAIL (the one red gate)
-`npx eslint .` → **17 errors, 24 warnings**. CI (`.github/workflows/ci.yml`) runs `npm run lint`, so **CI is red on this tree**.
-
-| Rule | Count | Nature | Fix |
-|---|---|---|---|
-| `@typescript-eslint/no-explicit-any` | 10 | `any` in API/provider shapes | Type properly (preferred) or narrow to `unknown` |
-| `react/no-unescaped-entities` | 5 | Raw `'` in JSX copy | Escape as `&apos;` |
-| `react-hooks/set-state-in-effect` | 1 | `setState` synchronously in an effect | Guard or derive state |
-| `@next/next/no-html-link-for-pages` | 1 | `<a href="/guardian/wards/">` | Use `<Link />` |
-| `@typescript-eslint/no-unused-vars` (warnings) | 24 | Unused imports/vars | Cleanup |
-
-Estimated effort: **~2 hours**, low risk. Caution: two `any` sites feed API response typing; widening to `unknown` can cascade — verify with `tsc` after each change.
-
-### 3.4 Production build — PASS
-```
-✓ Compiled successfully in 39.2s
-BUILD_EXIT=0
-```
-- Next.js **16.3.3** (webpack), PWA service worker emitted to `public/sw.js`, scope `/`.
-- 61 `page.tsx` routes prerendered/registered (static ○ or dynamic ƒ), including all five role areas.
-- Build was run with `NEXT_PUBLIC_API_URL=http://localhost:8085`, matching the CI value.
+**Caveat:** lint was verified against the *pre-`npm ci`* `node_modules`. After a clean install, re-run it — a newer `eslint-config-next` can introduce new rules.
 
 ---
 
-## 4. AI service
+## 4. PostgreSQL 16 verification (requested)
 
-### 4.1 Correct execution method
-The suite contains **live-server tests**. Running plain `pytest` without a server produced **31 failures / 572 passed** — every failure a connection/401 artefact. Executed as CI does (uvicorn on :8000, `INTERNAL_SECRET` exported), the result is:
+The local instance on `:5433` is **PostgreSQL 15.17**, so it cannot prove the 16 claim. A throwaway `postgres:16-alpine` container was used instead.
 
 ```
-603 passed, 58 deselected, 4 warnings in 133.79s
+Database: jdbc:postgresql://localhost:55432/elekeza_pg16 (PostgreSQL 16.16)
+Current version of schema "public": << Empty Schema >>
+Successfully applied 21 migrations to schema "public", now at version v21 (00:07.533s)
+Started ElekezaApplicationKt in 81.353 seconds
 ```
 
-**Root cause of the earlier 401s (recorded so nobody repeats it):** `tests/test_edge_cases.py` resolves its key as `os.environ.get("INTERNAL_SECRET", "elekeza-test-internal-key-not-a-secret")`, and `conftest` loads `ai-elewa/.env`, so a server booted with a *different* secret yields valid 401s. Pinning `INTERNAL_SECRET` on both sides makes all 31 pass (`31 passed in 77.80s`).
+| Check | Result |
+|---|---|
+| Server version | **16.16** ✅ |
+| Clean-schema migration V1→V21 | ✅ 21/21 |
+| `ddl-auto=validate` against real PG | ✅ app started |
+| Real-PG health (`/actuator/health`) | ✅ `{"status":"UP"}` (also verified on the PG15 instance, `elekeza_pg16_verify`, then dropped) |
+| Demo seed on `prod` | ✅ **refused** — `DemoSeedGuard` blocked startup because the demo dataset contains committed ADMIN credentials |
 
-> **Defect worth fixing (process, not product):** the suite is environment-coupled and reports 31 false failures unless the operator remembers to export the secret and boot the server. Recommend a `conftest` fixture that boots/points at the server, or marking the file `live` so it is excluded by default like the other live suites.
+The 21-migration run was additionally verified end-to-end on the PG15 instance in a **fresh** database (`elekeza_pg16_verify`), then dropped. No user database was modified.
 
-### 4.2 Service startup — PASS
-```
-INFO: Application startup complete.
-INFO: Uvicorn running on http://127.0.0.1:8000
-GET /health → {"status":"ok"} HTTP 200
-```
-Providers configured: `groq`, `openai`, `anthropic`, `google` (per-stage model map in `config.py`). Endpoints: `simplify`, `quiz`, `process`, `tutor`.
-
-Observed in the startup log (non-blocking, but note it):
-```
-WARNING:langfuse:Authentication error: Langfuse client initialized without public_key. Client will be disabled.
-INFO:langfuse_client:✅ Langfuse connected successfully
-```
-The two lines contradict each other — Langfuse reports success after disabling itself. Observability noise; fix the log assertion before trusting traces.
-
-### 4.3 NOT RUN — real provider
-All 603 tests use `AI_API_KEY=audit-dummy-not-real`. `test_full_pipeline.py` is marked `live_full` (54+ real LLM calls) and was **deselected**. **Therefore: "the AI tutor returns real, age-appropriate, Kiswahili/English responses from a live provider" is IMPLEMENTED BUT UNTESTED.** It needs a genuine key and ~10 minutes.
+**Cleanup:** the PG16 container and both scratch databases were removed. The user's `:5433` instance, its 14 existing databases, and the other project's containers were left untouched.
 
 ---
 
-## 5. Cross-service (frontend → backend → AI) — NOT RUN
+## 5. AI provider connectivity (requested)
 
-No backend process was started this session, so no end-to-end journey was executed. Prior evidence exists in the repo (`e2e-evidence/`, `docs/ELEKEZA_COMPLETION_AND_INTEGRATION_REGISTER.md`), but per this mandate it is **not** treated as current. To close Gate 4/5, run:
+A real Groq key was present in `ai-elewa/.env` (value never printed, logged or copied).
 
-```bash
-cd backend && ./gradlew bootRun --args='--spring.profiles.active=prod'   # needs .env contract
-cd frontend && npx playwright test
-```
+| Test | Result |
+|---|---|
+| `test_health` | ✅ |
+| `test_simplify_text_live` | ✅ real provider completion |
+| `test_quiz_generate_live` | ✅ real provider completion |
 
----
+**3/3 live tests passed** → backend→AI→provider code path works against the genuine API.
 
-## 6. Failed tests and their causes (complete register)
-
-| # | Failure | Cause | Status |
-|---|---|---|---|
-| 1–31 | `test_edge_cases.py` (all) — HTTP 401 instead of expected 422 | Live-server suite run without uvicorn and/or without matching `INTERNAL_SECRET` | **Resolved** — 31/31 pass when run correctly |
-| 32 | Vitest `ERR_LOAD_URL` | My `--reporter=basic` flag; reporter removed in Vitest 5 | **Resolved** — 34/34 pass |
-| 33 | ESLint 17 errors | Real code quality issues on this tree | **OPEN** — blocks CI |
-| 34 | `live_full` AI matrix | No real provider key available | **OPEN — BLOCKED BY CREDENTIALS** |
-| 35 | Playwright E2E | Not attempted (no live stack this session) | **OPEN — NOT RUN** |
-
-**Zero genuine product-logic test failures were observed.**
+**Not run:** the full `-m live_full` matrix (54+ real LLM calls). The 3-test smoke set proves connectivity; the matrix proves breadth, costs credits, and was not authorised. Run it with:
+`pytest tests/test_full_pipeline.py -m live_full`
 
 ---
 
-## 7. Reproduce this exact baseline
+## 6. What was verified vs not
 
-```bash
-# Backend
-cd backend && ./gradlew test --console=plain && ./gradlew bootJar
+**Verified on the consolidated tree:** backend compiles, all 410 backend tests pass, jar builds, frontend typechecks, frontend lints clean, 84 frontend unit tests pass, migrations apply on PG16, seed guard blocks, AI answers via a real provider.
 
-# Frontend
-cd frontend && npx tsc --noEmit && npx vitest run && npm run build
+**Not verified:** frontend production build and the full AI suite on the merged tree (disk full); Playwright E2E; a live five-role walkthrough against a running stack (no seeded PG16 data, by design of the seed guard); Android build.
 
-# AI (must boot the server first — it is a live-server suite)
-cd ai-elewa
-AI_PROVIDER=groq AI_API_KEY=<key> INTERNAL_SECRET=elekeza-test-internal-key-not-a-secret \
-  ./venv/Scripts/python.exe -m uvicorn main:app --port 8000 &
-INTERNAL_SECRET=elekeza-test-internal-key-not-a-secret \
-  ./venv/Scripts/python.exe -m pytest tests -q -m "not live and not live_full"
-```
+**No genuine product-logic test failure was observed at any point in this session.**

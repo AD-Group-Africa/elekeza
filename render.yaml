@@ -26,6 +26,10 @@ services:
         value: prod
       - key: PORT
         value: 8080
+      # The Dockerfile sizes the JVM for a 512 MB free instance. On `starter`
+      # (2 GB) give the heap room instead of paying for unused memory.
+      - key: JAVA_OPTS
+        value: -Xms256m -Xmx1200m -XX:+UseContainerSupport -XX:MaxRAMPercentage=70
       # Database — point at the production PostgreSQL instance
       - key: DB_URL
         sync: false

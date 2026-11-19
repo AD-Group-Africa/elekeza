@@ -1,9 +1,50 @@
+# frontend/netlify.toml
+# Netlify configuration for the Elekeza PWA.
+#
+# IMPORTANT: set the site's "Base directory" to `frontend` in the Netlify UI
+# (Site configuration -> Build & deploy -> Base directory). This file lives in
+# frontend/, so `base` is deliberately NOT set here -- setting both applies the
+# path twice and the build fails with "command not found: npm".
+
 [build]
   command = "npm run build"
   publish = ".next"
 
 [build.environment]
-  NETLIFY_NEXT_PLUGIN = "true"
+  NODE_VERSION = "20"
+  NEXT_TELEMETRY_DISABLED = "1"
 
+# Required for App Router SSR/ISR and image optimisation on Netlify.
 [[plugins]]
   package = "@netlify/plugin-nextjs"
+
+# The service worker must never be cached long-term, or clients keep running an
+# old shell after a deploy. Everything else is content-hashed by Next.
+[[headers]]
+  for = "/sw.js"
+  [headers.values]
+    Cache-Control = "no-cache, no-store, must-revalidate"
+
+[[headers]]
+  for = "/manifest.json"
+  [headers.values]
+    Cache-Control = "public, max-age=3600"
+
+[[headers]]
+  for = "/manifest.webmanifest"
+  [headers.values]
+    Cache-Control = "public, max-age=3600"
+
+# Baseline security headers. HSTS is applied by Netlify's HTTPS layer; these
+# cover the gaps Netlify does not set by default.
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    X-Frame-Options = "DENY"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=()"
+
+# NEXT_PUBLIC_API_URL is baked in at build time and next.config.ts throws if it
+# is missing in a production build. Set it in Netlify env vars (bare origin, NO
+# /api suffix) and redeploy after changing it.

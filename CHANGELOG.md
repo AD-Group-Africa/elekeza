@@ -72,3 +72,37 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 ---
 
 > Historical note: the `main` branch has not been updated since the MVP commit. Between June and November 2026 all work landed on feature, audit, release and `sprint-*` branches. Consolidating that history is the subject of `docs/REPOSITORY_CONSOLIDATION_REPORT.md`.
+
+---
+
+## [Unreleased] — consolidation executed (2026-11-19)
+
+### Added
+- Consolidated head `302d32e`: sprint-3 backend (privacy module, county-scoped deadlines,
+  V20/V21, auth hardening) merged with the 15-November frontend revamp.
+- `render.yaml` JAVA_OPTS for the starter plan (heap raised from 400 MB to 1200 MB).
+- `frontend/netlify.toml`: Node 20, service-worker no-cache, baseline security headers.
+
+### Changed
+- `main`, `develop`, `staging` now all point at `302d32e` **locally** (remotes untouched).
+- Old tips preserved: `backup/main-mvp-21512cb`, `backup/staging-orphan-3d8c738`,
+  `backup/develop-pre-consolidation`.
+- Retired the parallel frontend shell (`Sidebar`, `SidebarLayout`, `navConfig`,
+  `appShell.test`, 5 section layouts) in favour of `AppShell` + `config/navigation`.
+
+### Fixed
+- Frontend lint: stale `eslint-disable` for a rule removed in eslint-config-next 16.x.
+
+### Verified
+- Backend: 410/410 tests, bootJar OK. Frontend: tsc 0, eslint 0, vitest 84/84.
+- Flyway: 21/21 migrations on PostgreSQL **16.16**. AI: 3/3 live Groq smoke tests.
+- `DemoSeedGuard` refused to boot prod with demo seeding enabled (correct).
+
+### Blocked at time of writing
+- Frontend production build and the full AI suite could not run post-merge:
+  the C: drive reached 0 bytes free (`ENOSPC`). Re-run after freeing space.
+
+### Discovery
+- `origin/staging` is a **2-commit orphan history with no shared ancestor** (snapshot import,
+  1,077 files). Preserved as a patch, file manifest and Git bundle under
+  `backups/consolidation-2026-11-19/`.

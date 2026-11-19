@@ -154,3 +154,23 @@
 | 10 Release | ❌ Not reached |
 
 **2 gates pass, 4 partial, 4 blocked. Gate 1 is the critical path: nothing else can close until the branches are joined.**
+
+---
+
+# EXECUTION UPDATE — 2026-11-19 (supersedes the gate statuses above)
+
+| Gate | Status now | Notes |
+|---|---|---|
+| 1 Source consolidation | ✅ **LOCAL COMPLETE** | 6 conflicts resolved, nothing lost; `main`/`develop`/`staging` at `302d32e`. **Push pending owner approval.** |
+| 2 Backend | ✅ PASS | 410/410 tests, bootJar OK on the consolidated tree |
+| 3 AI | ⚠️ PARTIAL | 3/3 **real-provider** tests passed; full `live_full` matrix still not run; full suite blocked by disk |
+| 4 Frontend | ⚠️ PARTIAL | tsc 0, eslint 0, vitest 84/84; **production build blocked by ENOSPC**; E2E not run |
+| 5 Database | ✅ PASS (PG16) | 21/21 migrations on PostgreSQL 16.16; restore drill still not executed |
+| 6 Integrations | ❌ NOT READY | no credentials provisioned; adapters unverified |
+| 7 Deployment | ⚠️ CONFIGS READY | `render.yaml` + `netlify.toml` prepared; nothing deployed |
+| 8 Android | ⚠️ UNCHANGED | WebView wrapper; no signing config; APK stale |
+| 9 Security | ✅ PASS | no secrets; `DemoSeedGuard` verified in prod config |
+| 10 Release | ❌ NOT REACHED | needs push, deploy and live acceptance |
+
+**New hard blocker:** the workstation's C: drive is **100 % full (0 bytes free)**.
+Two suites cannot complete until space is freed — see `docs/testing/TEST_RESULTS.md` §1.
