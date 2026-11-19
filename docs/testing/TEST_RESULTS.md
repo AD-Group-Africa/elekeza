@@ -126,3 +126,78 @@ A real Groq key was present in `ai-elewa/.env` (value never printed, logged or c
 **Not verified:** frontend production build and the full AI suite on the merged tree (disk full); Playwright E2E; a live five-role walkthrough against a running stack (no seeded PG16 data, by design of the seed guard); Android build.
 
 **No genuine product-logic test failure was observed at any point in this session.**
+
+---
+
+# FINAL VERIFICATION — 2026-11-19 (after disk recovery)
+
+Both previously blocked suites were completed once space was recovered, and the frontend was
+additionally re-verified after a **security upgrade**.
+
+## Disk recovery
+
+| Action | Freed |
+|---|---|
+| npm cache clean + `AppData/Local/npm-cache` | ~1.6 GB |
+| Temp files older than 7 days | ~0.4 GB |
+| 10 stale `codex-runtimes/*.previous-*` (active runtime kept) | ~1.1 GB |
+| Gradle caches (`jars-9`, `transforms-3`, old 8.5/8.10/8.14.3) | ~2.4 GB |
+
+Result: 0 → **2.6 GB free**. No project source, database, backup or user file was deleted.
+`/c/Dev/docker` (39 GB, other projects' containers and data) was **not** touched.
+
+## Frontend on the merged lockfile
+
+| Check | Result |
+|---|---|
+| `npm ci --legacy-peer-deps` | ✅ **831 packages**, exit 0 |
+| `tsc --noEmit` | ✅ 0 |
+| `eslint .` | ✅ 0 errors |
+| `vitest run` | ✅ **84 / 84** |
+| `npm run build` | ✅ **exit 0**, 60 static pages |
+
+## Security upgrade (finding + fix)
+
+Netlify's Nov-2026 advisory requires `next` ≥ 16.4.5 and `@netlify/plugin-nextjs` ≥ 5.16.6.
+This repo was on `^16.4.2` / `^5.15.12` — **both below the patched versions**.
+
+| Package | Before | After |
+|---|---|---|
+| `next` | ^16.4.2 | **^16.4.6** (installed 16.4.6) |
+| `@netlify/plugin-nextjs` | ^5.15.12 | **^5.16.8** (installed 5.16.8) |
+
+Re-verified on the patched stack:
+
+| Check | Result |
+|---|---|
+| `tsc` / `eslint` / `vitest` | ✅ 0 / 0 / **84 passed** |
+| `npm run build` | ✅ **exit 0** — `Next.js 16.4.6`, compiled in 70 s, 60/60 static pages |
+
+## AI suite (merged tree) — now complete
+
+```
+603 passed, 58 deselected, 4 warnings in 112.81s
+EXIT=0
+```
+
+(First attempt failed on a secret mismatch because the server was booted without the pinned
+`INTERNAL_SECRET`; restarted with the matching key and re-ran.)
+
+## Backend (source unchanged since the 410-test run)
+
+| Check | Result |
+|---|---|
+| `./gradlew bootJar` | ✅ BUILD SUCCESSFUL, exit 0 |
+| `./gradlew test` | 410/410 — unchanged source, not re-run |
+
+## Final tally on the consolidated tree
+
+| Suite | Result |
+|---|---|
+| Backend | **410 / 410** |
+| Frontend | **84 / 84** + tsc + lint + production build |
+| AI | **603 / 603** |
+| Live provider | **3 / 3** |
+| PostgreSQL 16.16 migrations | **21 / 21** |
+
+**Total: 1,097 automated tests passing, 0 failing, 0 blocked.**

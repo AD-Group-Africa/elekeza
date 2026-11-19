@@ -106,3 +106,25 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 - `origin/staging` is a **2-commit orphan history with no shared ancestor** (snapshot import,
   1,077 files). Preserved as a patch, file manifest and Git bundle under
   `backups/consolidation-2026-11-19/`.
+
+## [Unreleased] — 2026-11-19 (final verification)
+
+### Fixed
+- **Security:** upgraded `next` `^16.4.2` → `^16.4.6` and `@netlify/plugin-nextjs` `^5.15.12` → `^5.16.8`
+  to meet Netlify's November 2026 advisory minimums (`next` 16.4.5+, adapter 5.16.6+). Full frontend
+  regression re-run on the patched stack: tsc 0, eslint 0, 84/84 tests, production build exit 0.
+
+### Added
+- `docs/archive/from-staging-orphan-2026-11-19/` — the 8 files unique to the `origin/staging` orphan
+  (AI strategy, cost model, financial model, decimal migration, 3 reliability runbooks, 1 abandoned
+  pipeline module) with a provenance README.
+- `docs/deployment/PR_MIGRATION_PLAN.md` — safe, reviewable path from the orphan/stale remotes to a
+  single promoted history, with a damage-free option for the `staging` pointer.
+- `FINAL_RELEASE_GATE_REPORT.md` — green / blocked-on-credentials / blocked-on-approval / not-verified.
+- `docs/deployment/DEPLOYMENT_GUIDE.md` — Netlify/Render validation, per-layer rollback, minimum env.
+
+### Verified
+- AI suite on the merged tree: **603 passed, 0 failed** (`artifacts/audit-2026-11-19/final-ai-suite2.log`).
+- `bootJar` BUILD SUCCESSFUL (exit 0) on the merged tree.
+- Production frontend build: **exit 0**, 60/60 static pages, on Next 16.4.6.
+- Disk recovered 0 → 2.6 GB free using caches only; no source, database, backup or user file deleted.

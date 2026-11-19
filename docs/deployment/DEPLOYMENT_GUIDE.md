@@ -153,3 +153,76 @@ Render keeps previous deploys. Rollback = **Deploys → choose last good → Red
 - [ ] `CORS_ALLOWED_ORIGINS` exactly matches the Netlify origin
 - [ ] `DEMO_SEED_ENABLED=FALSE`
 - [ ] **Owner has approved the production deployment**
+
+---
+
+# PRE-DEPLOY UPDATE — 2026-11-19 (verified)
+
+## Next.js / Netlify compatibility — action taken
+
+Netlify's November 2026 security advisory requires **`next` 16.4.5+** and **`@netlify/plugin-nextjs` 5.16.6+**
+(upgrading Next alone does not fix the middleware case on Netlify).
+
+This project pinned `next@^16.4.2` and `@netlify/plugin-nextjs@^5.15.12`, i.e. both below the patched
+versions. Both were upgraded and re-verified:
+
+| Package | Before | After | Verified |
+|---|---|---|---|
+| `next` | ^16.4.2 | **^16.4.6** (installed 16.4.6) | build passes |
+| `@netlify/plugin-nextjs` | ^5.15.12 | **^5.16.8** (installed 5.16.8) | installed |
+
+Netlify recommends **not pinning** the adapter so future fixes ship automatically. `^5.16.8` allows
+minor updates within v5; consider removing the package entirely and letting Netlify auto-install it.
+
+### Verified production build on the patched stack
+
+```
+▲ Next.js 16.4.6 (webpack)
+✓ Compiled successfully in 70s
+✓ Generating static pages using 7 workers (60/60)
+BUILD_EXIT=0
+```
+
+### Netlify settings (confirmed)
+
+| Setting | Value |
+|---|---|
+| Base directory | `frontend` (do **not** also set `base` in netlify.toml) |
+| Build command | `npm run build` |
+| Publish directory | `.next` |
+| Node | 20 (`NODE_VERSION` in netlify.toml) |
+| Plugin | `@netlify/plugin-nextjs` (App Router + SSR/ISR supported) |
+
+`NEXT_PUBLIC_API_URL` is **build-time**. It must be the bare backend origin with **no `/api`** suffix;
+`next.config.ts` throws if it is missing during a production build. Changing it requires a redeploy.
+
+## Render configuration (validated)
+
+`render.yaml` parses cleanly: 2 Docker services (`elekeza-backend`, `elekeza-ai`),
+**27 secret keys** declared `sync: false` (Render prompts; no value is in the repo), health checks
+`/actuator/health` and `/health`, `autoDeploy: false`, `JAVA_OPTS` sized for the `starter` plan.
+
+## Rollback (per layer)
+
+| Layer | Procedure | Caveat |
+|---|---|---|
+| Frontend | Netlify → Deploys → **Publish deploy** on the previous build | instant; no data risk |
+| Backend | Render → Deploys → **Redeploy** previous image | if Flyway ran, restore the pre-deploy dump first |
+| AI service | Render → Deploys → **Redeploy** previous | stateless |
+| Database | Restore pre-deploy `pg_dump` into a fresh instance, repoint `DB_URL` | migrations are forward-only |
+
+**Always take a `pg_dump` before the first production boot.** `scripts/db-backup.sh` does this;
+`scripts/db-restore-drill.sh` rehearses recovery.
+
+## Production environment variables
+
+Full register: `docs/deployment/ENVIRONMENT_VARIABLES.md`. Minimum set to boot:
+
+- Backend: `DB_URL`, `DB_USER`, `DB_PASSWORD`, `JWT_SECRET`, `AI_INTERNAL_SECRET`,
+  `AI_SERVICE_URL`, `CORS_ALLOWED_ORIGINS`, `FRONTEND_URL`, `SPRING_PROFILES_ACTIVE=prod`,
+  `DEMO_SEED_ENABLED=FALSE`, `SECURE_COOKIES=true`
+- AI: `AI_PROVIDER`, `AI_API_KEY`, `INTERNAL_SECRET` (**must equal** `AI_INTERNAL_SECRET`)
+- Frontend: `NEXT_PUBLIC_API_URL`
+
+`DemoSeedGuard` **refuses to start** the backend if `DEMO_SEED_ENABLED=TRUE` outside dev/test profiles —
+verified this session. That is intentional: the demo dataset contains committed admin credentials.
