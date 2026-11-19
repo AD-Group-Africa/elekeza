@@ -75,7 +75,7 @@ class GuardianSchoolDatesTest : ApiTestSupport() {
 
     @Test
     @Order(1)
-    fun `schedule includes national regional and linked-institution school dates`() {
+    fun `schedule includes national and linked-institution school dates, uncoded regional stays hidden`() {
         val today = LocalDate.now()
         deadline("National Exam Day", DeadlineType.EXAM, DeadlineScope.NATIONAL, null, zoneAt(today.plusDays(1)))
         deadline("Regional Science Fair", DeadlineType.SCHOOL_EVENT, DeadlineScope.REGIONAL, null, zoneAt(today.plusDays(2)))
@@ -90,7 +90,10 @@ class GuardianSchoolDatesTest : ApiTestSupport() {
         res.body?.forEach { t -> titles.add(t.get("title").asText()) }
         assertTrue(titles.contains("Sports Day"), "own-institution school date must appear, got $titles")
         assertTrue(titles.contains("National Exam Day"))
-        assertTrue(titles.contains("Regional Science Fair"))
+        // V20: regional dates are county-scoped (see RegionalCountyVisibilityTest).
+        // This fixture carries no county, so it must stay hidden rather than
+        // becoming globally visible.
+        assertTrue(!titles.contains("Regional Science Fair"), "uncoded regional deadline must not be globally visible, got $titles")
         assertTrue(titles.contains("Term Closing Day"))
 
         // School-date items carry the type marker and date fields.

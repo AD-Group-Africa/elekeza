@@ -2,9 +2,7 @@ package com.elekeza.backend.guardian
 
 import com.elekeza.backend.auth.User
 import com.elekeza.backend.auth.UserRepository
-import com.elekeza.backend.calendar.Deadline
-import com.elekeza.backend.calendar.DeadlineRepository
-import com.elekeza.backend.calendar.DeadlineScope
+import com.elekeza.backend.calendar.DeadlineVisibility
 import com.elekeza.backend.content.ContentRepository
 import com.elekeza.backend.institution.GuardianLinkRepository
 import com.elekeza.backend.learner.LessonProgressRepository
@@ -22,7 +20,7 @@ class GuardianScheduleController(
     private val userRepo: UserRepository,
     private val lessonProgressRepo: LessonProgressRepository,
     private val contentRepo: ContentRepository,
-    private val deadlineRepo: DeadlineRepository,
+    private val deadlineVisibility: DeadlineVisibility,
 ) {
 
     /**
@@ -34,7 +32,11 @@ class GuardianScheduleController(
     @GetMapping("/schedule")
     @PreAuthorize("hasAnyRole('GUARDIAN', 'ADMIN')")
     fun getSchedule(@AuthenticationPrincipal guardian: User): ResponseEntity<List<Map<String, Any>>> {
-        val links = guardianLinkRepo.findAll().filter { it.guardianId == guardian.id }
+        // Only ACTIVE links grant ward data: revoked (isActive=false or
+        // revokedAt set) and expired (expiresAt in the past) links must not
+        // surface the ward's pending lessons — same lifecycle rule as the
+        // deadline visibility below (GuardianLink.currentlyActive()).
+        val links = guardianLinkRepo.findAll().filter { it.guardianId == guardian.id && it.currentlyActive() }
         val items = mutableListOf<Map<String, Any>>()
         links.forEach { link ->
             val learner = userRepo.findById(link.learnerId).orElse(null) ?: return@forEach
@@ -56,10 +58,12 @@ class GuardianScheduleController(
         // school calendar anywhere — /api/deadlines existed but was never
         // surfaced to them. Merge every deadline that is visible to this
         // guardian under the exact visibility rule of DEADLINE /.api/deadlines
-        // (NATIONAL, REGIONAL, own-institution, or own personal) into the
-        // same schedule payload, upcoming only.
+        // (NATIONAL, county-matched REGIONAL, own-institution, or own
+        // personal) into the same schedule payload, upcoming only. The rule
+        // itself lives in DeadlineVisibility so this endpoint cannot drift
+        // away from /api/deadlines again.
         val today = LocalDate.now()
-        visibleDeadlines(guardian)
+        deadlineVisibility.visibleDeadlines(guardian)
             .filter { it.dueAt.atZone(ZoneId.systemDefault()).toLocalDate() >= today }
             .forEach { d ->
                 items.add(mapOf(
@@ -76,21 +80,4 @@ class GuardianScheduleController(
         return ResponseEntity.ok(items)
     }
 
-    /**
-     * Guardian-visible deadlines, tenant-safe: NATIONAL/REGIONAL are public,
-     * but institution-scope items require an ACTIVE guardian link to a learner
-     * of that institution (guardians carry no institutionId of their own).
-     * A guardian's personal deadlines (userId) are included too.
-     */
-    private fun visibleDeadlines(user: User): List<Deadline> {
-        val linkedInstitutionIds = guardianLinkRepo.findByGuardianId(user.id)
-            .filter { it.currentlyActive() }
-            .mapNotNull { link -> userRepo.findById(link.learnerId).orElse(null)?.institutionId }
-            .toSet()
-        return deadlineRepo.findAll().filter { d ->
-            d.scope == DeadlineScope.NATIONAL || d.scope == DeadlineScope.REGIONAL ||
-                (d.institutionId != null && d.institutionId in linkedInstitutionIds) ||
-                d.userId == user.id
-        }
-    }
 }

@@ -28,6 +28,14 @@ data class Deadline(
     @Column(name = "due_at", nullable = false) val dueAt: Instant,
     @Column(columnDefinition = "TEXT") val description: String? = null,
     @Column(name = "created_by", nullable = false) val createdBy: Long,
+    /**
+     * County this deadline belongs to, stored in canonical form via
+     * [CountyKey.normalize]. Only meaningful for [DeadlineScope.REGIONAL];
+     * null means "not scoped to a county", and an unscoped regional row is
+     * visible to nobody (fail closed). Rows created before V20 are null and
+     * must be corrected deliberately — never backfilled by guesswork.
+     */
+    @Column(name = "county_code", length = 64) val countyCode: String? = null,
     @Column(name = "created_at") val createdAt: Instant = Instant.now()
 )
 
@@ -35,4 +43,21 @@ data class Deadline(
 interface DeadlineRepository : JpaRepository<Deadline, Long> {
     fun findByInstitutionIdOrderByDueAtAsc(institutionId: Long): List<Deadline>
     fun findByUserIdOrderByDueAtAsc(userId: Long): List<Deadline>
+
+    // ── Query-level scoping (V20 county model) ──────────────────────────────
+    // Visibility is decided in the database rather than by loading every row
+    // and filtering in memory. The guardian/deadline endpoints must never
+    // depend on a full-table scan as the school calendar grows.
+
+    fun findByScopeOrderByDueAtAsc(scope: DeadlineScope): List<Deadline>
+
+    fun findByScopeAndCountyCodeInOrderByDueAtAsc(
+        scope: DeadlineScope,
+        countyCodes: Collection<String>
+    ): List<Deadline>
+
+    fun findByScopeInAndInstitutionIdInOrderByDueAtAsc(
+        scopes: Collection<DeadlineScope>,
+        institutionIds: Collection<Long>
+    ): List<Deadline>
 }
