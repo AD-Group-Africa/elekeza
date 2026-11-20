@@ -1,3 +1,9 @@
+> **CORRECTION (2026-11-20): this plan's core premise was wrong.** `main` and `develop` share
+> **no ancestry** with the consolidated line (three unrelated histories — roots `a374599`, `6a6ddfc`,
+> `fd7cf09`). **No fast-forward is possible for any of the three protected branches.** See
+> `docs/deployment/ANCESTRY_CORRECTION_2026-11-20.md` for the verified facts and the four options
+> (archive-then-replace recommended). The steps below remain valid only in so far as they are additive.
+
 # PULL-REQUEST MIGRATION PLAN (remote, not executed)
 
 **Date:** 2026-11-19

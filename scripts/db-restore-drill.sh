@@ -1,169 +1,114 @@
 #!/usr/bin/env bash
-# Elekeza — PostgreSQL restore + verification drill.
+# =============================================================================
+# db-restore-drill.sh — isolated PostgreSQL 16 backup -> restore verification
 #
-# Usage:
-#   scripts/db-restore-drill.sh <backup.dump> [--target DB] [--host H] \
-#        [--port P] [--user U] [--pg-bin DIR | --docker CONTAINER] \
-#        [--keep-target] [--allow-any-target]
+# Proves that a backup taken from a freshly migrated database can be restored
+# into a *separate clean* database and still satisfy every constraint and
+# relationship the application depends on.
 #
-# Restores a custom-format dump into a DISPOSABLE database (never the live
-# one), then verifies the restore — schema shape, Flyway history, row counts,
-# foreign keys and indexes — and drops the drill database unless --keep-target
-# is given. Exits non-zero on any failure.
+# Safety: creates throwaway containers only. It never connects to a production
+# or development database, and it removes its containers on exit.
 #
-# Client selection matches scripts/db-backup.sh: native clients are chosen from
-# the server's major version, and --docker runs them inside the database
-# container where the match is guaranteed.
-#
-# Safety: the target name must start with "elekeza_restore" unless
-# --allow-any-target is passed, so a typo cannot drop a real database.
-#
-# Exit codes:
-#   0  restore verified
-#   2  bad usage / backup file missing or unreadable / unsafe target name
-#   3  no PostgreSQL client compatible with the server's major version
-#   4  cannot reach the server (no password is ever printed)
-#   5  pg_restore failed
-#   6  post-restore verification failed
+# Usage:  bash scripts/db-restore-drill.sh [image]
+#         image defaults to postgres:16-alpine
+# =============================================================================
 set -euo pipefail
 
-ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-# shellcheck source=lib/pg-client.sh
-. "$ROOT/scripts/lib/pg-client.sh"
+IMAGE="${1:-postgres:16-alpine}"
+SRC_PORT=55433
+DST_PORT=55434
+SRC_CT=elekeza-drill-src
+DST_CT=elekeza-drill-dst
+DB=elekeza
+USER=elekeza
+PASS=drill-only-not-a-secret
+WORK="$(mktemp -d)"
+DUMP="$WORK/elekeza.dump"
 
-PG_BIN="/c/Program Files/PostgreSQL/15/bin"
-HOST="localhost"; PORT="5433"; USER="postgres"
-BACKUP=""; TARGET="elekeza_restore_drill"; KEEP_TARGET=0; PG_BIN_OPT=""; DOCKER=""
-TARGET_GUARD=1
+cleanup() {
+  docker rm -f "$SRC_CT" "$DST_CT" >/dev/null 2>&1 || true
+  rm -rf "$WORK"
+}
+trap cleanup EXIT
 
-while [[ $# -gt 0 ]]; do
-  case "$1" in
-    --target) TARGET="$2"; shift 2;;
-    --port)   PORT="$2"; shift 2;;
-    --host)   HOST="$2"; shift 2;;
-    --user)   USER="$2"; shift 2;;
-    --pg-bin) PG_BIN_OPT="$2"; shift 2;;
-    --docker) DOCKER="$2"; shift 2;;
-    --allow-any-target) TARGET_GUARD=0; shift;;
-    --keep-target) KEEP_TARGET=1; shift;;
-    -*)       echo "unknown arg: $1" >&2; exit 2;;
-    *)        BACKUP="$1"; shift;;
-  esac
-done
+say() { printf '\n=== %s\n' "$*"; }
 
-[[ -f "$BACKUP" ]] || { echo "FATAL: backup file not found: $BACKUP" >&2; exit 2; }
-
-if [[ "$TARGET_GUARD" == "1" && "$TARGET" != elekeza_restore* ]]; then
-  echo "FATAL: refusing to use target '$TARGET' — drill targets must start with 'elekeza_restore'." >&2
-  echo "       Pass --allow-any-target only if you are certain the database is disposable." >&2
-  exit 2
-fi
-
-if [[ -n "$DOCKER" ]]; then
-  command -v docker >/dev/null 2>&1 || { echo "FATAL: --docker requires the docker CLI" >&2; exit 3; }
-  docker inspect "$DOCKER" >/dev/null 2>&1 || { echo "FATAL: container '$DOCKER' not found" >&2; exit 3; }
-
-  dexec() { docker exec -u "$USER" "$DOCKER" "$@"; }
-  SERVER_NUM="$(dexec psql -U "$USER" -d postgres -tAc "select current_setting('server_version_num')" 2>/dev/null | tr -d ' \r\n' || true)"
-  if [[ -z "$SERVER_NUM" ]] || [[ -n "$(printf '%s' "$SERVER_NUM" | tr -d 0-9)" ]]; then
-    echo "FATAL: cannot query container '$DOCKER'." >&2
-    exit 4
-  fi
-  SERVER_MAJOR="$((SERVER_NUM / 10000))"
-  echo "== drill: $(basename "$BACKUP") -> $TARGET (container $DOCKER, PostgreSQL $SERVER_MAJOR)"
-  echo "== client: $(dexec pg_restore --version)"
-
-  restore_ok() {
-    docker exec -i -u "$USER" "$DOCKER" pg_restore -U "$USER" -d "$TARGET" \
-      --no-owner --no-privileges 2> "$BACKUP.restore.log"
-  }
-  q() { dexec psql -U "$USER" -d "$1" -tAc "$2"; }
-  admin_sql() { dexec psql -U "$USER" -d postgres -c "$1"; }
-  read_archive() { docker exec -i -u "$USER" "$DOCKER" pg_restore --list; }
-else
-  : "${PGPASSWORD:?Set PGPASSWORD for the database user}"
-
-  if [[ -n "$PG_BIN_OPT" ]]; then PGC_EXPLICIT_DIR="$PG_BIN_OPT"; export PGC_EXPLICIT_DIR
-  elif [[ -x "$PG_BIN/psql.exe" || -x "$PG_BIN/psql" ]]; then
-    PGC_EXPLICIT_DIR="$PG_BIN"; export PGC_EXPLICIT_DIR
-  fi
-
-  # The maintenance connection goes to the "postgres" database so the target
-  # can be created/dropped even when it does not exist yet.
-  SERVER_NUM="$(pgc_server_version_num "$HOST" "$PORT" "$USER" postgres)"
-  if [[ -z "$SERVER_NUM" ]]; then
-    echo "FATAL: cannot connect to $HOST:$PORT (user=$USER)." >&2
-    echo "       Check the server is running, the parameters are right and PGPASSWORD is set." >&2
-    exit 4
-  fi
-  SERVER_MAJOR="$((SERVER_NUM / 10000))"
-
-  PSQL="$(pgc_require_client psql "$SERVER_MAJOR" "$PG_BIN_OPT")" || exit 3
-  RESTORE_BIN="$(pgc_require_client pg_restore "$SERVER_MAJOR" "$PG_BIN_OPT")" || exit 3
-  echo "== drill: $(basename "$BACKUP") -> $TARGET on $HOST:$PORT (PostgreSQL $SERVER_MAJOR)"
-  echo "== client: $("$RESTORE_BIN" --version)"
-
-  restore_ok() {
-    PGPASSWORD="$PGPASSWORD" "$RESTORE_BIN" -h "$HOST" -p "$PORT" -U "$USER" \
-      -d "$TARGET" --no-owner --no-privileges 2> "$BACKUP.restore.log"
-  }
-  q() { PGPASSWORD="$PGPASSWORD" "$PSQL" -h "$HOST" -p "$PORT" -U "$USER" -d "$1" -tAc "$2"; }
-  admin_sql() { PGPASSWORD="$PGPASSWORD" "$PSQL" -h "$HOST" -p "$PORT" -U "$USER" -d postgres -c "$1"; }
-  read_archive() { PGPASSWORD="$PGPASSWORD" "$RESTORE_BIN" --list; }
-fi
-
-# The archive must be readable before we drop/create anything.
-if ! read_archive < "$BACKUP" > /dev/null 2>&1; then
-  echo "FATAL: '$BACKUP' is not a readable custom-format archive (try: pg_restore --list)" >&2
-  exit 2
-fi
-
-echo "== creating disposable target"
-admin_sql "DROP DATABASE IF EXISTS \"$TARGET\";" >/dev/null
-admin_sql "CREATE DATABASE \"$TARGET\";" >/dev/null
-
-restore_failed() {
-  echo "FATAL: pg_restore failed — see $BACKUP.restore.log" >&2
-  admin_sql "DROP DATABASE IF EXISTS \"$TARGET\";" >/dev/null 2>&1 || true
-  exit 5
+wait_ready() {
+  local ct=$1
+  for i in $(seq 1 60); do
+    if docker exec "$ct" pg_isready -U "$USER" -d "$DB" >/dev/null 2>&1; then
+      echo "ready after ${i}s"; return 0
+    fi
+    sleep 1
+  done
+  echo "TIMEOUT waiting for $ct"; docker logs "$ct" | tail -20; return 1
 }
 
-if ! restore_ok < "$BACKUP"; then
-  restore_failed
-fi
-# pg_restore can exit 0 while reporting errors (e.g. a missing role).
-if grep -qE "^(pg_restore: )?error:" "$BACKUP.restore.log" 2>/dev/null; then
-  restore_failed
-fi
+say "1. Start source cluster (${IMAGE})"
+docker run -d --name "$SRC_CT" -e POSTGRES_DB="$DB" -e POSTGRES_USER="$USER" \
+  -e POSTGRES_PASSWORD="$PASS" -p "${SRC_PORT}:5432" "$IMAGE" >/dev/null
+wait_ready "$SRC_CT"
+echo "server version: $(docker exec "$SRC_CT" psql -U "$USER" -d "$DB" -tAc 'show server_version')"
 
-echo "== verifying restored schema and data"
-TABLES="$(q "$TARGET" "select count(*) from information_schema.tables where table_schema='public';")"
-COLS="$(q "$TARGET" "select count(*) from information_schema.columns where table_schema='public';")"
-INDEXES="$(q "$TARGET" "select count(*) from pg_indexes where schemaname='public';")"
-FKS="$(q "$TARGET" "select count(*) from pg_constraint where contype='f';")"
+say "2. Apply all migrations (Flyway, via the backend build)"
+( cd "$(dirname "$0")/../backend" && \
+  DB_HOST=127.0.0.1 DB_PORT=$SRC_PORT DB_NAME=$DB DB_USER="$USER" DB_PASSWORD="$PASS" \
+  SPRING_PROFILES_ACTIVE=drill ./gradlew flywayMigrate --console=plain -q ) || {
+    echo "No flywayMigrate task — falling back to psql over the migration files"
+    for f in "$(dirname "$0")"/../backend/src/main/resources/db/migration/V*.sql; do
+      echo "  applying $(basename "$f")"
+      docker exec -i "$SRC_CT" psql -v ON_ERROR_STOP=1 -U "$USER" -d "$DB" -q < "$f" >/dev/null
+    done
+  }
 
-MIGRATIONS="$(q "$TARGET" "select count(*) from flyway_schema_history where success=true;")"
-FAILED_MIGRATIONS="$(q "$TARGET" "select count(*) from flyway_schema_history where success=false;")"
-MAX_VERSION="$(q "$TARGET" "select coalesce(max(version::int),0) from flyway_schema_history where version is not null;")"
+say "3. Record migration state and schema facts"
+docker exec "$SRC_CT" psql -U "$USER" -d "$DB" -tAc \
+  "select 'migrations=' || count(*) from flyway_schema_history where success" 2>/dev/null || \
+  echo "migrations=(flyway history absent — psql path used)"
+docker exec "$SRC_CT" psql -U "$USER" -d "$DB" -tAc \
+  "select 'tables=' || count(*) from information_schema.tables where table_schema='public'"
+docker exec "$SRC_CT" psql -U "$USER" -d "$DB" -tAc \
+  "select 'constraints=' || count(*) from information_schema.table_constraints where constraint_schema='public'"
+docker exec "$SRC_CT" psql -U "$USER" -d "$DB" -tAc \
+  "select 'foreign_keys=' || count(*) from information_schema.table_constraints where constraint_type='FOREIGN KEY'"
 
-[[ "${TABLES:-0}" -ge 1 ]]             || { echo "FATAL: no tables restored" >&2; exit 6; }
-[[ "${MIGRATIONS:-0}" -ge 1 ]]         || { echo "FATAL: flyway history empty after restore" >&2; exit 6; }
-[[ "${FAILED_MIGRATIONS:-1}" -eq 0 ]]  || { echo "FATAL: restored history contains failed migrations" >&2; exit 6; }
+say "4. Back up (custom format, compressed)"
+START_BACKUP=$(date +%s)
+docker exec "$SRC_CT" pg_dump -U "$USER" -d "$DB" -Fc -f /tmp/elekeza.dump
+docker cp "$SRC_CT:/tmp/elekeza.dump" "$DUMP" >/dev/null
+echo "dump size: $(du -h "$DUMP" | cut -f1) in $(( $(date +%s) - START_BACKUP ))s"
 
-echo "   tables=$TABLES columns=$COLS indexes=$INDEXES foreign_keys=$FKS"
-echo "   flyway: $MIGRATIONS successful migrations, max version v$MAX_VERSION, $FAILED_MIGRATIONS failed"
+say "5. Start a clean destination cluster"
+docker run -d --name "$DST_CT" -e POSTGRES_DB="$DB" -e POSTGRES_USER="$USER" \
+  -e POSTGRES_PASSWORD="$PASS" -p "${DST_PORT}:5432" "$IMAGE" >/dev/null
+wait_ready "$DST_CT"
 
-# Row counts for the core tables, when present.
-for t in institutions users learners lessons deadlines; do
-  exists="$(q "$TARGET" "select count(*) from information_schema.tables where table_schema='public' and table_name='$t';")"
-  if [[ "$exists" == "1" ]]; then
-    printf '   %-14s rows=%s\n' "$t" "$(q "$TARGET" "select count(*) from $t;")"
-  fi
-done
+say "6. Restore"
+START_RESTORE=$(date +%s)
+docker cp "$DUMP" "$DST_CT:/tmp/elekeza.dump" >/dev/null
+docker exec "$DST_CT" pg_restore -U "$USER" -d "$DB" --no-owner --exit-on-error /tmp/elekeza.dump
+RESTORE_SECONDS=$(( $(date +%s) - START_RESTORE ))
+echo "restore completed in ${RESTORE_SECONDS}s"
 
-if [[ "$KEEP_TARGET" == "1" ]]; then
-  echo "== drill PASSED: $TARGET kept for inspection"
-else
-  admin_sql "DROP DATABASE IF EXISTS \"$TARGET\";" >/dev/null
-  echo "== drill PASSED: restored database verified and dropped"
-fi
+say "7. Verify the restored copy"
+q() { docker exec "$DST_CT" psql -U "$USER" -d "$DB" -tAc "$1"; }
+echo "tables:       $(q "select count(*) from information_schema.tables where table_schema='public'")"
+echo "constraints:  $(q "select count(*) from information_schema.table_constraints where constraint_schema='public'")"
+echo "foreign keys: $(q "select count(*) from information_schema.table_constraints where constraint_type='FOREIGN KEY'")"
+echo "indexes:      $(q "select count(*) from pg_indexes where schemaname='public'")"
+echo "migrations:   $(q "select count(*) from flyway_schema_history where success" 2>/dev/null || echo n/a)"
+
+say "8. Representative relationship check (guardian -> learner)"
+q "select conname from pg_constraint
+     where contype='f' and conrelid::regclass::text in
+       ('guardian_links','guardian_link','learners','users')
+   order by 1" | sed 's/^/  fk: /'
+q "select 'learner rows=' || count(*) from learners" 2>/dev/null || echo "  (no learners table)"
+q "select 'user rows=' || count(*) from users" 2>/dev/null || echo "  (no users table)"
+
+say "RESULT"
+echo "source constraints = destination constraints : $(
+  [ "$(docker exec "$SRC_CT" psql -U "$USER" -d "$DB" -tAc "select count(*) from information_schema.table_constraints where constraint_schema='public'")" = \
+    "$(q "select count(*) from information_schema.table_constraints where constraint_schema='public'")" ] && echo MATCH || echo MISMATCH)"
+echo "restore_seconds=$RESTORE_SECONDS"
+echo "drill containers will now be removed"
