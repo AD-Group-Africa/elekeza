@@ -35,11 +35,15 @@
   [headers.values]
     Cache-Control = "public, max-age=3600"
 
-# Baseline security headers. HSTS is applied by Netlify's HTTPS layer; these
-# cover the gaps Netlify does not set by default.
+# Baseline security headers. Netlify does NOT add HSTS by default, so it is
+# declared explicitly here; Netlify always serves the site over HTTPS with a
+# valid certificate, which is the precondition for enabling it. includeSubDomains
+# and preload are deliberately omitted: Elekeza does not own every subdomain of
+# a future custom domain, and preload is irreversible in browsers.
 [[headers]]
   for = "/*"
   [headers.values]
+    Strict-Transport-Security = "max-age=31536000"
     X-Content-Type-Options = "nosniff"
     X-Frame-Options = "DENY"
     Referrer-Policy = "strict-origin-when-cross-origin"

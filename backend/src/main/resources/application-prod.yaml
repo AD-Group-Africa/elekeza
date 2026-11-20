@@ -25,6 +25,14 @@ management:
     mail:
       enabled: false
 
+server:
+  # Render terminates TLS at its proxy and forwards X-Forwarded-Proto/-For.
+  # Without this, request.isSecure() is false and request.remoteAddr is the
+  # proxy address, which would suppress HSTS and collapse per-IP rate limiting
+  # onto a single bucket. Only correct because the service is reachable solely
+  # through that proxy; confirm the same holds for any future host.
+  forward-headers-strategy: framework
+
 ai:
   base-url: ${AI_SERVICE_URL:https://elekeza-ai.onrender.com}
   internal-secret: ${AI_INTERNAL_SECRET}

@@ -15,7 +15,11 @@ services:
   - type: web
     name: elekeza-backend
     runtime: docker
-    plan: starter            # 512 MB free tier is not enough for JVM + Hibernate; starter = 2 GB
+    # `standard` (1 CPU / 2 GB, $25/mo list price checked Nov 2026) — NOT
+    # `starter`: Starter is 0.5 CPU / 512 MB, which cannot hold a Spring Boot
+    # heap plus Hibernate. JAVA_OPTS below sizes the heap for 2 GB; running it
+    # on Starter would OOM-loop. Cost must be approved before provisioning.
+    plan: standard
     region: frankfurt
     rootDir: backend
     dockerfilePath: ./Dockerfile
@@ -47,6 +51,12 @@ services:
       - key: JWT_SECRET
         sync: false
       - key: SECURE_COOKIES
+        value: "true"
+      # Render always serves the service over HTTPS with a valid certificate on
+      # *.onrender.com, which is the precondition for HSTS. Only set this to
+      # "true" on a host you have confirmed serves TLS; see
+      # docs/deployment/SECURITY_REMEDIATION_REPORT_2026-11-20.md.
+      - key: HSTS_ENABLED
         value: "true"
       # AI service wiring (must match the ai-service hostname below)
       - key: AI_SERVICE_URL
@@ -110,8 +120,10 @@ services:
     name: elekeza-ai
     runtime: docker
     # A free instance spins down; a cold start blows the backend's 120 s AI
-    # timeout and the tutor appears broken. Paid, always-on is required.
-    plan: starter
+    # timeout and the tutor appears broken. Paid, always-on is required, and
+    # Tesseract/OCR + pandas need more than Starter's 512 MB.
+    # `standard` = 1 CPU / 2 GB, $25/mo list price checked Nov 2026.
+    plan: standard
     region: frankfurt
     rootDir: ai-elewa
     dockerfilePath: ./Dockerfile

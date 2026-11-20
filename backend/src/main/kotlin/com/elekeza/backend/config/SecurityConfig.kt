@@ -15,6 +15,7 @@ import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository
+import org.springframework.security.web.header.writers.StaticHeadersWriter
 import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler
 import org.springframework.web.cors.CorsConfiguration
 import org.springframework.web.cors.CorsConfigurationSource
@@ -27,6 +28,17 @@ class SecurityConfig(private val jwtAuthFilter: JwtAuthFilter) {
 
     @Value("\${app.cors.allowed-origins}")
     private lateinit var allowedOriginsRaw: String
+
+    // HSTS is opt-in. It is only correct once the origin is a verified HTTPS
+    // host, because a browser that receives it will refuse plain HTTP for the
+    // whole max-age window. Staging/production set HSTS_ENABLED=true; local
+    // and H2 test runs leave it off.
+    //
+    // Field injection (not a constructor parameter): this @Configuration class
+    // is CGLIB-enhanced, and an extra constructor argument breaks instantiation
+    // of the generated subclass.
+    @Value("\${app.security.hsts-enabled:false}")
+    private var hstsEnabled: Boolean = false
 
     @Bean
     fun passwordEncoder(): PasswordEncoder = BCryptPasswordEncoder()
@@ -45,6 +57,26 @@ class SecurityConfig(private val jwtAuthFilter: JwtAuthFilter) {
             .headers { headers ->
                 headers.contentSecurityPolicy("frame-ancestors 'none'")
                 headers.referrerPolicy { referrer -> referrer.policy(org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter.ReferrerPolicy.NO_REFERRER) }
+                // Not part of Spring's defaults: the API never needs a camera,
+                // microphone or location, so deny them outright.
+                headers.addHeaderWriter(
+                    StaticHeadersWriter("Permissions-Policy", "camera=(), microphone=(), geolocation=()")
+                )
+                // Default is already nosniff; set it explicitly so the header is
+                // guaranteed even if a future Spring default changes.
+                headers.addHeaderWriter(StaticHeadersWriter("X-Content-Type-Options", "nosniff"))
+                if (hstsEnabled) {
+                    // No includeSubDomains/preload: Elekeza does not own every
+                    // subdomain of its custom domain, and preload is irreversible
+                    // in browsers.
+                    // includeSubDomains is explicitly FALSE: the writer's
+                    // default is true, which would bind every sibling subdomain
+                    // of the deployment domain for a year. preload stays at its
+                    // false default (irreversible once browsers ship it).
+                    headers.httpStrictTransportSecurity { hsts ->
+                        hsts.includeSubDomains(false).maxAgeInSeconds(31_536_000)
+                    }
+                }
             }
             .csrf {
                 it.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())

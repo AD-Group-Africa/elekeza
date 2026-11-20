@@ -251,14 +251,56 @@ Real Chromium against a real Spring Boot jar and a real Next dev server, seeded 
 
 ## Dependency audit
 
-`npm audit`: production dependencies carry **9 advisories** — 1 high (`follow-redirects`), 3 moderate
-(`glob`, `minimatch`, `rimraf`), 5 low (PWA toolchain). All have fixes available; the high is
-transitive. Including dev dependencies: 15 advisories (adds `@typescript-eslint/*` moderates).
-**Not yet remediated** — a lockfile change requires re-running the whole frontend regression, so it is
-scheduled rather than applied during this sprint.
+`npm audit`: production dependencies carried **9 advisories** — 1 high (`follow-redirects`), 3 moderate
+(`glob`, `minimatch`, `rimraf`), 5 low (PWA toolchain). **These have since been remediated — see §4.**
 
 ## Secret scan
 
 `git grep` over the working tree and over 400 commits of history for GitHub/OpenAI/AWS/Slack tokens and
 private-key blocks: **0 hits**. No tracked `.env`, keystore, `.p12` or `.pem`. Only `.env.example` files
 are tracked.
+
+---
+
+# 4. Release sprint — 2026-11-20 (security remediation + regression)
+
+**Candidate:** `baed7f4` on `consolidation/2026-11-19` (working tree adds the remediation below, not yet committed at the time of the runs).
+All figures are from commands executed today; none are reused from an earlier section.
+
+| Check | Command | Result |
+|---|---|---|
+| Backend suite | `cd backend && ./gradlew cleanTest test --console=plain` | ✅ **417 tests / 64 suites / 0 failures / 0 skipped** (4 m 38 s). 410 → 417: seven new header/correlation tests |
+| Backend build | `./gradlew bootJar` | ✅ BUILD SUCCESSFUL (8 s), 101,070,224-byte jar |
+| Frontend typecheck | `npx tsc --noEmit` | ✅ exit 0 |
+| Frontend unit | `npx vitest run` | ✅ **84 passed / 84** (12 files), 12.94 s |
+| Frontend production build | `npm run build` (`next build --webpack`) | ✅ exit 0, 60 routes |
+| Browser E2E | `npx playwright test` (real jar + real `next dev`) | ✅ **46 passed / 46**, exit 0, **7 m 36 s** |
+| Dependency audit | `npm audit --json` | ✅ **0 high / 0 critical**; 14 total (9 moderate, 5 low), all build-time — was 15 with 1 high |
+| Dependency install | `npm install --legacy-peer-deps` | ✅ exit 0; `follow-redirects` resolved to **1.16.3** |
+| Config validity | parse `AndroidManifest.xml`, `netlify.toml`, `render.yaml` | ✅ all three parse |
+
+## What the seven new backend tests assert
+
+`SecurityHeadersTest` (5): baseline headers present; HSTS absent when not enabled; `X-Request-Id` generated
+when absent; a safe inbound id preserved; an unsafe inbound id **replaced, never reflected**.
+
+`HstsHeaderTest` (2): HSTS emitted on a secure request when enabled; withheld on plain HTTP even when enabled.
+
+> `HstsHeaderTest` first failed because `HstsHeaderWriter` defaults `includeSubDomains` to **true**. The
+> production configuration was corrected, not the assertion. That is the test doing its job.
+
+## Dependency remediation detail
+
+`follow-redirects@1.16.1` (transitive under `axios@1.20.0`, advisory GHSA-mrwp-f3q8-3g9p, affected
+`>=1.16.0 <=1.16.1`) → pinned to `^1.16.3` by an npm `overrides` entry. No major upgrade of any direct
+dependency. Remaining 14 advisories are the ESLint plugin family, `glob`/`minimatch`/`rimraf`, and the
+`next-pwa`/Workbox build chain — none reachable at runtime, and the only npm-suggested fix for the PWA chain is
+a semver-major downgrade.
+
+## Deliberately not run
+
+- **Hosted acceptance:** no staging environment exists (`docs/testing/FIVE_ROLE_HOSTED_ACCEPTANCE_REPORT.md`).
+- **AI service suite:** passed 603/603 in this sprint's earlier phase; not re-run after the frontend-only and
+  backend-header changes, because no AI code changed in this phase.
+- **Android build:** no staging URL to point the shell at, and no signing configuration
+  (`docs/deployment/ANDROID_RELEASE_READINESS.md`).

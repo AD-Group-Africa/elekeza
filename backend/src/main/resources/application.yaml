@@ -94,6 +94,13 @@ app:
   upload-dir: ${UPLOAD_DIR:uploads}
   max-upload-bytes: ${MAX_UPLOAD_BYTES:10485760}
   secure-cookies: ${SECURE_COOKIES:true}
+  security:
+    # Emit Strict-Transport-Security. Leave FALSE until the host is a verified
+    # HTTPS origin: browsers honour the header for a year and refuse plain HTTP
+    # afterwards, so enabling it early can lock users out of a domain that is
+    # not yet TLS-ready. Staging/production set HSTS_ENABLED=true once HTTPS has
+    # been confirmed (see docs/deployment/SECURITY_REMEDIATION_REPORT_2026-11-20.md).
+    hsts-enabled: ${HSTS_ENABLED:false}
   login-rate-limit:
     max-attempts: ${LOGIN_MAX_ATTEMPTS:5}
     window-seconds: ${LOGIN_RATE_LIMIT_WINDOW_SECONDS:60}
@@ -112,5 +119,9 @@ logging:
   level:
     root: INFO
     com.elekeza: INFO
+  pattern:
+    # requestId comes from RequestCorrelationFilter: one client-visible failure
+    # can be traced to exactly one log line.
+    level: "%5p [%X{requestId:--}] %logger{36} - %msg%n"
 
 

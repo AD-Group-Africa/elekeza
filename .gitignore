@@ -82,3 +82,8 @@ ai-elewa/config.py.before-qwen.ps1
 backend/flyway-validation/
 .cloud-attachments/
 *.bak
+
+# Generated AI source dump (repomix export of the ai-elewa tree). Not read by
+# any application code; it embeds synthetic test fixtures and duplicated source.
+# Kept out of version control, never deleted from disk automatically.
+ai-elewa/repomix-*.xml
