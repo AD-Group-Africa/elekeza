@@ -13,13 +13,13 @@ export const GUARDIAN = { email: 'parent@elekeza.app', password: 'parent123' }
  * Wave 0 (TEST-P1-01): the platform ADMIN is seeded by `AttendanceFinanceSeed`
  * (@Profile("dev")), so it exists for the E2E backend.
  *
- * Known gap, deliberately not papered over: there is NO school administrator in
- * the dev seed. Flyway V2 creates `admin@elekeza.app` as SCHOOL_ADMIN, but the
- * dev profile disables Flyway and the Kotlin seed uses that address for the
- * platform ADMIN instead. School-administrator journeys therefore cannot be
- * exercised until a SCHOOL_ADMIN fixture is seeded (backlog R-06/R-27).
+ * Resolved (was backlog R-06/R-27): the dev seed now also creates a
+ * SCHOOL_ADMIN attached to the demo institution, so the school-admin surfaces
+ * can be exercised against real data instead of only against a freshly
+ * onboarded empty school.
  */
 export const ADMIN = { email: 'admin@elekeza.app', password: 'admin123' }
+export const SCHOOL_ADMIN = { email: 'schooladmin@elekeza.app', password: 'schooladmin123' }
 
 export async function login(page: Page, email: string, password: string) {
   await page.goto('/login')

@@ -96,7 +96,7 @@ Previous-day docs were corrected rather than duplicated.
 | Frontend types | `npx tsc --noEmit` | exit 0 |
 | Frontend unit | `npx vitest run` | **84 / 84** |
 | Frontend build | `npm run build` | exit 0, 60 routes |
-| Browser E2E | `npx playwright test` | **46 / 46**, exit 0 (7 m 36 s) |
+| Browser E2E | `npx playwright test` | **52 / 52**, exit 0 (8 m 42 s) — 46 journeys plus 6 school-admin/platform-admin module checks added under the activation directive |
 | Dependency audit | `npm audit --json` | **0 high, 0 critical** (14 moderate/low, build-time) |
 | Config parse | XML / TOML / YAML | all valid |
 | Database drill | (run earlier this sprint) | 21/21 migrations, restore verified, schema + row parity |

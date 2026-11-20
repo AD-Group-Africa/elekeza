@@ -46,6 +46,19 @@ class DataInitializer(
         teacher.institutionId = 1L
         userRepository.save(teacher)
 
+        // School administrator for the SAME institution as the demo teacher and
+        // learner. Without this fixture the school-admin surfaces could only be
+        // exercised by onboarding a brand-new empty school (which renders honest
+        // zeros), so no admin screen was ever proven to show real data. Dev
+        // profile only — DemoSeedGuard refuses demo seeding outside dev/test.
+        val schoolAdmin = createUserIfAbsent(
+            "schooladmin@elekeza.app", "schooladmin123", "Grace Njeri", UserRole.SCHOOL_ADMIN
+        )
+        if (schoolAdmin.institutionId != teacher.institutionId) {
+            schoolAdmin.institutionId = teacher.institutionId
+            userRepository.save(schoolAdmin)
+        }
+
         val student = createUserIfAbsent("student@elekeza.app", "student123", "Juma Ali", UserRole.STUDENT)
         // The student must belong to the same institution as the teacher, or
         // every teacher-scoped query (support signals, analytics, interventions)

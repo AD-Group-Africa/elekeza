@@ -304,3 +304,44 @@ a semver-major downgrade.
   backend-header changes, because no AI code changed in this phase.
 - **Android build:** no staging URL to point the shell at, and no signing configuration
   (`docs/deployment/ANDROID_RELEASE_READINESS.md`).
+
+---
+
+# 5. Full-activation directive — 2026-11-20
+
+**Scope:** module inventory + activation, not a re-run of §4. Only new work is recorded here.
+
+| Check | Command | Result |
+|---|---|---|
+| Backend suite (after seeding a SCHOOL_ADMIN) | `./gradlew cleanTest test --console=plain` | ✅ **417 tests / 64 suites / 0 failures / 0 skipped** (4 m) |
+| New school-admin acceptance spec | `npx playwright test school-admin-modules` | ✅ **6 / 6 passed**, EXIT=0 (2.9 m) |
+| SCHOOL_ADMIN fixture, live | `POST /api/auth/login` on the built jar | ✅ `http=200`, `role=SCHOOL_ADMIN`, `institutionId=1` |
+| Backend artifact integrity | `zipfile.testzip()` + manual boot + `curl /actuator/health` | ✅ 950 entries, no bad entry; `{"status":"UP"}` in 46 s |
+
+## Inventory figures (measured, not estimated)
+
+| Layer | Count |
+|---|---|
+| Spring controllers / route mappings | 44 classes / **191 mappings** |
+| Next.js routes / frontend call paths | **61** routes / **118** distinct `apiClient` paths |
+| PostgreSQL tables | **61** |
+| FastAPI endpoints | 8 (7 + health) |
+| Backend test classes | 64 |
+| E2E specs | 11 |
+
+Cross-check result: **0 frontend calls without a backend route**, 0 page files without a screen component,
+0 screen files missing on disk. The API-only surfaces (curriculum authoring, privacy/consent, retention,
+audit, billing, staff deactivation, device assignment, exam manual marking) are capability without UI, not
+dead code — recorded as AMBER in the activation matrix.
+
+## Two verification failures, and their real causes
+
+Neither was a product defect; both were environment, and both are described in
+`docs/operations/ELEKEZA_MODULE_ACTIVATION_MATRIX.md` §7:
+
+1. A killed Playwright run left `java` on 8090 and `next dev` on 3100 alive → next run aborted with
+   "already used". Fixed by killing the listener PIDs.
+2. A `java -jar` that started while `bootJar` was still writing produced
+   `NoClassDefFoundError: ch/qos/logback/classic/spi/ThrowableProxy` on every Tomcat thread, and the app
+   never reached "Started". Fixed by rebuilding the jar, verifying zip integrity, and booting it once by hand
+   before re-running the suite.
