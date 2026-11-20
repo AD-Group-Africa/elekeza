@@ -201,3 +201,64 @@ EXIT=0
 | PostgreSQL 16.16 migrations | **21 / 21** |
 
 **Total: 1,097 automated tests passing, 0 failing, 0 blocked.**
+
+---
+
+# RELEASE SPRINT — 2026-11-20 (head `a489682`, all results fresh)
+
+Every number below was produced today by the command shown. No historical result was reused; when
+Gradle reported tests `UP-TO-DATE` the run was forced with `cleanTest` and repeated.
+
+| Suite | Command | Result |
+|---|---|---|
+| Backend | `./gradlew cleanTest test` | **410 / 410**, 62 suites, 0 failures (6m51s) |
+| Backend jar | `./gradlew bootJar` | BUILD SUCCESSFUL (14s) |
+| Frontend deps | `npm ci --legacy-peer-deps` | **831 packages**, exit 0 (3m) |
+| TypeScript | `npx tsc --noEmit` | exit 0 |
+| ESLint | `npx eslint .` | exit 0, 1 warning |
+| Unit tests | `npx vitest run` | **84 / 84**, 12 files |
+| Production build | `npm run build` | **exit 0**, Next.js 16.4.6, 60 static pages |
+| AI service | `pytest -m "not live and not live_full"` | **603 / 603** (105s) |
+| **Browser E2E** | `npx playwright test` | **46 / 46 passed**, 6.5 min, Chromium |
+
+## Browser E2E — what actually ran
+
+Real Chromium against a real Spring Boot jar and a real Next dev server, seeded PostgreSQL, no mocks:
+
+- accessibility (WCAG 2.1 AA automated) across learner, teacher and guardian surfaces
+- attendance register + finance views for teacher, guardian and school admin
+- full exam journey: start → timer → autosave → submit → scored result, plus 409 on replay
+- learner journey: home → lesson → read → practice quiz → score → progress
+- messaging round-trip (guardian → teacher)
+- mobile viewports
+- theme persistence across devices, per-role colour families
+- **role guards: a learner opening a school-admin page is blocked and no admin API is called;
+  a teacher cannot open guardian or finance pages**
+
+## PostgreSQL 16 restore drill
+
+| Step | Result |
+|---|---|
+| Fresh cluster | PostgreSQL **16.16** |
+| Migrations | **21 / 21** applied in **4.774 s** |
+| Schema | 62 tables, 592 constraints, 93 FKs, 183 indexes |
+| Backup | `pg_dump -Fc`, 216 KB, **2 s** |
+| Restore into a separate clean DB | **exit 0**, **9–11 s** |
+| Schema parity | identical: 62 tables / 592 constraints / 93 FKs / 183 indexes |
+| Row parity (seeded copy) | institutions 1=1, users 5=5, guardian_links 1=1 — **all MATCH** |
+| Relationship integrity | `parent@elekeza.app -> student@elekeza.app` intact after restore |
+| Destructive risk | none — throwaway containers only, removed afterwards |
+
+## Dependency audit
+
+`npm audit`: production dependencies carry **9 advisories** — 1 high (`follow-redirects`), 3 moderate
+(`glob`, `minimatch`, `rimraf`), 5 low (PWA toolchain). All have fixes available; the high is
+transitive. Including dev dependencies: 15 advisories (adds `@typescript-eslint/*` moderates).
+**Not yet remediated** — a lockfile change requires re-running the whole frontend regression, so it is
+scheduled rather than applied during this sprint.
+
+## Secret scan
+
+`git grep` over the working tree and over 400 commits of history for GitHub/OpenAI/AWS/Slack tokens and
+private-key blocks: **0 hits**. No tracked `.env`, keystore, `.p12` or `.pem`. Only `.env.example` files
+are tracked.
